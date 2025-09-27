@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sublime Blog – Login</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: linear-gradient(135deg,#0a0f1f,#1e1e2f);
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header / Nav */
+    header {
+      background:#0a0f1f;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:1rem 2rem;
+    }
+    .logo {
+      display:flex;
+      align-items:center;
+      gap:0.5rem;
+    }
+    .logo img {
+      height:40px;
+    }
+    nav {
+      display:flex;
+      gap:1rem;
+    }
+    nav a {
+      text-decoration:none;
+      color:#f0f0f0;
+      transition:color 0.2s;
+    }
+    nav a:hover {color:#00c6ff;}
+    .hamburger {
+      display:none;
+      flex-direction:column;
+      cursor:pointer;
+    }
+    .hamburger div {
+      width:25px;height:3px;background:#f0f0f0;margin:4px 0;
+      transition:0.4s;
+    }
+    @media(max-width:768px){
+      nav { 
+        position:fixed;
+        top:0;right:-40%;
+        height:100%;
+        width:40%;
+        background:#141428;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+        transition:right 0.3s ease;
+      }
+      nav.active{ right:0; }
+      .hamburger { display:flex; }
+    }
+
+    /* Login Card */
+    .login-container {
+      flex:1;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:2rem;
+    }
+    .login-box {
+      background:#1b1b2e;
+      padding:2rem;
+      border-radius:12px;
+      width:100%;
+      max-width:400px;
+      box-shadow:0 0 20px rgba(0,0,0,0.5);
+    }
+    .login-box h1 {
+      text-align:center;
+      margin-bottom:1rem;
+      font-weight:600;
+    }
+    .login-box input {
+      width:100%;
+      padding:0.8rem;
+      margin:0.5rem 0;
+      border:none;
+      border-radius:6px;
+      background:#2b2b44;
+      color:#f0f0f0;
+    }
+    .login-box input:focus {outline:2px solid #00c6ff;}
+    .btn {
+      width:100%;
+      padding:0.8rem;
+      margin-top:0.8rem;
+      border:none;
+      border-radius:6px;
+      background:#00c6ff;
+      color:#0a0f1f;
+      font-weight:bold;
+      cursor:pointer;
+      transition:background 0.3s;
+    }
+    .btn:hover {background:#00a6d1;}
+    .google-btn {
+      background:#ffffff;
+      color:#333;
+      margin-top:1rem;
+    }
+    .forgot {
+      display:block;
+      text-align:right;
+      margin-top:0.5rem;
+      font-size:0.9rem;
+    }
+    .forgot a {color:#00c6ff;text-decoration:none;}
+    .forgot a:hover {text-decoration:underline;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="logo.png" alt="Sublime Blog Logo">
+      <span>Sublime Blog</span>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()">
+      <div></div><div></div><div></div>
+    </div>
+    <nav id="navMenu">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </header>
+
+  <div class="login-container">
+    <div class="login-box">
+      <h1>Account Login</h1>
+      <form>
+        <input type="email" placeholder="Email" required>
+        <input type="password" placeholder="Password" required>
+        <button class="btn" type="submit">Login</button>
+        <span class="forgot"><a href="#">Forgot Password?</a></span>
+      </form>
+      <button class="btn google-btn" type="button">
+        Sign in with Google
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu(){
+      document.getElementById('navMenu').classList.toggle('active');
+    }
+  </script>
+</body>
+</html>
