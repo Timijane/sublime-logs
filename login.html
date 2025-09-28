@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sublime Blog Login</title>
-<link rel="stylesheet" href="css/style.css">
 <style>
   body {
     margin:0;
@@ -25,28 +24,16 @@
     box-shadow: 0 0 20px #00c6ff;
     text-align:center;
   }
-  .container img {
-    width:80px;
-    margin-bottom:1rem;
-  }
+  .container img { width:80px; margin-bottom:1rem; }
   h2 { margin-bottom:1rem; color:#00c6ff; }
   input {
-    width:100%;
-    padding:0.75rem;
-    margin:0.5rem 0;
-    border-radius:6px;
-    border:none;
+    width:100%; padding:0.75rem; margin:0.5rem 0;
+    border-radius:6px; border:none;
   }
   button {
-    width:100%;
-    padding:0.75rem;
-    margin:0.5rem 0;
-    border:none;
-    border-radius:6px;
-    background:#00c6ff;
-    color:#000;
-    font-weight:bold;
-    cursor:pointer;
+    width:100%; padding:0.75rem; margin:0.5rem 0;
+    border:none; border-radius:6px;
+    background:#00c6ff; color:#000; font-weight:bold; cursor:pointer;
   }
   button:hover { background:#009acd; color:#fff; }
   .google-btn { background:#db4437; color:#fff; margin-top:1rem; }
@@ -57,17 +44,14 @@
 </head>
 <body>
 
+<!-- Login Form -->
 <div class="container login-container">
   <img src="logo.png" alt="Sublime Blog Logo">
   <h2>Login to Sublime Blog</h2>
-
-  <!-- Login Form -->
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="password" placeholder="Password">
   <button id="loginBtn">Login</button>
-
   <button class="google-btn" id="googleLoginBtn">Login with Google</button>
-
   <p><a href="#" id="forgotPassword">Forgot Password?</a></p>
   <p>Don't have an account? <a href="#" id="showSignUp">Create Account</a></p>
 </div>
@@ -90,7 +74,7 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-
 // Keep users logged in
 setPersistence(auth, browserLocalPersistence);
 
-// Auto-login if user is already signed in
+// Auto-login if user already signed in
 onAuthStateChanged(auth, user => {
   if(user) window.location.href = "dashboard.html";
 });
@@ -99,7 +83,7 @@ onAuthStateChanged(auth, user => {
 const loginContainer = document.querySelector('.login-container');
 const signupContainer = document.querySelector('.signup-container');
 
-// Toggle to Sign Up form
+// Toggle Sign Up Form
 document.getElementById('showSignUp').addEventListener('click', () => {
   loginContainer.classList.add('hidden');
   signupContainer.classList.remove('hidden');
@@ -120,7 +104,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     await signInWithEmailAndPassword(auth, email, password);
     window.location.href = "dashboard.html";
   }catch(err){
-    alert("Error: " + err.message);
+    alert("Login Error: " + err.message);
   }
 });
 
@@ -130,16 +114,14 @@ document.getElementById('googleLoginBtn').addEventListener('click', async () => 
   try{
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    // Create wallet in Firestore if new user
-    const walletRef = doc(db, "wallets", user.uid);
-    await setDoc(walletRef, { balance: 0 }, { merge: true });
+    await setDoc(doc(db, "wallets", user.uid), { balance: 0 }, { merge:true });
     window.location.href = "dashboard.html";
   }catch(err){
-    alert("Error: " + err.message);
+    alert("Google Login Error: " + err.message);
   }
 });
 
-// Create Account
+// Sign Up
 document.getElementById('signupBtn').addEventListener('click', async () => {
   const email = document.getElementById('signupEmail').value;
   const password = document.getElementById('signupPassword').value;
@@ -148,12 +130,11 @@ document.getElementById('signupBtn').addEventListener('click', async () => {
   try{
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    // Create wallet in Firestore
     await setDoc(doc(db, "wallets", user.uid), { balance: 0 });
     alert("Account created! Logging in...");
     window.location.href = "dashboard.html";
   }catch(err){
-    alert("Error: " + err.message);
+    alert("Sign Up Error: " + err.message);
   }
 });
 
@@ -165,10 +146,9 @@ document.getElementById('forgotPassword').addEventListener('click', async () => 
     await sendPasswordResetEmail(auth, email);
     alert("Password reset email sent!");
   }catch(err){
-    alert("Error: " + err.message);
+    alert("Reset Error: " + err.message);
   }
 });
 </script>
-
 </body>
 </html>
