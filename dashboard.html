@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sublime Blog - Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #1b1b2f;
+    color: #fff;
+    margin: 0;
+  }
+  header {
+    background: #0f0c29;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 10px #00c6ff;
+  }
+  header h1 {
+    color: #00c6ff;
+    margin: 0;
+  }
+  header button {
+    background: #db4437;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .container {
+    padding: 2rem;
+  }
+  .section {
+    background: rgba(0,0,0,0.75);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 10px #00c6ff;
+  }
+  .section h2 { color: #00c6ff; margin-bottom: 1rem; }
+  .number-card {
+    background: #24243e;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .btn {
+    padding: 0.5rem 1rem;
+    background: #00c6ff;
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .btn:hover { background: #009acd; color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Dashboard</h1>
+  <button id="logoutBtn">Logout</button>
+</header>
+
+<div class="container">
+  <div class="section">
+    <h2>Welcome, <span id="userName"></span></h2>
+    <p>Your dashboard gives you access to number verification services and OTP requests.</p>
+  </div>
+
+  <div class="section">
+    <h2>Available Numbers</h2>
+    <div id="numberList">
+      <!-- Number cards will appear here -->
+      <div class="number-card">
+        <span>+1 234 567 8901</span>
+        <button class="btn">Request OTP</button>
+      </div>
+      <div class="number-card">
+        <span>+44 7123 456789</span>
+        <button class="btn">Request OTP</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth } from './js/firebase.js';
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+// Protect dashboard: only allow logged-in users
+onAuthStateChanged(auth, user => {
+  if(!user){
+    window.location.href = "login.html";
+  } else {
+    document.getElementById('userName').textContent = user.displayName || user.email;
+  }
+});
+
+// Logout button
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  signOut(auth).then(() => {
+    window.location.href = "login.html";
+  });
+});
+
+// Placeholder for OTP button clicks
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    alert("Requesting OTP for this number (placeholder). Integration with SMS Activate API coming next.");
+  });
+});
+</script>
+
+</body>
+</html>
