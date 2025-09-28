@@ -1,166 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | Sublime Logs</title>
-  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'David', sans-serif;
-      background: #fdf6e3; /* creamy white */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sublime Logs | Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=David&display=swap" rel="stylesheet">
+<style>
+/* ---------- BODY & CARD ---------- */
+body {
+  font-family: 'David', sans-serif;
+  background-color: #fff8f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
 
-    .login-container {
-      background: #fff;
-      padding: 40px;
-      border-radius: 15px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-      width: 350px;
-      text-align: center;
-    }
+.card {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  width: 360px;
+  text-align: center;
+}
 
-    .login-container h2 {
-      font-family: 'Lobster', cursive;
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-      color: #6a0dad; /* radiant purple */
-    }
+/* ---------- TITLES ---------- */
+.card h2 {
+  font-family: 'Lobster', cursive;
+  font-size: 32px;
+  margin-bottom: 20px;
+  color: #9b59b6;
+}
 
-    .login-container input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-    }
+/* ---------- INPUTS ---------- */
+input {
+  width: 100%;
+  padding: 12px 15px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  outline: none;
+  font-size: 16px;
+}
 
-    .login-container button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(90deg, #6a0dad, #ff69b4); /* radiant purple to pink */
-      color: #fff;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
+/* ---------- BUTTONS ---------- */
+button {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #9b59b6, #ff2d95);
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
 
-    .login-container button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
+button:hover {
+  opacity: 0.9;
+}
 
-    #google-login {
-      margin-top: 15px;
-      background: #4285F4;
-    }
+/* ---------- GOOGLE BUTTON ---------- */
+#google-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #4285F4;
+  margin-top: 10px;
+}
 
-    #google-login:hover {
-      background: #357ae8;
-    }
+#google-login img {
+  width: 20px;
+  margin-right: 10px;
+}
 
-    .login-container p {
-      margin-top: 15px;
-      font-size: 0.9rem;
-    }
-
-    .login-container a {
-      color: #6a0dad;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .login-container a:hover {
-      text-decoration: underline;
-    }
-  </style>
+/* ---------- FORGOT PASSWORD ---------- */
+#forgot-btn {
+  background: transparent;
+  color: #9b59b6;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 5px;
+}
+</style>
 </head>
 <body>
-  <div class="login-container">
-    <h2>Sublime Logs</h2>
-    <form id="login-form">
-      <input type="email" id="email" placeholder="Email" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <button type="submit">Login</button>
-    </form>
-    <button id="google-login">Login with Google</button>
-    <p>Don't have an account? <a href="register.html">Sign Up</a></p>
-    <p><a href="#" id="forgot-password">Forgot Password?</a></p>
-  </div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+<div class="card">
+  <h2>Login to Sublime Logs</h2>
 
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "sublime-logs.firebaseapp.com",
-      projectId: "sublime-logs",
-      storageBucket: "sublime-logs.firebasestorage.app",
-      messagingSenderId: "381847722551",
-      appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-      measurementId: "G-8YHHJC1MP7"
-    };
+  <!-- EMAIL/PASSWORD LOGIN -->
+  <form id="login-form">
+    <input type="email" id="login-email" placeholder="Email" required>
+    <input type="password" id="login-password" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+  <!-- GOOGLE LOGIN -->
+  <button id="google-login">
+    <img src="google-logo.png" alt="Google"> Login with Google
+  </button>
 
-    // Keep users logged in
-    setPersistence(auth, browserLocalPersistence);
+  <!-- FORGOT PASSWORD -->
+  <button id="forgot-btn">Forgot Password?</button>
+</div>
 
-    // Email/Password login
-    const loginForm = document.getElementById('login-form');
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+<!-- ---------- FIREBASE SDK ---------- -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          alert(`Welcome back, ${user.email}!`);
-          window.location.href = "dashboard.html"; // redirect to dashboard
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
-    });
+  // ---------- FIREBASE CONFIG ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
+    authDomain: "sublime-logs.firebaseapp.com",
+    projectId: "sublime-logs",
+    storageBucket: "sublime-logs.firebasestorage.app",
+    messagingSenderId: "381847722551",
+    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
+    measurementId: "G-8YHHJC1MP7"
+  };
 
-    // Google login
-    const googleButton = document.getElementById('google-login');
-    googleButton.addEventListener('click', () => {
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          const user = result.user;
-          alert(`Welcome back, ${user.displayName || user.email}!`);
-          window.location.href = "dashboard.html";
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
-    });
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
 
-    // Forgot password
-    document.getElementById('forgot-password').addEventListener('click', () => {
-      const email = prompt("Enter your email for password reset:");
-      if(email) {
-        sendPasswordResetEmail(auth, email)
-          .then(() => alert("Password reset email sent!"))
-          .catch(err => alert(err.message));
-      }
-    });
-  </script>
+  // ---------- EMAIL/PASSWORD LOGIN ----------
+  const loginForm = document.getElementById("login-form");
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("Login successful!");
+      window.location.href = "dashboard.html"; // redirect after login
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+
+  // ---------- GOOGLE LOGIN ----------
+  const googleBtn = document.getElementById("google-login");
+  googleBtn.addEventListener("click", async () => {
+    try {
+      await signInWithPopup(auth, provider);
+      alert("Login successful!");
+      window.location.href = "dashboard.html"; // redirect after login
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+
+  // ---------- FORGOT PASSWORD ----------
+  const forgotBtn = document.getElementById("forgot-btn");
+  forgotBtn.addEventListener("click", async () => {
+    const email = prompt("Enter your email for password reset:");
+    if (!email) return;
+    try {
+      await sendPasswordResetEmail(auth, email);
+      alert("Password reset email sent!");
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+</script>
+
 </body>
 </html>
