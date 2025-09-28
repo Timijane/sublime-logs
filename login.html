@@ -3,171 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sublime Logs | Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Lobster&family=David&display=swap" rel="stylesheet">
+<title>Sublime Logs - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* ---------- BODY & CARD ---------- */
-body {
-  font-family: 'David', sans-serif;
-  background-color: #fff8f0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
-}
-
-.card {
-  background-color: #ffffff;
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  width: 360px;
-  text-align: center;
-}
-
-/* ---------- TITLES ---------- */
-.card h2 {
-  font-family: 'Lobster', cursive;
-  font-size: 32px;
-  margin-bottom: 20px;
-  color: #9b59b6;
-}
-
-/* ---------- INPUTS ---------- */
-input {
-  width: 100%;
-  padding: 12px 15px;
-  margin: 10px 0;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  outline: none;
-  font-size: 16px;
-}
-
-/* ---------- BUTTONS ---------- */
-button {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #9b59b6, #ff2d95);
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-/* ---------- GOOGLE BUTTON ---------- */
-#google-login {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #4285F4;
-  margin-top: 10px;
-}
-
-#google-login img {
-  width: 20px;
-  margin-right: 10px;
-}
-
-/* ---------- FORGOT PASSWORD ---------- */
-#forgot-btn {
-  background: transparent;
-  color: #9b59b6;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 5px;
-}
+  body {
+    font-family: 'David', sans-serif;
+    margin: 0;
+    background: #fefefe;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .login-container {
+    background: #fff;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    width: 350px;
+    text-align: center;
+  }
+  .login-container h1 {
+    font-family: 'Lobster', cursive;
+    font-size: 2.5em;
+    color: #9b59b6;
+    margin-bottom: 10px;
+  }
+  .login-container p {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  input[type="email"], input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 1em;
+  }
+  .password-wrapper {
+    position: relative;
+  }
+  #toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-weight: bold;
+    color: #9b59b6;
+    user-select: none;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #9b59b6, #e91e63);
+    color: #fff;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  button:hover {
+    opacity: 0.9;
+  }
+  .google-login {
+    margin-top: 15px;
+    background: #db4437;
+  }
+  a {
+    display: block;
+    margin-top: 10px;
+    color: #9b59b6;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>Login to Sublime Logs</h2>
-
-  <!-- EMAIL/PASSWORD LOGIN -->
+<div class="login-container">
+  <h1>Sublime Logs</h1>
+  <p>Sign in to your account</p>
+  
+  <!-- Email/Password Login -->
   <form id="login-form">
     <input type="email" id="login-email" placeholder="Email" required>
-    <input type="password" id="login-password" placeholder="Password" required>
+    
+    <div class="password-wrapper">
+      <input type="password" id="login-password" placeholder="Password" required>
+      <span id="toggle-password">👁️</span>
+    </div>
+    
     <button type="submit">Login</button>
   </form>
 
-  <!-- GOOGLE LOGIN -->
-  <button id="google-login">
-    <img src="google-logo.png" alt="Google"> Login with Google
-  </button>
+  <!-- Google Login -->
+  <button class="google-login" id="google-login">Login with Google</button>
 
-  <!-- FORGOT PASSWORD -->
-  <button id="forgot-btn">Forgot Password?</button>
+  <a href="register.html">Create an account</a>
+  <a href="#" id="forgot-password">Forgot password?</a>
 </div>
 
-<!-- ---------- FIREBASE SDK ---------- -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { auth, provider } from './js/firebase.js';
+  import { signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
-  // ---------- FIREBASE CONFIG ----------
-  const firebaseConfig = {
-    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-    authDomain: "sublime-logs.firebaseapp.com",
-    projectId: "sublime-logs",
-    storageBucket: "sublime-logs.firebasestorage.app",
-    messagingSenderId: "381847722551",
-    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-    measurementId: "G-8YHHJC1MP7"
-  };
+  // Show/Hide Password
+  const togglePassword = document.getElementById('toggle-password');
+  const passwordInput = document.getElementById('login-password');
+  togglePassword.addEventListener('click', () => {
+    passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+  });
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  // ---------- EMAIL/PASSWORD LOGIN ----------
-  const loginForm = document.getElementById("login-form");
-  loginForm.addEventListener("submit", async (e) => {
+  // Email/Password Login
+  const loginForm = document.getElementById('login-form');
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById("login-email").value;
-    const password = document.getElementById("login-password").value;
-
+    const email = document.getElementById('login-email').value;
+    const password = passwordInput.value;
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Login successful!");
-      window.location.href = "dashboard.html"; // redirect after login
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      alert(`Welcome ${userCredential.user.email}`);
+      // Redirect to dashboard
+      window.location.href = "dashboard.html";
     } catch (error) {
       alert(error.message);
     }
   });
 
-  // ---------- GOOGLE LOGIN ----------
-  const googleBtn = document.getElementById("google-login");
-  googleBtn.addEventListener("click", async () => {
+  // Google Login
+  const googleBtn = document.getElementById('google-login');
+  googleBtn.addEventListener('click', async () => {
     try {
-      await signInWithPopup(auth, provider);
-      alert("Login successful!");
-      window.location.href = "dashboard.html"; // redirect after login
+      const result = await signInWithPopup(auth, provider);
+      alert(`Welcome ${result.user.displayName}`);
+      window.location.href = "dashboard.html";
     } catch (error) {
       alert(error.message);
     }
   });
 
-  // ---------- FORGOT PASSWORD ----------
-  const forgotBtn = document.getElementById("forgot-btn");
-  forgotBtn.addEventListener("click", async () => {
+  // Forgot Password
+  const forgotPassword = document.getElementById('forgot-password');
+  forgotPassword.addEventListener('click', async () => {
     const email = prompt("Enter your email for password reset:");
-    if (!email) return;
-    try {
-      await sendPasswordResetEmail(auth, email);
-      alert("Password reset email sent!");
-    } catch (error) {
-      alert(error.message);
+    if (email) {
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("Password reset email sent!");
+      } catch (error) {
+        alert(error.message);
+      }
     }
   });
 </script>
