@@ -7,22 +7,22 @@
 <style>
   body {
     margin:0;
-    font-family: 'Segoe UI', sans-serif;
+    font-family:'Segoe UI',sans-serif;
     background: linear-gradient(120deg,#0f0c29,#302b63);
-    color: #fff;
+    color:#fff;
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
   }
   .container {
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.8);
     padding:2rem;
     border-radius:12px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 0 20px #00c6ff;
+    width:90%;
+    max-width:400px;
     text-align:center;
+    box-shadow: 0 0 20px #00c6ff;
   }
   .container img { width:80px; margin-bottom:1rem; }
   h2 { margin-bottom:1rem; color:#00c6ff; }
@@ -47,7 +47,7 @@
 <!-- Login Form -->
 <div class="container login-container">
   <img src="logo.png" alt="Sublime Blog Logo">
-  <h2>Login to Sublime Blog</h2>
+  <h2>Login</h2>
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="password" placeholder="Password">
   <button id="loginBtn">Login</button>
@@ -67,88 +67,102 @@
 </div>
 
 <script type="module">
-import { auth, db } from './js/firebase.js';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { auth, db } from './js/firebase.js';
+  import { 
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    sendPasswordResetEmail,
+    GoogleAuthProvider,
+    signInWithPopup,
+    setPersistence,
+    browserLocalPersistence,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-// Keep users logged in
-setPersistence(auth, browserLocalPersistence);
+  document.addEventListener('DOMContentLoaded', () => {
 
-// Auto-login if user already signed in
-onAuthStateChanged(auth, user => {
-  if(user) window.location.href = "dashboard.html";
-});
+    // Keep users logged in
+    setPersistence(auth, browserLocalPersistence);
 
-// DOM Elements
-const loginContainer = document.querySelector('.login-container');
-const signupContainer = document.querySelector('.signup-container');
+    // Auto-redirect if already logged in
+    onAuthStateChanged(auth, user => {
+      if(user) window.location.href = "dashboard.html";
+    });
 
-// Toggle Sign Up Form
-document.getElementById('showSignUp').addEventListener('click', () => {
-  loginContainer.classList.add('hidden');
-  signupContainer.classList.remove('hidden');
-});
+    // DOM Elements
+    const loginContainer = document.querySelector('.login-container');
+    const signupContainer = document.querySelector('.signup-container');
 
-// Back to Login
-document.getElementById('backToLogin').addEventListener('click', () => {
-  signupContainer.classList.add('hidden');
-  loginContainer.classList.remove('hidden');
-});
+    // Toggle Sign Up Form
+    document.getElementById('showSignUp').addEventListener('click', () => {
+      loginContainer.classList.add('hidden');
+      signupContainer.classList.remove('hidden');
+    });
 
-// Email/Password Login
-document.getElementById('loginBtn').addEventListener('click', async () => {
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  if(!email || !password){ alert("Enter email and password"); return; }
-  try{
-    await signInWithEmailAndPassword(auth, email, password);
-    window.location.href = "dashboard.html";
-  }catch(err){
-    alert("Login Error: " + err.message);
-  }
-});
+    // Back to Login
+    document.getElementById('backToLogin').addEventListener('click', () => {
+      signupContainer.classList.add('hidden');
+      loginContainer.classList.remove('hidden');
+    });
 
-// Google Login
-const provider = new GoogleAuthProvider();
-document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-  try{
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    await setDoc(doc(db, "wallets", user.uid), { balance: 0 }, { merge:true });
-    window.location.href = "dashboard.html";
-  }catch(err){
-    alert("Google Login Error: " + err.message);
-  }
-});
+    // Login
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      if(!email || !password){ alert("Enter email and password"); return; }
+      try{
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "dashboard.html";
+      }catch(err){
+        alert("Login Error: " + err.message);
+      }
+    });
 
-// Sign Up
-document.getElementById('signupBtn').addEventListener('click', async () => {
-  const email = document.getElementById('signupEmail').value;
-  const password = document.getElementById('signupPassword').value;
-  if(!email || !password){ alert("Email and password required"); return; }
+    // Google Login
+    const provider = new GoogleAuthProvider();
+    document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+      try{
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        await setDoc(doc(db, "wallets", user.uid), { balance: 0 }, { merge:true });
+        window.location.href = "dashboard.html";
+      }catch(err){
+        alert("Google Login Error: " + err.message);
+      }
+    });
 
-  try{
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    await setDoc(doc(db, "wallets", user.uid), { balance: 0 });
-    alert("Account created! Logging in...");
-    window.location.href = "dashboard.html";
-  }catch(err){
-    alert("Sign Up Error: " + err.message);
-  }
-});
+    // Sign Up
+    document.getElementById('signupBtn').addEventListener('click', async () => {
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      if(!email || !password){ alert("Email and password required"); return; }
 
-// Forgot Password
-document.getElementById('forgotPassword').addEventListener('click', async () => {
-  const email = prompt("Enter your email to reset password:");
-  if(!email) return;
-  try{
-    await sendPasswordResetEmail(auth, email);
-    alert("Password reset email sent!");
-  }catch(err){
-    alert("Reset Error: " + err.message);
-  }
-});
+      try{
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await setDoc(doc(db, "wallets", user.uid), { balance: 0 });
+        alert("Account created! Logging in...");
+        window.location.href = "dashboard.html";
+      }catch(err){
+        alert("Sign Up Error: " + err.message);
+      }
+    });
+
+    // Forgot Password
+    document.getElementById('forgotPassword').addEventListener('click', async () => {
+      const email = prompt("Enter your email to reset password:");
+      if(!email) return;
+      try{
+        await sendPasswordResetEmail(auth, email);
+        alert("Password reset email sent!");
+      }catch(err){
+        alert("Reset Error: " + err.message);
+      }
+    });
+
+  });
 </script>
+
 </body>
 </html>
