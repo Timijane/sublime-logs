@@ -16,7 +16,7 @@
     align-items:center;
     height:100vh;
   }
-  .login-container {
+  .container {
     background: rgba(0,0,0,0.75);
     padding:2rem;
     border-radius:12px;
@@ -25,14 +25,11 @@
     box-shadow: 0 0 20px #00c6ff;
     text-align:center;
   }
-  .login-container img {
+  .container img {
     width:80px;
     margin-bottom:1rem;
   }
-  .login-container h2 {
-    margin-bottom:1rem;
-    color:#00c6ff;
-  }
+  h2 { margin-bottom:1rem; color:#00c6ff; }
   input {
     width:100%;
     padding:0.75rem;
@@ -52,34 +49,37 @@
     cursor:pointer;
   }
   button:hover { background:#009acd; color:#fff; }
-  .google-btn {
-    background:#db4437; color:#fff; margin-top:1rem;
-  }
-  a {
-    color:#00c6ff;
-    text-decoration:none;
-    font-size:0.9rem;
-  }
+  .google-btn { background:#db4437; color:#fff; margin-top:1rem; }
+  a { color:#00c6ff; text-decoration:none; font-size:0.9rem; }
   a:hover { text-decoration:underline; }
+  .hidden { display:none; }
 </style>
 </head>
 <body>
 
-<div class="login-container">
+<div class="container login-container">
   <img src="logo.png" alt="Sublime Blog Logo">
   <h2>Login to Sublime Blog</h2>
 
-  <!-- Email/Password Login -->
+  <!-- Login Form -->
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="password" placeholder="Password">
   <button id="loginBtn">Login</button>
 
-  <!-- Google Login -->
   <button class="google-btn" id="googleLoginBtn">Login with Google</button>
 
-  <!-- Forgot password & Create account -->
   <p><a href="#" id="forgotPassword">Forgot Password?</a></p>
-  <p>Don't have an account? <a href="#" id="createAccount">Create Account</a></p>
+  <p>Don't have an account? <a href="#" id="showSignUp">Create Account</a></p>
+</div>
+
+<!-- Sign Up Form -->
+<div class="container signup-container hidden">
+  <img src="logo.png" alt="Sublime Blog Logo">
+  <h2>Create Account</h2>
+  <input type="email" id="signupEmail" placeholder="Email">
+  <input type="password" id="signupPassword" placeholder="Password (min 6)">
+  <button id="signupBtn">Create Account</button>
+  <p><a href="#" id="backToLogin">Back to Login</a></p>
 </div>
 
 <script type="module">
@@ -90,9 +90,25 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-
 // Keep users logged in
 setPersistence(auth, browserLocalPersistence);
 
-// Check if user already logged in (auto-login)
+// Auto-login if user is already signed in
 onAuthStateChanged(auth, user => {
   if(user) window.location.href = "dashboard.html";
+});
+
+// DOM Elements
+const loginContainer = document.querySelector('.login-container');
+const signupContainer = document.querySelector('.signup-container');
+
+// Toggle to Sign Up form
+document.getElementById('showSignUp').addEventListener('click', () => {
+  loginContainer.classList.add('hidden');
+  signupContainer.classList.remove('hidden');
+});
+
+// Back to Login
+document.getElementById('backToLogin').addEventListener('click', () => {
+  signupContainer.classList.add('hidden');
+  loginContainer.classList.remove('hidden');
 });
 
 // Email/Password Login
@@ -124,10 +140,11 @@ document.getElementById('googleLoginBtn').addEventListener('click', async () => 
 });
 
 // Create Account
-document.getElementById('createAccount').addEventListener('click', async () => {
-  const email = prompt("Enter email for new account:");
-  const password = prompt("Enter password (min 6 characters):");
+document.getElementById('signupBtn').addEventListener('click', async () => {
+  const email = document.getElementById('signupEmail').value;
+  const password = document.getElementById('signupPassword').value;
   if(!email || !password){ alert("Email and password required"); return; }
+
   try{
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -152,5 +169,6 @@ document.getElementById('forgotPassword').addEventListener('click', async () => 
   }
 });
 </script>
+
 </body>
 </html>
