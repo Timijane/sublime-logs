@@ -1,3 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sublime Logs - Sign Up</title>
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'David', sans-serif;
+    margin: 0;
+    background: #fefefe;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .signup-container {
+    background: #fff;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    width: 350px;
+    text-align: center;
+  }
+  .signup-container h1 {
+    font-family: 'Lobster', cursive;
+    font-size: 2.5em;
+    color: #9b59b6;
+    margin-bottom: 10px;
+  }
+  .signup-container p {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  input[type="text"], input[type="email"], input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 1em;
+  }
+  .password-wrapper {
+    position: relative;
+  }
+  #toggle-password, #toggle-confirm-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-weight: bold;
+    color: #9b59b6;
+    user-select: none;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #9b59b6, #e91e63);
+    color: #fff;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  button:hover {
+    opacity: 0.9;
+  }
+  .google-signup {
+    margin-top: 15px;
+    background: #db4437;
+  }
+  a {
+    display: block;
+    margin-top: 10px;
+    color: #9b59b6;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<div class="signup-container">
+  <h1>Sublime Logs</h1>
+  <p>Create your account</p>
+
+  <!-- Email/Password Sign Up -->
+  <form id="signup-form">
+    <input type="text" id="signup-name" placeholder="Full Name" required>
+    <input type="email" id="signup-email" placeholder="Email" required>
+    
+    <div class="password-wrapper">
+      <input type="password" id="signup-password" placeholder="Password" required>
+      <span id="toggle-password">👁️</span>
+    </div>
+    
+    <div class="password-wrapper">
+      <input type="password" id="signup-confirm-password" placeholder="Confirm Password" required>
+      <span id="toggle-confirm-password">👁️</span>
+    </div>
+    
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <!-- Google Sign Up -->
+  <button class="google-signup" id="google-signup">Sign Up with Google</button>
+
+  <a href="login.html">Already have an account? Login</a>
+</div>
+
 <script type="module">
   import { auth, provider } from './js/firebase.js';
   import { createUserWithEmailAndPassword, signInWithPopup, updateProfile, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
@@ -15,7 +134,7 @@
     confirmInput.type = confirmInput.type === 'password' ? 'text' : 'password';
   });
 
-  // Email/Password Sign Up
+  // Email/Password Sign Up with duplicate prevention
   const signupForm = document.getElementById('signup-form');
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -30,10 +149,10 @@
     }
 
     try {
-      // Check if email already exists
+      // Check if user already exists
       const methods = await fetchSignInMethodsForEmail(auth, email);
       if (methods.length > 0) {
-        alert("An account with this email already exists. Please login.");
+        alert("Account already exists! Please login.");
         return;
       }
 
@@ -51,6 +170,14 @@
   googleBtn.addEventListener('click', async () => {
     try {
       const result = await signInWithPopup(auth, provider);
+
+      // Check if account already exists
+      const methods = await fetchSignInMethodsForEmail(auth, result.user.email);
+      if (methods.length === 0) {
+        // First-time Google signup, update profile
+        await updateProfile(result.user, { displayName: result.user.displayName });
+      }
+
       alert(`Welcome ${result.user.displayName}`);
       window.location.href = "dashboard.html";
     } catch (error) {
@@ -58,3 +185,6 @@
     }
   });
 </script>
+
+</body>
+</html>
