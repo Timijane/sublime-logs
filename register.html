@@ -134,7 +134,7 @@
     confirmInput.type = confirmInput.type === 'password' ? 'text' : 'password';
   });
 
-  // Email/Password Sign Up with duplicate prevention
+  // Email/Password Sign Up
   const signupForm = document.getElementById('signup-form');
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -149,10 +149,10 @@
     }
 
     try {
-      // Check if user already exists
+      // Check if account already exists
       const methods = await fetchSignInMethodsForEmail(auth, email);
       if (methods.length > 0) {
-        alert("Account already exists! Please login.");
+        alert("Account already exists! Please login instead.");
         return;
       }
 
@@ -165,17 +165,19 @@
     }
   });
 
-  // Google Sign Up (auto-register)
+  // Google Sign Up (auto-register only if not exists)
   const googleBtn = document.getElementById('google-signup');
   googleBtn.addEventListener('click', async () => {
     try {
       const result = await signInWithPopup(auth, provider);
+      const email = result.user.email;
 
-      // Check if account already exists
-      const methods = await fetchSignInMethodsForEmail(auth, result.user.email);
-      if (methods.length === 0) {
-        // First-time Google signup, update profile
-        await updateProfile(result.user, { displayName: result.user.displayName });
+      // Check if Google account already exists
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      if (methods.length > 1 || methods.includes('google.com')) {
+        alert("Account already exists! Please login instead.");
+        await auth.signOut();
+        return;
       }
 
       alert(`Welcome ${result.user.displayName}`);
