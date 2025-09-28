@@ -3,66 +3,146 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sublime Blog - Dashboard</title>
+<title>Sublime Blog Dashboard</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
-  body { font-family: 'Segoe UI', sans-serif; background: #1b1b2f; color: #fff; margin: 0; }
-  header { background: #0f0c29; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 0 10px #00c6ff; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #0f0c29;
+    color: #fff;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: linear-gradient(90deg,#0f0c29,#302b63);
+    box-shadow: 0 0 15px #00c6ff;
+  }
   header h1 { color: #00c6ff; margin: 0; }
-  header button { background: #db4437; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; }
-  .container { padding: 2rem; }
-  .section { background: rgba(0,0,0,0.75); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; box-shadow: 0 0 10px #00c6ff; }
+  header button {
+    background: #db4437;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #fff;
+  }
+  .container { padding: 1rem 2rem; }
+  .section {
+    background: rgba(0,0,0,0.7);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 10px #00c6ff;
+  }
   .section h2 { color: #00c6ff; margin-bottom: 1rem; }
-  .number-card { background: #24243e; padding: 1rem; border-radius: 8px; margin: 0.5rem 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+  .number-card, .gift-card {
+    background: #24243e;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    align-items: center;
+  }
   .btn { padding: 0.5rem 1rem; background: #00c6ff; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
   .btn:hover { background: #009acd; color: #fff; }
-  input[type=number]{ padding:0.5rem; border-radius:6px; border:none; margin-right:1rem;}
+  input[type=number], input[type=text], input[type=email] {
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: none;
+    margin-right: 1rem;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  table th, table td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid #00c6ff;
+  }
+  @media(max-width:768px){
+    .number-card, .gift-card { flex-direction: column; align-items: flex-start; }
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Dashboard</h1>
+  <h1>Sublime Blog Dashboard</h1>
   <button id="logoutBtn">Logout</button>
 </header>
 
 <div class="container">
+
   <!-- Welcome Section -->
   <div class="section">
     <h2>Welcome, <span id="userName"></span></h2>
-    <p>Your dashboard gives you access to number verification services and OTP requests.</p>
+    <p>Your dashboard gives you access to number verification services and gift sending.</p>
+    <p>Wallet Balance: ₦<span id="walletBalance">0.00</span></p>
   </div>
 
   <!-- Wallet Section -->
   <div class="section">
     <h2>Wallet</h2>
-    <p>Current Balance: ₦<span id="walletBalance">0.00</span></p>
     <input type="number" id="amount" placeholder="Enter amount to load" min="1">
     <button class="btn" id="fundWalletBtn">Load Wallet</button>
-    <p>Note: Complete the payment in Paystack page. Wallet will be updated automatically.</p>
+    <p>Use Paystack to top-up your wallet. Wallet updates automatically after confirmation.</p>
   </div>
 
-  <!-- Available Numbers Section -->
+  <!-- Number / OTP Section -->
   <div class="section">
     <h2>Available Numbers</h2>
     <div id="numberList">
-      <!-- Number cards will appear here dynamically -->
+      <!-- Number cards dynamically populated -->
     </div>
   </div>
+
+  <!-- Gift Sending Section -->
+  <div class="section">
+    <h2>Send a Gift</h2>
+    <input type="text" id="giftRecipient" placeholder="Recipient Email/Phone">
+    <input type="number" id="giftAmount" placeholder="Gift Amount">
+    <button class="btn" id="sendGiftBtn">Send Gift (Requires Approval)</button>
+    <p>Gifts require admin approval before sending.</p>
+  </div>
+
+  <!-- Purchase History -->
+  <div class="section">
+    <h2>Purchase & Gift History</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Service/Recipient</th>
+          <th>Amount (₦)</th>
+        </tr>
+      </thead>
+      <tbody id="historyTable">
+        <!-- Dynamic rows -->
+      </tbody>
+    </table>
+  </div>
+
 </div>
 
 <script type="module">
 import { auth, db } from './js/firebase.js';
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 // -------------------- Protect dashboard --------------------
+let walletBalance = 0;
+
 onAuthStateChanged(auth, async user => {
   if(!user) window.location.href = "login.html";
   else {
     document.getElementById('userName').textContent = user.displayName || user.email;
 
-    // Load wallet from Firestore
+    // Load wallet
     const walletRef = doc(db, "wallets", user.uid);
     const walletSnap = await getDoc(walletRef);
     if(walletSnap.exists()){
@@ -71,6 +151,9 @@ onAuthStateChanged(auth, async user => {
     } else {
       await setDoc(walletRef, { balance: 0 });
     }
+
+    // Load history
+    loadHistory(user.uid);
   }
 });
 
@@ -79,81 +162,113 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   signOut(auth).then(() => window.location.href = "login.html");
 });
 
-// -------------------- Wallet Funding via Paystack --------------------
-let walletBalance = 0;
+// -------------------- Wallet Funding --------------------
 function updateBalance(){
   document.getElementById('walletBalance').textContent = walletBalance.toFixed(2);
 }
 
 document.getElementById('fundWalletBtn').addEventListener('click', () => {
   const amount = parseFloat(document.getElementById('amount').value);
-  if(!amount || amount <= 0){
-    alert("Enter a valid amount");
-    return;
-  }
-
-  // Redirect to your Paystack shop link
+  if(!amount || amount <= 0){ alert("Enter valid amount"); return; }
   window.open('https://paystack.shop/pay/hweuw46d87', '_blank');
-  alert("Complete the payment in the new tab. Wallet will update automatically via webhook.");
+  alert("Complete payment in new tab. Wallet will be updated manually or via webhook.");
 });
 
-// -------------------- SMS Activate Numbers Section --------------------
-const API_KEY = "YOUR_SMS_ACTIVATE_API_KEY"; // Replace with your API key
-const countries = ["US","UK","NG"];
-const services = ["fb","wa","tw"];
+// -------------------- Number / OTP Section --------------------
+const numbers = [
+  {id:"1", country:"US", service:"Facebook", number:"+1234567890", price:100},
+  {id:"2", country:"UK", service:"WhatsApp", number:"+1987654321", price:150},
+  {id:"3", country:"NG", service:"Tinder", number:"+2348139529405", price:200}
+];
+
 const numberList = document.getElementById("numberList");
+numbers.forEach(num => {
+  const card = document.createElement('div');
+  card.classList.add('number-card');
+  card.innerHTML = `
+    <span>${num.country} ${num.number}</span>
+    <span>Service: ${num.service}</span>
+    <span>Price: ₦${num.price}</span>
+    <button class="btn requestOtpBtn" data-id="${num.id}" data-price="${num.price}">Request OTP</button>
+  `;
+  numberList.appendChild(card);
+});
 
-// Dummy fetch function
-async function fetchNumbers(country, service){
-  // Replace this with actual SMS Activate API endpoint
-  return [
-    {id: "1", number: "+1234567890", service: service, price: 100},
-    {id: "2", number: "+1234567891", service: service, price: 200}
-  ];
-}
-
-// Load numbers
-async function loadNumbers(){
-  numberList.innerHTML = "Loading numbers...";
-  for(const country of countries){
-    for(const service of services){
-      const nums = await fetchNumbers(country, service);
-      nums.forEach(num => {
-        const card = document.createElement('div');
-        card.classList.add('number-card');
-        card.innerHTML = `
-          <span>🇺🇸 ${num.number}</span>
-          <span>Site: ${num.service}</span>
-          <span>Price: ₦${num.price}</span>
-          <button class="btn requestOtpBtn" data-id="${num.id}" data-price="${num.price}">Request OTP</button>
-        `;
-        numberList.appendChild(card);
-      });
+document.querySelectorAll('.requestOtpBtn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const price = parseFloat(btn.dataset.price);
+    if(walletBalance < price){
+      alert(`Insufficient balance! Top-up ₦${price - walletBalance}`);
+      return;
     }
-  }
+    walletBalance -= price;
+    updateBalance();
 
-  // OTP button logic with wallet check
-  document.querySelectorAll('.requestOtpBtn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const price = parseFloat(btn.dataset.price);
-      if(walletBalance < price){
-        alert(`Insufficient balance! Please top-up ₦${price - walletBalance} more.`);
-        return;
-      }
-      walletBalance -= price;
-      updateBalance();
+    // Update wallet in Firebase
+    const user = auth.currentUser;
+    const walletRef = doc(db, "wallets", user.uid);
+    await updateDoc(walletRef, { balance: walletBalance });
 
-      // Update wallet in Firestore
-      const walletRef = doc(db, "wallets", auth.currentUser.uid);
-      await updateDoc(walletRef, { balance: walletBalance });
-
-      alert(`Purchase successful! ₦${price} deducted. Requesting OTP...`);
-      // Call SMS Activate API to request OTP here
+    // Save purchase in history
+    await addDoc(collection(db, "history"), {
+      userId: user.uid,
+      type: "Number/OTP",
+      service: btn.previousElementSibling.textContent,
+      amount: price,
+      date: new Date().toLocaleString()
     });
+
+    alert(`Purchase successful! OTP for ${btn.previousElementSibling.textContent} will appear below.`);
+    // For demo, show OTP directly (replace with API call)
+    btn.parentElement.innerHTML += `<p>OTP: 123456</p>`;
+  });
+});
+
+// -------------------- Gift Sending Section --------------------
+document.getElementById('sendGiftBtn').addEventListener('click', async () => {
+  const recipient = document.getElementById('giftRecipient').value;
+  const amount = parseFloat(document.getElementById('giftAmount').value);
+  if(!recipient || !amount || amount <= 0){ alert("Enter valid recipient and amount"); return; }
+  if(walletBalance < amount){ alert("Insufficient balance"); return; }
+
+  // Deduct wallet
+  walletBalance -= amount;
+  updateBalance();
+  const user = auth.currentUser;
+  const walletRef = doc(db, "wallets", user.uid);
+  await updateDoc(walletRef, { balance: walletBalance });
+
+  // Add gift to history (requires admin approval)
+  await addDoc(collection(db, "history"), {
+    userId: user.uid,
+    type: "Gift (Pending Approval)",
+    service: recipient,
+    amount: amount,
+    date: new Date().toLocaleString()
+  });
+
+  alert("Gift sent for approval. You will be notified once approved.");
+});
+
+// -------------------- Load Purchase History --------------------
+async function loadHistory(uid){
+  const historyTable = document.getElementById("historyTable");
+  historyTable.innerHTML = "";
+  const querySnapshot = await getDocs(collection(db, "history"));
+  querySnapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    if(data.userId === uid){
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${data.date}</td>
+        <td>${data.type}</td>
+        <td>${data.service}</td>
+        <td>₦${data.amount}</td>
+      `;
+      historyTable.appendChild(row);
+    }
   });
 }
-
-loadNumbers();
 </script>
 </body>
-  </html>
+</html>
