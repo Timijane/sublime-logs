@@ -16,7 +16,7 @@
     height:100vh;
   }
   .container {
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
     padding:2rem;
     border-radius:12px;
     width:90%;
@@ -67,101 +67,100 @@
 </div>
 
 <script type="module">
-  import { auth, db } from './js/firebase.js';
-  import { 
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    sendPasswordResetEmail,
-    GoogleAuthProvider,
-    signInWithPopup,
-    setPersistence,
-    browserLocalPersistence,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { auth, db } from './js/firebase.js';
+import { 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
 
-    // Keep users logged in
-    setPersistence(auth, browserLocalPersistence);
+  // Keep users logged in
+  setPersistence(auth, browserLocalPersistence);
 
-    // Auto-redirect if already logged in
-    onAuthStateChanged(auth, user => {
-      if(user) window.location.href = "dashboard.html";
-    });
-
-    // DOM Elements
-    const loginContainer = document.querySelector('.login-container');
-    const signupContainer = document.querySelector('.signup-container');
-
-    // Toggle Sign Up Form
-    document.getElementById('showSignUp').addEventListener('click', () => {
-      loginContainer.classList.add('hidden');
-      signupContainer.classList.remove('hidden');
-    });
-
-    // Back to Login
-    document.getElementById('backToLogin').addEventListener('click', () => {
-      signupContainer.classList.add('hidden');
-      loginContainer.classList.remove('hidden');
-    });
-
-    // Login
-    document.getElementById('loginBtn').addEventListener('click', async () => {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      if(!email || !password){ alert("Enter email and password"); return; }
-      try{
-        await signInWithEmailAndPassword(auth, email, password);
-        window.location.href = "dashboard.html";
-      }catch(err){
-        alert("Login Error: " + err.message);
-      }
-    });
-
-    // Google Login
-    const provider = new GoogleAuthProvider();
-    document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-      try{
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        await setDoc(doc(db, "wallets", user.uid), { balance: 0 }, { merge:true });
-        window.location.href = "dashboard.html";
-      }catch(err){
-        alert("Google Login Error: " + err.message);
-      }
-    });
-
-    // Sign Up
-    document.getElementById('signupBtn').addEventListener('click', async () => {
-      const email = document.getElementById('signupEmail').value;
-      const password = document.getElementById('signupPassword').value;
-      if(!email || !password){ alert("Email and password required"); return; }
-
-      try{
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        await setDoc(doc(db, "wallets", user.uid), { balance: 0 });
-        alert("Account created! Logging in...");
-        window.location.href = "dashboard.html";
-      }catch(err){
-        alert("Sign Up Error: " + err.message);
-      }
-    });
-
-    // Forgot Password
-    document.getElementById('forgotPassword').addEventListener('click', async () => {
-      const email = prompt("Enter your email to reset password:");
-      if(!email) return;
-      try{
-        await sendPasswordResetEmail(auth, email);
-        alert("Password reset email sent!");
-      }catch(err){
-        alert("Reset Error: " + err.message);
-      }
-    });
-
+  // Redirect if already logged in
+  onAuthStateChanged(auth, user => {
+    if(user) window.location.href = "dashboard.html";
   });
+
+  // Elements
+  const loginContainer = document.querySelector('.login-container');
+  const signupContainer = document.querySelector('.signup-container');
+
+  // Toggle Sign Up Form
+  document.getElementById('showSignUp').addEventListener('click', () => {
+    loginContainer.classList.add('hidden');
+    signupContainer.classList.remove('hidden');
+  });
+
+  document.getElementById('backToLogin').addEventListener('click', () => {
+    signupContainer.classList.add('hidden');
+    loginContainer.classList.remove('hidden');
+  });
+
+  // Login
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    if(!email || !password){ alert("Enter email and password"); return; }
+    try{
+      await signInWithEmailAndPassword(auth, email, password);
+      window.location.href = "dashboard.html";
+    }catch(err){
+      alert("Login Error: " + err.message);
+    }
+  });
+
+  // Google Login
+  const provider = new GoogleAuthProvider();
+  document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+    try{
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      await setDoc(doc(db, "wallets", user.uid), { balance: 0 }, { merge:true });
+      window.location.href = "dashboard.html";
+    }catch(err){
+      alert("Google Login Error: " + err.message);
+    }
+  });
+
+  // Sign Up
+  document.getElementById('signupBtn').addEventListener('click', async () => {
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    if(!email || !password){ alert("Email and password required"); return; }
+
+    try{
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      await setDoc(doc(db, "wallets", user.uid), { balance: 0 });
+      alert("Account created! Logging in...");
+      window.location.href = "dashboard.html";
+    }catch(err){
+      alert("Sign Up Error: " + err.message);
+    }
+  });
+
+  // Forgot Password
+  document.getElementById('forgotPassword').addEventListener('click', async () => {
+    const email = prompt("Enter your email to reset password:");
+    if(!email) return;
+    try{
+      await sendPasswordResetEmail(auth, email);
+      alert("Password reset email sent!");
+    }catch(err){
+      alert("Reset Error: " + err.message);
+    }
+  });
+
+});
 </script>
 
 </body>
