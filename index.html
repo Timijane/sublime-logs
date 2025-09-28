@@ -1,84 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sublime Blog</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <style>
-    body {font-family: 'Segoe UI', Tahoma, sans-serif; margin:0;}
-    /* Slide-in menu styles */
-    .offcanvas-start {
-      width: 40%; /* slide covers 40% of screen */
-      background-color: #222;
-      color: #fff;
-    }
-    .offcanvas a {
-      color: #fff;
-      text-decoration: none;
-      display: block;
-      padding: 12px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .hero {
-      background: linear-gradient(to right, #0d6efd, #6610f2);
-      color: white;
-      padding: 100px 0;
-      text-align: center;
-    }
-    footer {
-      background: #f8f9fa;
-      padding: 30px 0;
-      text-align: center;
-    }
-    .logo-img {
-      height: 40px;
-      width: auto;
-      margin-right: 10px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sublime Logs</title>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=David+Libre&display=swap" rel="stylesheet">
+
+<style>
+  /* Reset */
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  /* Body */
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #0f0c29;
+    color: #fff;
+  }
+
+  /* Navbar */
+  nav {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 2rem;
+    background: linear-gradient(90deg, #8e2de2, #ff0080);
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  }
+  nav .logo {
+    display: flex; align-items: center;
+  }
+  nav .logo img {
+    width:50px; height:50px; border-radius:50%; margin-right:10px;
+  }
+  nav .logo span {
+    font-weight:bold; font-size:1.5rem; color:#fff;
+  }
+  nav ul {
+    list-style:none; display:flex; align-items:center;
+  }
+  nav ul li {
+    margin-left:1.5rem;
+  }
+  nav ul li a {
+    color:#fff; text-decoration:none; font-weight:600; transition:0.3s;
+  }
+  nav ul li a:hover {
+    color:#ffd700; text-shadow:0 0 8px #ffd700;
+  }
+
+  /* Hamburger for mobile */
+  .hamburger {
+    display:none; cursor:pointer; flex-direction: column; gap:5px;
+  }
+  .hamburger div {
+    width:25px; height:3px; background:white; transition:0.3s;
+  }
+  @media(max-width:768px){
+    nav ul { display:none; flex-direction:column; position:absolute; top:100%; left:0; width:40%; background:#2c003e; padding:1rem; border-radius:0 0 8px 0; }
+    nav ul.show { display:flex; }
+    .hamburger { display:flex; }
+  }
+
+  /* Hero Section */
+  .hero {
+    position: relative;
+    height: 80vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    overflow:hidden;
+  }
+  .hero img.bg-slide {
+    position:absolute;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    top:0; left:0;
+    opacity:0;
+    transition: opacity 1s ease-in-out;
+  }
+  .hero img.bg-slide.active { opacity:1; }
+  .hero .hero-content {
+    position: relative;
+    z-index:2;
+  }
+  .hero .hero-logo {
+    width:120px; height:120px; border-radius:50%; margin:0 auto 1rem;
+    border:3px solid #ffd700;
+  }
+  .hero h1 {
+    font-family:'Lobster', cursive;
+    font-size:3rem;
+    margin-bottom:0.5rem;
+  }
+  .hero .welcome {
+    font-size:1.25rem; margin-bottom:0.5rem;
+    font-family: 'David Libre', serif;
+  }
+  .hero .ticker {
+    display:block; width:100%; overflow:hidden;
+    white-space:nowrap; text-align:center;
+    font-family: 'David Libre', serif;
+    font-size:1rem;
+    animation: ticker 15s linear infinite;
+    color:#ffd700;
+  }
+  @keyframes ticker {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* Floating Card Section */
+  .card-section {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    padding:4rem 1rem;
+    display:flex; justify-content:center;
+  }
+  .card {
+    background:#fff; color:#000; padding:2rem; border-radius:12px; max-width:800px; width:100%;
+    box-shadow:0 8px 20px rgba(0,0,0,0.3); text-align:center;
+  }
+  .card h2 { margin-bottom:1rem; color:#8e2de2; }
+  .card p { margin-bottom:2rem; font-size:1.1rem; line-height:1.6; }
+  .card button {
+    padding:0.75rem 2rem;
+    border:none; border-radius:8px;
+    background:linear-gradient(90deg, #ff0080, #8e2de2);
+    color:#fff; font-weight:bold; font-size:1rem;
+    cursor:pointer; transition:0.3s;
+  }
+  .card button:hover {
+    transform:scale(1.05);
+    box-shadow:0 0 15px #ff0080;
+  }
+
+</style>
 </head>
 <body>
 
-<!-- Navbar with Hamburger -->
-<nav class="navbar bg-dark navbar-dark">
-  <div class="container-fluid">
-    <button class="btn btn-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#sideMenu" aria-controls="sideMenu">
-      ☰
-    </button>
-    <a class="navbar-brand d-flex align-items-center ms-2" href="#">
-      <img src="logo.png" alt="Logo" class="logo-img">
-      <span class="fw-bold">Sublime Blog</span>
-    </a>
+<!-- Navbar -->
+<nav>
+  <div class="logo">
+    <img src="logo1.png" alt="Logo">
+    <span>Sublime Logs</span>
+  </div>
+  <ul>
+    <li><a href="#">Home</a></li>
+    <li><a href="#about-section">About</a></li>
+    <li><a href="register.html" target="_blank">Register/Sign In</a></li>
+    <li><a href="login.html" target="_blank">Login</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger">
+    <div></div><div></div><div></div>
   </div>
 </nav>
 
-<!-- Offcanvas side menu -->
-<div class="offcanvas offcanvas-start" tabindex="-1" id="sideMenu">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title">Menu</h5>
-    <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body">
-    <a href="index.html">Home</a>
-<a href="about.html">About</a>
-<a href="login.html">Login</a>
-  </div>
-</div>
-
 <!-- Hero Section -->
 <section class="hero">
-  <div class="container">
-    <h1 class="display-4 fw-bold">Welcome to Sublime Blog</h1>
-    <p class="lead mt-3">Tech insights, design trends, and inspiring stories in one place.</p>
+  <!-- Background Slides -->
+  <img src="log1.jpg" class="bg-slide active">
+  <img src="log2.jpg" class="bg-slide">
+  <img src="log3.jpg" class="bg-slide">
+  <img src="log4.jpg" class="bg-slide">
+  <img src="log5.jpg" class="bg-slide">
+  <img src="log6.jpg" class="bg-slide">
+
+  <!-- Hero Content -->
+  <div class="hero-content">
+    <img src="logo1.png" class="hero-logo" alt="Logo">
+    <div class="welcome">Welcome to …</div>
+    <h1>Sublime Logs</h1>
+    <div class="ticker">Connecting the world for better communication</div>
   </div>
 </section>
 
-<!-- Footer -->
-<footer>
-  <p>&copy; 2025 Sublime Blog. All rights reserved.</p>
-</footer>
+<!-- Floating Card Section -->
+<section class="card-section">
+  <div class="card">
+    <h2>Reliable SMS Numbers & International Gift Sending</h2>
+    <p>Buy high-quality, non-VoIP phone numbers for SMS verification worldwide. Sublime Logs ensures compatibility with multiple services, providing a secure, hassle-free way to receive verification codes instantly. We also make it easy to send gift items internationally to anyone, anywhere.</p>
+    <button onclick="window.open('login.html','_blank')">Get Started</button>
+  </div>
+</section>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Hamburger toggle
+  const hamburger = document.getElementById('hamburger');
+  const navLinks = document.querySelector('nav ul');
+  hamburger.addEventListener('click', () => {
+    navLinks.classList.toggle('show');
+  });
+
+  // Hero image slider
+  const slides = document.querySelectorAll('.bg-slide');
+  let currentSlide = 0;
+  setInterval(() => {
+    slides[currentSlide].classList.remove('active');
+    currentSlide = (currentSlide+1) % slides.length;
+    slides[currentSlide].classList.add('active');
+  }, 4000); // every 4 seconds
+</script>
+
 </body>
 </html>
