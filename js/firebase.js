@@ -1,17 +1,16 @@
-// js/firebase.js
-
+// Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBxZVYRQ7xqy0qe8utXlvO9UpVDbH7dM1I",
-  authDomain: "sublime-blog.firebaseapp.com",
-  projectId: "sublime-blog",
-  storageBucket: "sublime-blog.firebasestorage.app",
-  messagingSenderId: "642663556339",
-  appId: "1:642663556339:web:cfa7891d6c139ffbdc4386",
-  measurementId: "G-7NFT0KEMDP"
+  apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
+  authDomain: "sublime-logs.firebaseapp.com",
+  projectId: "sublime-logs",
+  storageBucket: "sublime-logs.firebasestorage.app",
+  messagingSenderId: "381847722551",
+  appId: "1:381847722551:web:8ec68f018291d3927f3db2",
+  measurementId: "G-8YHHJC1MP7"
 };
 
 // Initialize Firebase
