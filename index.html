@@ -238,6 +238,73 @@
     slides[currentSlide].classList.add('active');
   }, 4000); // every 4 seconds
 </script>
+<!-- About Section -->
+<section id="about-section" style="padding:4rem 1rem; background:#fdf6e3;">
+  <div class="about-container" style="max-width:1000px; margin:0 auto; text-align:center;">
 
+    <!-- Headline -->
+    <h2 style="color:#8e2de2; font-size:2.5rem; margin-bottom:1rem;">Reliable SMS Provider</h2>
+
+    <!-- About Us Card -->
+    <div class="card" style="background:#fff; padding:2rem; border-radius:12px; margin-bottom:3rem; box-shadow:0 8px 20px rgba(0,0,0,0.15);">
+      <h3 style="font-size:1.8rem; margin-bottom:1rem;">About Us</h3>
+      <p style="font-size:1.1rem; line-height:1.8; color:#333;">
+        At Sublime Logs, we specialize in providing reliable, non-VoIP phone numbers for SMS verifications worldwide. 
+        Whether you are in the US, UK, or anywhere across the globe, our platform ensures a hassle-free, secure, and instant way to receive verification codes. 
+        Additionally, we make it easy to send gift items internationally, connecting loved ones no matter the distance.
+      </p>
+    </div>
+
+    <!-- Services Card -->
+    <div class="card" style="background:#fff; padding:2rem; border-radius:12px; margin-bottom:3rem; box-shadow:0 8px 20px rgba(0,0,0,0.15);">
+      <h3 style="font-size:1.8rem; margin-bottom:1rem;">Why Choose Sublime Logs?</h3>
+      <ul style="list-style:none; padding:0; text-align:left; font-size:1.1rem; line-height:1.8;">
+        <li>✅ <strong>Reliable Phone Numbers:</strong> High-quality, non-VoIP numbers for instant SMS verification.</li>
+        <li>🌍 <strong>Global Coverage:</strong> Numbers available in multiple countries for worldwide use.</li>
+        <li>🔒 <strong>Secure & Private:</strong> Your privacy is our priority with fully secure numbers.</li>
+        <li>⚡ <strong>Fast & Instant Delivery:</strong> Receive SMS codes in real-time without delays.</li>
+        <li>🔗 <strong>Easy Integration:</strong> Our numbers work smoothly across a wide range of platforms.</li>
+        <li>🎁 <strong>International Gift Sending:</strong> Send gifts easily to loved ones anywhere in the world.</li>
+        <li>🕒 <strong>24/7 Customer Support:</strong> Our team is always available to assist you with any questions.</li>
+      </ul>
+    </div>
+
+    <!-- Testimonials Slider -->
+    <div class="card" style="background:#fff; padding:2rem; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.15);">
+      <h3 style="font-size:1.8rem; margin-bottom:2rem;">What Our Clients Say</h3>
+      <div class="testimonial-slider" style="position:relative; overflow:hidden; max-width:700px; margin:0 auto;">
+        <div class="testimonial-track" style="display:flex; transition: transform 0.5s ease;">
+          <div class="testimonial" style="min-width:100%; text-align:center; padding:1rem;">
+            <p>"Sublime Logs made SMS verification effortless for our team. The numbers are reliable and fast – truly professional service!"</p>
+            <strong>- Jane A., Tech Entrepreneur</strong>
+          </div>
+          <div class="testimonial" style="min-width:100%; text-align:center; padding:1rem;">
+            <p>"I was able to send gift items internationally with no hassle. Sublime Logs goes beyond SMS verification – highly recommended!"</p>
+            <strong>- Michael B., Freelance Developer</strong>
+          </div>
+          <div class="testimonial" style="min-width:100%; text-align:center; padding:1rem;">
+            <p>"Fast delivery and secure numbers. I can trust Sublime Logs for all my verification needs. Excellent 24/7 support as well!"</p>
+            <strong>- Sarah K., Startup Owner</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Testimonials Slider Script -->
+<script>
+const track = document.querySelector('.testimonial-track');
+const slides = document.querySelectorAll('.testimonial');
+let currentIndex = 0;
+
+function nextSlide() {
+  currentIndex = (currentIndex + 1) % slides.length;
+  track.style.transform = `translateX(-${currentIndex * 100}%)`;
+}
+
+setInterval(nextSlide, 4000); // change slide every 4 seconds
+</script>
 </body>
 </html>
