@@ -131,7 +131,6 @@
     const password = passwordInput.value;
 
     try {
-      // Check if account exists
       const methods = await fetchSignInMethodsForEmail(auth, email);
       if (methods.length === 0) {
         alert("Account doesn't exist! Kindly sign up.");
@@ -146,26 +145,19 @@
     }
   });
 
-  // Google Login (existing users only)
+  // Google Login
   const googleBtn = document.getElementById('google-login');
   googleBtn.addEventListener('click', async () => {
     try {
-      // First, prompt user to pick Google account
       const result = await signInWithPopup(auth, provider);
-      const email = result.user.email;
-
-      // Check if user exists
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      if (!methods.includes('google.com')) {
-        alert("Account doesn't exist! Kindly sign up.");
-        await auth.signOut();
-        return;
-      }
-
       alert(`Welcome ${result.user.displayName}`);
       window.location.href = "dashboard.html";
     } catch (error) {
-      alert(error.message);
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        alert("This email is already registered with a different sign-in method. Please login using that method.");
+      } else {
+        alert(error.message);
+      }
     }
   });
 
