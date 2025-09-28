@@ -1,146 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sublime Logs - Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Lobster&family=David+Libre&display=swap" rel="stylesheet">
-<style>
-  body {
-    margin:0; font-family: 'David Libre', sans-serif; background:#fdf6e3; display:flex; justify-content:center; align-items:center; height:100vh;
-  }
-  .login-card {
-    background:#fff; padding:3rem; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.2); width:90%; max-width:400px; text-align:center;
-  }
-  .login-card h2 {
-    font-family:'Lobster', cursive; font-size:2.5rem; margin-bottom:1rem; color:#8e2de2;
-  }
-  .login-card p {
-    margin-bottom:2rem; font-size:1rem; color:#555;
-  }
-  .login-card input {
-    width:100%; padding:0.8rem; margin-bottom:1rem; border-radius:8px; border:1px solid #ccc; font-size:1rem;
-  }
-  .login-card button {
-    width:100%; padding:0.8rem; background:linear-gradient(45deg,#8e2de2,#c94bff); border:none; color:#fff; font-size:1.1rem; border-radius:8px; cursor:pointer;
-    transition:0.3s;
-  }
-  .login-card button:hover { opacity:0.9; }
-  .google-btn {
-    margin-top:1rem; background:#fff; color:#555; border:1px solid #ccc; display:flex; align-items:center; justify-content:center;
-  }
-  .google-btn img { width:20px; margin-right:8px; }
-  .error-msg { color:red; margin-bottom:1rem; }
-  .signup-link, .forgot-link { margin-top:1rem; font-size:0.95rem; color:#555; }
-  .signup-link a, .forgot-link a { color:#8e2de2; text-decoration:none; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Sublime Logs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'David', sans-serif;
+      background: #fdf6e3; /* creamy white */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      background: #fff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      width: 350px;
+      text-align: center;
+    }
+
+    .login-container h2 {
+      font-family: 'Lobster', cursive;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      color: #6a0dad; /* radiant purple */
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #6a0dad, #ff69b4); /* radiant purple to pink */
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .login-container button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    #google-login {
+      margin-top: 15px;
+      background: #4285F4;
+    }
+
+    #google-login:hover {
+      background: #357ae8;
+    }
+
+    .login-container p {
+      margin-top: 15px;
+      font-size: 0.9rem;
+    }
+
+    .login-container a {
+      color: #6a0dad;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .login-container a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
+  <div class="login-container">
+    <h2>Sublime Logs</h2>
+    <form id="login-form">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+    <button id="google-login">Login with Google</button>
+    <p>Don't have an account? <a href="register.html">Sign Up</a></p>
+    <p><a href="#" id="forgot-password">Forgot Password?</a></p>
+  </div>
 
-<div class="login-card">
-  <h2>Login</h2>
-  <p>Access your Sublime Logs account</p>
-  
-  <div class="error-msg" id="error-msg"></div>
-  
-  <input type="email" id="email" placeholder="Email" required>
-  <input type="password" id="password" placeholder="Password" required>
-  
-  <button id="login-btn">Login</button>
-  
-  <button class="google-btn" id="google-btn">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" alt="Google Logo">
-    Login with Google
-  </button>
-  
-  <div class="forgot-link"><a href="#" id="forgot-password">Forgot Password?</a></div>
-  <div class="signup-link">Don't have an account? <a href="register.html" target="_blank">Sign Up</a></div>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "sublime-logs.firebaseapp.com",
+      projectId: "sublime-logs",
+      storageBucket: "sublime-logs.firebasestorage.app",
+      messagingSenderId: "381847722551",
+      appId: "1:381847722551:web:8ec68f018291d3927f3db2",
+      measurementId: "G-8YHHJC1MP7"
+    };
 
-  // Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyBxZVYRQ7xqy0qe8utXlvO9UpVDbH7dM1I",
-    authDomain: "sublime-blog.firebaseapp.com",
-    projectId: "sublime-blog",
-    storageBucket: "sublime-blog.firebasestorage.app",
-    messagingSenderId: "642663556339",
-    appId: "1:642663556339:web:cfa7891d6c139ffbdc4386",
-    measurementId: "G-7NFT0KEMDP"
-  };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
+    // Keep users logged in
+    setPersistence(auth, browserLocalPersistence);
 
-  // Persistent login
-  setPersistence(auth, browserLocalPersistence);
+    // Email/Password login
+    const loginForm = document.getElementById('login-form');
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
 
-  const loginBtn = document.getElementById('login-btn');
-  const googleBtn = document.getElementById('google-btn');
-  const errorMsg = document.getElementById('error-msg');
-  const forgotPasswordLink = document.getElementById('forgot-password');
-
-  // Email/Password login
-  loginBtn.addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    if(!email || !password){
-      errorMsg.textContent = "Both fields are required!";
-      return;
-    }
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      window.location.href = "dashboard.html";
-    } catch (error) {
-      errorMsg.textContent = error.message;
-    }
-  });
-
-  // Google login
-  googleBtn.addEventListener('click', async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      const userRef = doc(db, "users", user.uid);
-      const docSnap = await userRef.get ? await userRef.get() : null;
-      if (!docSnap || !docSnap.exists()) {
-        await setDoc(userRef, {
-          name: user.displayName,
-          email: user.email,
-          profilePic: user.photoURL || null
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          alert(`Welcome back, ${user.email}!`);
+          window.location.href = "dashboard.html"; // redirect to dashboard
+        })
+        .catch((error) => {
+          alert(error.message);
         });
+    });
+
+    // Google login
+    const googleButton = document.getElementById('google-login');
+    googleButton.addEventListener('click', () => {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          alert(`Welcome back, ${user.displayName || user.email}!`);
+          window.location.href = "dashboard.html";
+        })
+        .catch((error) => {
+          alert(error.message);
+        });
+    });
+
+    // Forgot password
+    document.getElementById('forgot-password').addEventListener('click', () => {
+      const email = prompt("Enter your email for password reset:");
+      if(email) {
+        sendPasswordResetEmail(auth, email)
+          .then(() => alert("Password reset email sent!"))
+          .catch(err => alert(err.message));
       }
-      window.location.href = "dashboard.html";
-    } catch (error) {
-      errorMsg.textContent = error.message;
-    }
-  });
-
-  // Password reset
-  forgotPasswordLink.addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
-    if(!email){
-      errorMsg.textContent = "Please enter your email to reset password!";
-      return;
-    }
-    try {
-      await sendPasswordResetEmail(auth, email);
-      errorMsg.style.color = 'green';
-      errorMsg.textContent = "Password reset email sent!";
-    } catch (error) {
-      errorMsg.style.color = 'red';
-      errorMsg.textContent = error.message;
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
