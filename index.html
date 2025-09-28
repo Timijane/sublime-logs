@@ -76,12 +76,13 @@
   .hero {
     position: relative;
     height:60vh; /* reduced height */
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
+    display: flex;
+    flex-direction: column; /* stack logo + text vertically */
+    justify-content: center; /* center content vertically */
+    align-items: center; /* center horizontally */
+    text-align: center;
     overflow:hidden;
-    background-color:#0f0c29; /* fallback if images fail */
+    background-color:#0f0c29; /* fallback */
   }
   .hero img.bg-slide {
     position:absolute;
@@ -96,39 +97,50 @@
   .hero .hero-content {
     position: relative;
     z-index:2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
   .hero .hero-logo {
-    width:120px; height:120px; border-radius:50%; margin:0 auto 1rem;
-    border:3px solid #ffd700;
-  }
-  .hero h1 {
-    font-family:'Lobster', cursive;
-    font-size:4rem; /* bigger */
-    margin-bottom:0.5rem;
-    background: rgba(255,255,255,0.3);
-    display:inline-block;
-    padding:0 0.5rem;
-    border-radius:8px;
+    width: 120px; 
+    height: 120px; 
+    border-radius: 50%; 
+    margin-bottom: 1rem;
+    border: 3px solid #ffd700;
   }
   .hero .welcome {
-    font-size:1.5rem; margin-bottom:0.5rem;
+    font-size: 1.5rem; 
+    margin-bottom: 0.5rem;
     font-family: 'David Libre', serif;
     background: rgba(255,255,255,0.3);
-    display:inline-block;
-    padding:0 0.5rem;
-    border-radius:6px;
+    display: inline-block;
+    padding: 0 0.5rem;
+    border-radius: 6px;
+  }
+  .hero h1 {
+    font-family: 'Lobster', cursive;
+    font-size: 4rem;
+    margin-bottom: 0.5rem;
+    background: rgba(255,255,255,0.3);
+    display: inline-block;
+    padding: 0 0.5rem;
+    border-radius: 8px;
   }
   .hero .ticker {
-    display:block; width:100%; overflow:hidden;
-    white-space:nowrap; text-align:center;
+    display: block; 
+    width: 100%; 
+    overflow: hidden;
+    white-space: nowrap; 
+    text-align: center;
     font-family: 'David Libre', serif;
-    font-size:1.25rem; /* bigger */
+    font-size: 1.25rem;
     animation: ticker 15s linear infinite;
-    color:#ffd700;
-    font-weight:bold;
+    color: #ffd700;
+    font-weight: bold;
     background: rgba(0,0,0,0.4);
-    padding:0.25rem;
-    border-radius:6px;
+    padding: 0.25rem;
+    border-radius: 6px;
   }
   @keyframes ticker {
     0% { transform: translateX(100%); }
