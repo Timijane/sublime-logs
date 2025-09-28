@@ -11,108 +11,118 @@
     margin: 0;
     background: #fefefe;
   }
-  header {
+  nav {
     background: linear-gradient(90deg, #9b59b6, #e91e63);
-    color: white;
-    padding: 15px 20px;
+    padding: 15px 30px;
+    color: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: sticky;
     top: 0;
-    z-index: 1000;
   }
-  header h1 {
+  nav h1 {
     font-family: 'Lobster', cursive;
+    font-size: 1.8em;
     margin: 0;
   }
-  #user-info {
-    display: flex;
-    align-items: center;
-  }
-  #user-info img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-  }
-  #balance {
-    font-weight: bold;
+  nav a {
+    color: #fff;
+    text-decoration: none;
     margin-left: 20px;
+    font-weight: bold;
   }
-  main {
+  nav a:hover {
+    text-decoration: underline;
+  }
+  .dashboard-container {
+    max-width: 900px;
+    margin: 40px auto;
     padding: 20px;
   }
-  #fund-account-btn {
+  .user-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  }
+  .user-info p {
+    font-size: 1.2em;
+  }
+  .fund-account {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .fund-account button {
     padding: 12px 20px;
     border: none;
     border-radius: 8px;
     background: linear-gradient(90deg, #9b59b6, #e91e63);
     color: #fff;
-    font-size: 1em;
+    font-size: 1.1em;
     cursor: pointer;
     transition: 0.3s;
-    margin-top: 20px;
   }
-  #fund-account-btn:hover {
+  .fund-account button:hover {
     opacity: 0.9;
   }
 </style>
 </head>
 <body>
 
-<header>
+<nav>
   <h1>Sublime Logs</h1>
-  <div id="user-info">
-    <img id="user-pic" src="default-profile.png" alt="User Picture">
-    <span id="user-name">Hello, User</span>
-    <span id="balance">Balance: $0</span>
+  <div>
+    <a href="#">Dashboard</a>
+    <a href="logout.html">Logout</a>
   </div>
-</header>
+</nav>
 
-<main>
-  <h2>Dashboard</h2>
-  <p>Welcome to your dashboard. Here you can fund your account and view your balance.</p>
-  <button id="fund-account-btn">Fund Account</button>
-</main>
+<div class="dashboard-container">
+  <div class="user-info">
+    <p>Welcome, <span id="user-name">User</span></p>
+    <p>Balance: <span id="user-balance">₦0.00</span></p>
+  </div>
+
+  <div class="fund-account">
+    <button onclick="window.open('https://paystack.shop/pay/hweuw46d87', '_blank')">Fund Account</button>
+  </div>
+
+  <div class="features" style="margin-top:40px;">
+    <p>Buy SMS Numbers, Send Gifts Internationally, and other features will appear here...</p>
+  </div>
+</div>
 
 <script type="module">
-  import { auth, db, provider } from './js/firebase.js';
-  import { onAuthStateChanged, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { auth } from './js/firebase.js';
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { doc, onSnapshot, getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  const userName = document.getElementById('user-name');
-  const userPic = document.getElementById('user-pic');
-  const balanceDisplay = document.getElementById('balance');
-  const fundBtn = document.getElementById('fund-account-btn');
+  const db = getFirestore();
+  const userNameSpan = document.getElementById('user-name');
+  const userBalanceSpan = document.getElementById('user-balance');
 
-  // Check logged-in user
-  onAuthStateChanged(auth, async (user) => {
+  onAuthStateChanged(auth, user => {
     if (user) {
-      userName.textContent = `Hello, ${user.displayName || user.email}`;
-      if (user.photoURL) userPic.src = user.photoURL;
+      userNameSpan.textContent = user.displayName || user.email;
 
-      // Get or create balance in Firestore
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) {
-        await setDoc(userRef, { balance: 0 });
-      }
-      const data = await getDoc(userRef);
-      balanceDisplay.textContent = `Balance: $${data.data().balance}`;
+      // Listen to balance changes in Firestore
+      const userRef = doc(db, 'users', user.uid);
+      onSnapshot(userRef, docSnap => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          userBalanceSpan.textContent = data.balance ? `₦${data.balance}` : '₦0.00';
+        }
+      });
+
     } else {
-      window.location.href = "login.html";
+      // If no user, redirect to login
+      window.location.href = 'login.html';
     }
   });
-
-  // Fund Account Button
-  fundBtn.addEventListener('click', () => {
-    // Open Paystack in new tab
-    const paystackLink = "https://paystack.shop/pay/hweuw46d87";
-    window.open(paystackLink, "_blank");
-    alert("You will be redirected to Paystack. Once payment is successful, your balance will update automatically.");
-  });
-
 </script>
 
 </body>
