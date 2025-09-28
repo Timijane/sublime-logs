@@ -114,7 +114,7 @@
 
 <script type="module">
   import { auth, provider } from './js/firebase.js';
-  import { signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
   // Show/Hide Password
   const togglePassword = document.getElementById('toggle-password');
@@ -123,7 +123,7 @@
     passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
   });
 
-  // Email/Password Login with account existence check
+  // Email/Password Login
   const loginForm = document.getElementById('login-form');
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -139,23 +139,29 @@
       }
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      alert(`Welcome ${userCredential.user.displayName || userCredential.user.email}`);
+      alert(`Welcome ${userCredential.user.email}`);
       window.location.href = "dashboard.html";
     } catch (error) {
       alert(error.message);
     }
   });
 
-  // Google Login (only existing users)
+  // Google Login (existing users only)
   const googleBtn = document.getElementById('google-login');
   googleBtn.addEventListener('click', async () => {
     try {
+      // First, prompt user to pick Google account
       const result = await signInWithPopup(auth, provider);
-      const methods = await fetchSignInMethodsForEmail(auth, result.user.email);
-      if (methods.length === 0) {
+      const email = result.user.email;
+
+      // Check if user exists
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      if (!methods.includes('google.com')) {
         alert("Account doesn't exist! Kindly sign up.");
+        await auth.signOut();
         return;
       }
+
       alert(`Welcome ${result.user.displayName}`);
       window.location.href = "dashboard.html";
     } catch (error) {
@@ -169,11 +175,6 @@
     const email = prompt("Enter your email for password reset:");
     if (email) {
       try {
-        const methods = await fetchSignInMethodsForEmail(auth, email);
-        if (methods.length === 0) {
-          alert("Account doesn't exist! Kindly sign up.");
-          return;
-        }
         await sendPasswordResetEmail(auth, email);
         alert("Password reset email sent!");
       } catch (error) {
