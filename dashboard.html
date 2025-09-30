@@ -6,84 +6,42 @@
 <title>Sublime Logs - Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* Reset */
-* { margin:0; padding:0; box-sizing:border-box; }
+  /* Reset and styles same as before */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'David', sans-serif; background: #fefefe; min-height: 100vh; }
 
-body {
-  font-family: 'David', sans-serif;
-  background: #fefefe;
-  min-height: 100vh;
-  transition: margin-left 0.3s;
-  overflow-x: hidden;
-}
+  header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(90deg, #9b59b6, #e91e63); color: #fff; position: relative; }
+  header h1 { font-family: 'Lobster', cursive; font-size: 1.8em; }
+  #menu-btn { font-size: 1.5em; cursor: pointer; }
+  #back-home { background: #fff; color: #9b59b6; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-weight: bold; }
 
-/* Header */
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  background: linear-gradient(90deg, #9b59b6, #e91e63);
-  color: #fff;
-}
-header h1 { font-family:'Lobster', cursive; font-size:1.8em; }
-#menu-btn { font-size:1.5em; cursor:pointer; }
-#back-home { background:#fff; color:#9b59b6; padding:8px 12px; border-radius:6px; font-weight:bold; text-decoration:none; }
+  #side-menu { position: fixed; left: -40%; top: 0; width: 40%; height: 100%; background: gold; padding: 20px; transition: 0.3s; z-index: 100; }
+  #side-menu.active { left: 0; }
+  #side-menu ul { list-style: none; margin-top: 50px; }
+  #side-menu ul li { margin: 20px 0; font-weight: bold; cursor: pointer; }
+  #close-menu { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; }
 
-/* Side Menu */
-#side-menu {
-  position: fixed;
-  top:0; left:0;
-  width: 40%;
-  height: 100%;
-  background: gold;
-  padding:20px;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index:100;
-}
-#side-menu.active { transform: translateX(0); }
-#side-menu ul { list-style:none; margin-top:50px; }
-#side-menu ul li { margin:20px 0; font-weight:bold; cursor:pointer; font-size:1.1em; }
-#close-menu { position:absolute; top:10px; right:15px; font-size:1.5em; cursor:pointer; }
+  main { padding: 20px; transition: margin-left 0.3s; margin-left: 0; }
+  #side-menu.active ~ main { margin-left: 40%; }
 
-/* Main Content */
-main {
-  padding:20px;
-  transition: margin-left 0.3s ease;
-}
-main.shifted { margin-left: 40%; }
-.profile { display:flex; align-items:center; margin-bottom:20px; }
-.avatar {
-  width:80px; height:80px; border-radius:50%;
-  background:#ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat;
-  margin-right:15px; cursor:pointer;
-}
-.profile-info h2 { font-size:1.5em; margin-bottom:5px; }
-.profile-info p { color:#555; }
-.balance { font-size:1.2em; margin-bottom:20px; font-weight:bold; }
+  .profile { display: flex; align-items: center; margin-bottom: 20px; }
+  .avatar { width: 80px; height: 80px; border-radius: 50%; background: #ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat; margin-right: 15px; cursor: pointer; }
+  .profile-info h2 { font-size: 1.5em; margin-bottom: 5px; }
+  .profile-info p { color: #555; }
 
-/* Buttons */
-button {
-  padding:12px 20px;
-  background: linear-gradient(90deg,#9b59b6,#e91e63);
-  border:none; border-radius:8px;
-  color:#fff; font-weight:bold;
-  cursor:pointer; margin-right:10px;
-}
-button:hover { opacity:0.9; }
+  .balance { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
 
-/* Transactions Table */
-table { width:100%; border-collapse:collapse; margin-top:20px; }
-table th, table td { border:1px solid #ccc; padding:10px; text-align:left; }
-table th { background:#9b59b6; color:#fff; }
-table tr:nth-child(even) { background:#f2f2f2; }
+  button { padding: 12px 20px; background: linear-gradient(90deg, #9b59b6, #e91e63); border: none; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer; margin-right: 10px; }
 
-/* Responsive */
-@media(max-width:768px){
-  #side-menu { width:60%; }
-  main.shifted { margin-left:60%; }
-}
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+  table th { background: #9b59b6; color: #fff; }
+  table tr:nth-child(even) { background: #f2f2f2; }
+
+  @media (max-width: 768px) {
+    #side-menu { width: 60%; }
+    #side-menu.active ~ main { margin-left: 60%; }
+  }
 </style>
 </head>
 <body>
@@ -114,7 +72,7 @@ table tr:nth-child(even) { background:#f2f2f2; }
       <p id="user-email"></p>
     </div>
   </div>
-  <div class="balance">Balance: ₦<span id="balance">0</span></div>
+  <div class="balance">Balance: ₦<span id="balance">0.00</span></div>
   <button id="fund-btn">Fund Account</button>
 
   <table id="transactions-table">
@@ -127,123 +85,133 @@ table tr:nth-child(even) { background:#f2f2f2; }
       </tr>
     </thead>
     <tbody>
-      <!-- Sample transactions dynamically displayed -->
+      <!-- Transactions will load here -->
     </tbody>
   </table>
-
-  <!-- Hidden avatar input -->
-  <input type="file" id="avatar-input" accept="image/*" style="display:none;">
 </main>
 
+<!-- Paystack JS -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
 <script type="module">
-import { auth, db } from './js/firebase.js';
-import { doc, getDoc, setDoc, collection, addDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { auth, db } from './js/firebase.js';
+  import { doc, getDoc, setDoc, collection, addDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
-// Elements
-const menuBtn = document.getElementById('menu-btn');
-const closeMenu = document.getElementById('close-menu');
-const sideMenu = document.getElementById('side-menu');
-const mainContent = document.querySelector('main');
-const userNameEl = document.getElementById('user-name');
-const userEmailEl = document.getElementById('user-email');
-const balanceEl = document.getElementById('balance');
-const avatarEl = document.getElementById('avatar');
-const avatarInput = document.getElementById('avatar-input');
-const fundBtn = document.getElementById('fund-btn');
-const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
+  const menuBtn = document.getElementById('menu-btn');
+  const closeMenu = document.getElementById('close-menu');
+  const sideMenu = document.getElementById('side-menu');
+  const userNameEl = document.getElementById('user-name');
+  const userEmailEl = document.getElementById('user-email');
+  const balanceEl = document.getElementById('balance');
+  const avatarEl = document.getElementById('avatar');
+  const fundBtn = document.getElementById('fund-btn');
+  const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
 
-// Menu toggle
-menuBtn.addEventListener('click',()=>{ sideMenu.classList.add('active'); mainContent.classList.add('shifted'); });
-closeMenu.addEventListener('click',()=>{ sideMenu.classList.remove('active'); mainContent.classList.remove('shifted'); });
+  // Menu toggle
+  menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
+  closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
 
-// Auth
-onAuthStateChanged(auth, async user => {
-  if(!user){ window.location.href="login.html"; return; }
+  // Load user data
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.href = "login.html"; return; }
+    const userDoc = doc(db, 'users', user.uid);
+    const snap = await getDoc(userDoc);
+    if (!snap.exists()) {
+      await setDoc(userDoc, {
+        firstName: user.displayName?.split(' ')[0] || 'User',
+        surname: user.displayName?.split(' ')[1] || '',
+        email: user.email,
+        balance: 0,
+        avatar: null
+      });
+    }
 
-  const userDocRef = doc(db,'users',user.uid);
-  const snap = await getDoc(userDocRef);
-  if(!snap.exists()){
-    await setDoc(userDocRef,{
-      firstName:user.displayName?.split(' ')[0]||'User',
-      surname:user.displayName?.split(' ')[1]||'',
-      email:user.email,
-      balance:0,
-      avatar:null
-    });
-  }
+    const data = (await getDoc(userDoc)).data();
+    userNameEl.textContent = `Welcome, ${data.firstName}`;
+    userEmailEl.textContent = data.email;
+    balanceEl.textContent = Number(data.balance).toLocaleString();
 
-  const data = (await getDoc(userDocRef)).data();
-  userNameEl.textContent = `Welcome, ${data.firstName}`;
-  userEmailEl.textContent = data.email;
-  balanceEl.textContent = data.balance.toFixed(2);
+    if (data.avatar) avatarEl.style.backgroundImage = `url(${data.avatar})`;
 
-  if(data.avatar) avatarEl.style.backgroundImage = `url(${data.avatar})`;
-
-  // Load transactions
-  const transCol = collection(db,'users',user.uid,'transactions');
-  onSnapshot(transCol, snapshot=>{
-    transactionsTable.innerHTML='';
-    snapshot.forEach(docSnap=>{
-      const t = docSnap.data();
-      const row=document.createElement('tr');
-      row.innerHTML=`
-        <td>${t.type}</td>
-        <td>₦${t.amount.toFixed(2)}</td>
-        <td>${new Date(t.date.seconds*1000).toLocaleString()}</td>
-        <td>${t.status}</td>
-      `;
-      transactionsTable.appendChild(row);
+    // Load transactions
+    const transCol = collection(db, 'users', user.uid, 'transactions');
+    onSnapshot(transCol, snapshot => {
+      transactionsTable.innerHTML = '';
+      snapshot.forEach(docSnap => {
+        const t = docSnap.data();
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${t.type}</td>
+          <td>₦${Number(t.amount).toLocaleString()}</td>
+          <td>${new Date(t.date.seconds*1000).toLocaleString()}</td>
+          <td>${t.status}</td>
+        `;
+        transactionsTable.appendChild(row);
+      });
     });
   });
-});
 
-// Fund account (Paystack simulation)
-fundBtn.addEventListener('click', async ()=>{
-  const user = auth.currentUser;
-  if(!user) return;
-
-  const amount = parseFloat(prompt("Enter amount to fund:"));
-  if(!amount||amount<=0) return alert("Invalid amount");
-
-  alert(`Payment of ₦${amount.toFixed(2)} successful!`);
-
-  const userDocRef = doc(db,'users',user.uid);
-  const snap = await getDoc(userDocRef);
-  const currentBalance = snap.data().balance||0;
-  const newBalance = currentBalance+amount;
-
-  await updateDoc(userDocRef,{ balance:newBalance });
-  await addDoc(collection(db,'users',user.uid,'transactions'),{
-    type:'Fund Account',
-    amount,
-    date:new Date(),
-    status:'Successful'
-  });
-
-  balanceEl.textContent=newBalance.toFixed(2);
-  alert("Thanks for trading with us!");
-});
-
-// Avatar upload
-avatarEl.addEventListener('click',()=>avatarInput.click());
-avatarInput.addEventListener('change',async ()=>{
-  const file = avatarInput.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload=async e=>{
-    avatarEl.style.backgroundImage=`url(${e.target.result})`;
+  // Fund account using Paystack
+  fundBtn.addEventListener('click', async () => {
     const user = auth.currentUser;
-    await updateDoc(doc(db,'users',user.uid),{ avatar:e.target.result });
-  };
-  reader.readAsDataURL(file);
-});
+    if (!user) return;
 
-// Logout
-document.getElementById('menu-logout').addEventListener('click',async ()=>{
-  await signOut(auth);
-  window.location.href="login.html";
-});
+    const amount = parseFloat(prompt("Enter amount to fund (NGN):"));
+    if (!amount || amount <= 0) return alert("Invalid amount");
+
+    let handler = PaystackPop.setup({
+      key: 'YOUR_PAYSTACK_PUBLIC_KEY', // replace with your key
+      email: user.email,
+      amount: amount * 100, // Paystack uses kobo
+      currency: 'NGN',
+      onClose: function(){ alert('Payment cancelled'); },
+      callback: async function(response){
+        // Update balance
+        const userDoc = doc(db, 'users', user.uid);
+        const snap = await getDoc(userDoc);
+        const newBalance = (snap.data().balance || 0) + amount;
+        await updateDoc(userDoc, { balance: newBalance });
+
+        // Add transaction
+        await addDoc(collection(db, 'users', user.uid, 'transactions'), {
+          type: 'Fund Account',
+          amount,
+          date: new Date(),
+          status: 'Successful',
+          reference: response.reference
+        });
+
+        balanceEl.textContent = newBalance.toLocaleString();
+        alert("Thanks for trading with us!");
+      }
+    });
+    handler.openIframe();
+  });
+
+  // Avatar upload
+  avatarEl.addEventListener('click', async () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.click();
+    fileInput.onchange = async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        avatarEl.style.backgroundImage = `url(${e.target.result})`;
+        const user = auth.currentUser;
+        await updateDoc(doc(db, 'users', user.uid), { avatar: e.target.result });
+      };
+      reader.readAsDataURL(file);
+    };
+  });
+
+  // Logout
+  document.getElementById('menu-logout').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.href = "login.html";
+  });
 </script>
+
 </body>
 </html>
