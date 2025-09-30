@@ -442,5 +442,338 @@ loadTransactions();
 
 <!-- Paystack SDK -->
 <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script type="module">
+import { addDoc, collection, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+// --- BUY NUMBER ---
+async function buyNumber(phone, amount){
+  if(!phone || !amount || amount <= 0) { alert("Enter valid phone and amount"); return; }
+  if(currentUser.balance < amount){ alert("Insufficient balance"); return; }
+
+  // Deduct locally
+  currentUser.balance -= amount;
+  updateUserUI();
+
+  // Record transaction in Firestore
+  const refCode = 'BN_' + Math.random().toString(36).slice(2,9).toUpperCase();
+  await addDoc(collection(db, "transactions"), {
+    userId: currentUser.uid,
+    type: "Buy Number",
+    phoneNumber: phone,
+    amount: amount,
+    status: "success",
+    reference: refCode,
+    timestamp: serverTimestamp()
+  });
+
+  alert(`Number purchased successfully! Ref: ${refCode}`);
+  loadTransactions();
+}
+
+// --- SEND GIFT ---
+async function sendGift(recipientEmail, amount){
+  if(!recipientEmail || !amount || amount <= 0) { alert("Enter valid recipient and amount"); return; }
+  if(currentUser.balance < amount){ alert("Insufficient balance"); return; }
+
+  // Deduct locally
+  currentUser.balance -= amount;
+  updateUserUI();
+
+  // Record transaction in Firestore
+  const refCode = 'GF_' + Math.random().toString(36).slice(2,9).toUpperCase();
+  await addDoc(collection(db, "transactions"), {
+    userId: currentUser.uid,
+    type: "Send Gift",
+    recipientEmail: recipientEmail,
+    amount: amount,
+    status: "success",
+    reference: refCode,
+    timestamp: serverTimestamp()
+  });
+
+  alert(`Gift sent successfully! Ref: ${refCode}`);
+  loadTransactions();
+}
+
+// --- Modals ---
+function openBuyModal(){
+  modal.innerHTML = `
+    <h3>Buy Number</h3>
+    <div class="form-row">
+      <label>Phone Number</label>
+      <input id="buy-phone" placeholder="e.g. 08123456789" />
+    </div>
+    <div class="form-row">
+      <label>Amount (₦)</label>
+      <input id="buy-amount" type="number" min="1" placeholder="e.g. 300" />
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn ghost modal-close">Cancel</button>
+      <button class="btn" id="buy-btn">Buy</button>
+    </div>`;
+  modalBackdrop.classList.add('open');
+
+  document.getElementById('buy-btn').addEventListener('click', ()=>{
+    const phone = document.getElementById('buy-phone').value.trim();
+    const amount = parseFloat(document.getElementById('buy-amount').value);
+    buyNumber(phone, amount);
+    modalBackdrop.classList.remove('open');
+  });
+
+  modal.querySelectorAll('.modal-close').forEach(btn=> btn.addEventListener('click', ()=> modalBackdrop.classList.remove('open')));
+}
+
+function openSendGiftModal(){
+  modal.innerHTML = `
+    <h3>Send Gift</h3>
+    <div class="form-row">
+      <label>Recipient Email</label>
+      <input id="gift-email" placeholder="recipient@example.com" />
+    </div>
+    <div class="form-row">
+      <label>Amount (₦)</label>
+      <input id="gift-amount" type="number" min="1" placeholder="e.g. 500" />
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn ghost modal-close">Cancel</button>
+      <button class="btn" id="gift-btn">Send Gift</button>
+    </div>`;
+  modalBackdrop.classList.add('open');
+
+  document.getElementById('gift-btn').addEventListener('click', ()=>{
+    const recipient = document.getElementById('gift-email').value.trim();
+    const amount = parseFloat(document.getElementById('gift-amount').value);
+    sendGift(recipient, amount);
+    modalBackdrop.classList.remove('open');
+  });
+
+  modal.querySelectorAll('.modal-close').forEach(btn=> btn.addEventListener('click', ()=> modalBackdrop.classList.remove('open')));
+}
+
+// --- Menu Hooks ---
+document.getElementById('menu-buy').addEventListener('click', ()=>{
+  openBuyModal();
+  sideMenu.classList.remove('open');
+});
+document.getElementById('menu-send').addEventListener('click', ()=>{
+  openSendGiftModal();
+  sideMenu.classList.remove('open');
+});
+
+// --- Buttons ---
+document.getElementById('btn-buy').addEventListener('click', openBuyModal);
+document.getElementById('btn-send').addEventListener('click', openSendGiftModal);
+
+    </script>
+    <script type="module">
+import { getFirestore, collection, addDoc, query, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
+  authDomain: "sublime-logs.firebaseapp.com",
+  projectId: "sublime-logs",
+  storageBucket: "sublime-logs.firebasestorage.app",
+  messagingSenderId: "381847722551",
+  appId: "1:381847722551:web:8ec68f018291d3927f3db2",
+  measurementId: "G-8YHHJC1MP7"
+};
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
+
+// ---- Local user demo ----
+let currentUser = { uid: "demoUser", balance: 5000 }; // Demo user
+
+function updateUserUI(){
+  document.getElementById('balance').textContent = `₦${currentUser.balance.toLocaleString(undefined,{minimumFractionDigits:2})}`;
+}
+
+// ---- Load Transactions ----
+async function loadTransactions(){
+  const tbody = document.querySelector('#transactions-table tbody');
+  tbody.innerHTML = '';
+  const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
+  const snapshot = await getDocs(q);
+  if(snapshot.empty){
+    tbody.innerHTML = `<tr><td class="muted" colspan="5">No transactions yet.</td></tr>`;
+    return;
+  }
+  snapshot.forEach(doc=>{
+    const t = doc.data();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${t.type}</td>
+      <td>₦${t.amount.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+      <td>${t.timestamp?.toDate().toLocaleString() || '—'}</td>
+      <td>${t.status}</td>
+      <td class="small">${t.reference || '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ---- Paystack simulation ----
+function paystackCheckout(amount, email){
+  return new Promise(resolve => {
+    const ref = 'PSK_' + Math.random().toString(36).slice(2,10).toUpperCase() + Date.now().toString().slice(-4);
+    setTimeout(()=> resolve({status:'success', reference: ref, amount}), 1200);
+  });
+}
+
+// ---- Fund Account ----
+function openFundModal(){
+  modal.innerHTML = `
+    <h3>Fund Account</h3>
+    <div class="form-row">
+      <label>Amount (₦)</label>
+      <input id="inp-amount" type="number" min="1" placeholder="e.g. 1000" />
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn ghost modal-close">Cancel</button>
+      <button class="btn" id="pay-btn">Proceed to Pay</button>
+    </div>`;
+  modalBackdrop.classList.add('open');
+
+  document.getElementById('pay-btn').addEventListener('click', async ()=>{
+    const a = parseFloat(document.getElementById('inp-amount').value);
+    if(!a || a <= 0){ alert('Enter valid amount'); return; }
+
+    const email = "demo@user.com"; // replace with actual user email
+    const res = await paystackCheckout(a, email);
+    if(res.status === 'success'){
+      currentUser.balance += a;
+      updateUserUI();
+      // Add transaction to Firestore
+      await addDoc(collection(db, "transactions"), {
+        userId: currentUser.uid,
+        type: "Fund",
+        amount: a,
+        status: "success",
+        reference: res.reference,
+        timestamp: serverTimestamp()
+      });
+      alert(`Payment successful! Ref: ${res.reference}`);
+      loadTransactions();
+      modalBackdrop.classList.remove('open');
+    } else {
+      alert('Payment failed');
+    }
+  });
+
+  modal.querySelectorAll('.modal-close').forEach(btn=> btn.addEventListener('click', ()=> modalBackdrop.classList.remove('open')));
+}
+
+// ---- Buy Number ----
+async function buyNumber(phone, amount){
+  if(!phone || !amount || amount <=0){ alert('Enter valid data'); return; }
+  if(currentUser.balance < amount){ alert('Insufficient balance'); return; }
+  currentUser.balance -= amount;
+  updateUserUI();
+  const refCode = 'BN_' + Math.random().toString(36).slice(2,9).toUpperCase();
+  await addDoc(collection(db, "transactions"), {
+    userId: currentUser.uid,
+    type: "Buy Number",
+    phoneNumber: phone,
+    amount: amount,
+    status: "success",
+    reference: refCode,
+    timestamp: serverTimestamp()
+  });
+  alert(`Number purchased! Ref: ${refCode}`);
+  loadTransactions();
+}
+
+// ---- Send Gift ----
+async function sendGift(recipientEmail, amount){
+  if(!recipientEmail || !amount || amount <= 0){ alert('Enter valid data'); return; }
+  if(currentUser.balance < amount){ alert('Insufficient balance'); return; }
+  currentUser.balance -= amount;
+  updateUserUI();
+  const refCode = 'GF_' + Math.random().toString(36).slice(2,9).toUpperCase();
+  await addDoc(collection(db, "transactions"), {
+    userId: currentUser.uid,
+    type: "Send Gift",
+    recipientEmail: recipientEmail,
+    amount: amount,
+    status: "success",
+    reference: refCode,
+    timestamp: serverTimestamp()
+  });
+  alert(`Gift sent! Ref: ${refCode}`);
+  loadTransactions();
+}
+
+// ---- Modals ----
+function openBuyModal(){
+  modal.innerHTML = `
+    <h3>Buy Number</h3>
+    <div class="form-row">
+      <label>Phone Number</label>
+      <input id="buy-phone" placeholder="e.g. 08123456789" />
+    </div>
+    <div class="form-row">
+      <label>Amount (₦)</label>
+      <input id="buy-amount" type="number" min="1" placeholder="e.g. 300" />
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn ghost modal-close">Cancel</button>
+      <button class="btn" id="buy-btn">Buy</button>
+    </div>`;
+  modalBackdrop.classList.add('open');
+
+  document.getElementById('buy-btn').addEventListener('click', ()=>{
+    const phone = document.getElementById('buy-phone').value.trim();
+    const amount = parseFloat(document.getElementById('buy-amount').value);
+    buyNumber(phone, amount);
+    modalBackdrop.classList.remove('open');
+  });
+
+  modal.querySelectorAll('.modal-close').forEach(btn=> btn.addEventListener('click', ()=> modalBackdrop.classList.remove('open')));
+}
+
+function openSendGiftModal(){
+  modal.innerHTML = `
+    <h3>Send Gift</h3>
+    <div class="form-row">
+      <label>Recipient Email</label>
+      <input id="gift-email" placeholder="recipient@example.com" />
+    </div>
+    <div class="form-row">
+      <label>Amount (₦)</label>
+      <input id="gift-amount" type="number" min="1" placeholder="e.g. 500" />
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn ghost modal-close">Cancel</button>
+      <button class="btn" id="gift-btn">Send Gift</button>
+    </div>`;
+  modalBackdrop.classList.add('open');
+
+  document.getElementById('gift-btn').addEventListener('click', ()=>{
+    const email = document.getElementById('gift-email').value.trim();
+    const amount = parseFloat(document.getElementById('gift-amount').value);
+    sendGift(email, amount);
+    modalBackdrop.classList.remove('open');
+  });
+
+  modal.querySelectorAll('.modal-close').forEach(btn=> btn.addEventListener('click', ()=> modalBackdrop.classList.remove('open')));
+}
+
+// ---- Hook buttons and menu ----
+document.getElementById('btn-fund').addEventListener('click', openFundModal);
+document.getElementById('btn-buy').addEventListener('click', openBuyModal);
+document.getElementById('btn-send').addEventListener('click', openSendGiftModal);
+
+document.getElementById('menu-fund').addEventListener('click', ()=> { openFundModal(); sideMenu.classList.remove('open'); });
+document.getElementById('menu-buy').addEventListener('click', ()=> { openBuyModal(); sideMenu.classList.remove('open'); });
+document.getElementById('menu-send').addEventListener('click', ()=> { openSendGiftModal(); sideMenu.classList.remove('open'); });
+
+// ---- Init ----
+updateUserUI();
+loadTransactions();
+    </script>
 </body>
   </html>
