@@ -114,7 +114,13 @@
 
 <script type="module">
   import { auth, provider } from './js/firebase.js';
-  import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { 
+    signInWithEmailAndPassword, 
+    fetchSignInMethodsForEmail, 
+    sendPasswordResetEmail,
+    signInWithRedirect,
+    getRedirectResult
+  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
   // Show/Hide Password
   const togglePassword = document.getElementById('toggle-password');
@@ -145,21 +151,32 @@
     }
   });
 
-  // Google Login
+  // Google Login with Redirect
   const googleBtn = document.getElementById('google-login');
   googleBtn.addEventListener('click', async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      alert(`Welcome ${result.user.displayName}`);
-      window.location.href = "dashboard.html";
-    } catch (error) {
-      if (error.code === 'auth/account-exists-with-different-credential') {
-        alert("This email is already registered with a different sign-in method. Please login using that method.");
-      } else {
-        alert(error.message);
-      }
-    }
+    await signInWithRedirect(auth, provider);
   });
+
+  // Handle Redirect Back
+  getRedirectResult(auth)
+    .then(async (result) => {
+      if (result && result.user) {
+        const email = result.user.email;
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+
+        if (!methods.includes('google.com')) {
+          alert("Account doesn't exist! Kindly sign up.");
+          await auth.signOut();
+          return;
+        }
+
+        alert(`Welcome ${result.user.displayName}`);
+        window.location.href = "dashboard.html";
+      }
+    })
+    .catch((error) => {
+      if (error.message) alert(error.message);
+    });
 
   // Forgot Password
   const forgotPassword = document.getElementById('forgot-password');
