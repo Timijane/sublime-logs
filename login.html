@@ -1,89 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sublime Logs | Login</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f7;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .login-box {
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      text-align: center;
-      max-width: 350px;
-      width: 100%;
-    }
-    h2 {
-      margin-bottom: 1.5rem;
-    }
-    button {
-      background: #4285f4;
-      color: white;
-      border: none;
-      padding: 0.8rem 1.5rem;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: #357ae8;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sublime Logs - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'David', sans-serif;
+    margin: 0;
+    background: #fefefe;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .login-container {
+    background: #fff;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    width: 350px;
+    text-align: center;
+  }
+  .login-container h1 {
+    font-family: 'Lobster', cursive;
+    font-size: 2.5em;
+    color: #9b59b6;
+    margin-bottom: 10px;
+  }
+  .login-container p {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  input[type="email"], input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 1em;
+  }
+  .password-wrapper {
+    position: relative;
+  }
+  #toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-weight: bold;
+    color: #9b59b6;
+    user-select: none;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #9b59b6, #e91e63);
+    color: #fff;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  button:hover {
+    opacity: 0.9;
+  }
+  .google-login {
+    margin-top: 15px;
+    background: #db4437;
+  }
+  a {
+    display: block;
+    margin-top: 10px;
+    color: #9b59b6;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+</style>
 </head>
 <body>
-  <div class="login-box">
-    <h2>Login to Sublime Logs</h2>
-    <button id="loginBtn">Sign in with Google</button>
-  </div>
 
-  <!-- Firebase App SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+<div class="login-container">
+  <h1>Sublime Logs</h1>
+  <p>Sign in to your account</p>
+  
+  <!-- Email/Password Login -->
+  <form id="login-form">
+    <input type="email" id="login-email" placeholder="Email" required>
+    
+    <div class="password-wrapper">
+      <input type="password" id="login-password" placeholder="Password" required>
+      <span id="toggle-password">👁️</span>
+    </div>
+    
+    <button type="submit">Login</button>
+  </form>
 
-    // Your Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-      authDomain: "sublime-logs.firebaseapp.com",
-      projectId: "sublime-logs",
-      storageBucket: "sublime-logs.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
+  <!-- Google Login -->
+  <button class="google-login" id="google-login">Login with Google</button>
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+  <a href="register.html">Create an account</a>
+  <a href="#" id="forgot-password">Forgot password?</a>
+</div>
 
-    // Login button click
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          console.log("Login successful:", result.user.email);
-          window.location.href = "dashboard.html"; // redirect to dashboard
-        })
-        .catch((error) => {
-          alert("Login failed: " + error.message);
-        });
-    });
+<script type="module">
+  import { auth, provider } from './js/firebase.js';
+  import { 
+    signInWithEmailAndPassword, 
+    signInWithPopup, 
+    fetchSignInMethodsForEmail, 
+    sendPasswordResetEmail 
+  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
-    // If already logged in, skip login page
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.location.href = "dashboard.html";
+  // Show/Hide Password
+  const togglePassword = document.getElementById('toggle-password');
+  const passwordInput = document.getElementById('login-password');
+  togglePassword.addEventListener('click', () => {
+    passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+  });
+
+  // Email/Password Login
+  const loginForm = document.getElementById('login-form');
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = passwordInput.value;
+
+    try {
+      // Check what sign-in methods exist for this email
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      if (methods.length === 0) {
+        alert("Account doesn't exist! Kindly sign up.");
+        return;
       }
-    });
-  </script>
+      if (methods.includes("google.com") && !methods.includes("password")) {
+        alert("This account was created with Google. Please use 'Login with Google'.");
+        return;
+      }
+
+      // Login with email/password
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      alert(`Welcome ${userCredential.user.email}`);
+      window.location.href = "dashboard.html";
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+
+  // Google Login
+  const googleBtn = document.getElementById('google-login');
+  googleBtn.addEventListener('click', async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      alert(`Welcome ${result.user.displayName}`);
+      window.location.href = "dashboard.html";
+    } catch (error) {
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        alert("This email is already registered with a different sign-in method. Try logging in with Email/Password.");
+      } else {
+        alert(error.message);
+      }
+    }
+  });
+
+  // Forgot Password
+  const forgotPassword = document.getElementById('forgot-password');
+  forgotPassword.addEventListener('click', async () => {
+    const email = prompt("Enter your email for password reset:");
+    if (email) {
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("Password reset email sent!");
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+  });
+</script>
+
 </body>
 </html>
