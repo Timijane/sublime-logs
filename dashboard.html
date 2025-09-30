@@ -1,671 +1,249 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sublime Logs — Dashboard</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Lobster&display=swap" rel="stylesheet">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sublime Logs - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --blue-900: #0b3d91;
-      --blue-700: #1663d8;
-      --accent: linear-gradient(90deg,#1663d8,#1e96ff);
-      --card-bg: #ffffff;
-      --muted: #6b7280;
-      --success: #16a34a;
-      --danger: #ef4444;
-      --glass: rgba(255,255,255,0.8);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      margin:0;
-      background: linear-gradient(180deg,#f3f6fb,#ffffff);
-      color:#0f172a;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+    body {
+      font-family: 'David', sans-serif;
+      background: #fefefe;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
     }
 
     /* Header */
-    header.app-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 16px;
-      background: linear-gradient(90deg,#0b3d91,#1e96ff);
-      color:white;
-      position:sticky;
-      top:0;
-      z-index:50;
-      box-shadow: 0 6px 18px rgba(13,42,87,0.12);
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-    .brand h1{
-      font-family: 'Lobster', cursive;
-      margin:0;
-      font-size:20px;
-      letter-spacing:0.2px;
-    }
-    .icon-btn{
-      background:transparent;
-      border:none;
-      color:white;
-      font-size:22px;
-      padding:8px;
-    }
-    .back-home{
-      background:white;
-      color:var(--blue-900);
-      padding:8px 12px;
-      border-radius:8px;
-      text-decoration:none;
-      font-weight:600;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: linear-gradient(90deg, #9b59b6, #e91e63);
+      color: #fff;
+      position: relative;
+      z-index: 10;
     }
 
-    /* Layout */
-    .container{
-      display:flex;
-      min-height:calc(100vh - 64px);
-      transition: margin-left .3s;
+    header h1 { font-family: 'Lobster', cursive; font-size: 1.8em; }
+    #menu-btn { font-size: 1.8em; cursor: pointer; }
+    #back-home {
+      background: #fff;
+      color: #9b59b6;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
     }
 
-    /* Side menu */
-    nav.side-menu{
-      width:280px;
-      max-width:80%;
-      background: linear-gradient(180deg,#ffffff,#f7fbff);
-      border-right:1px solid rgba(15,23,42,0.04);
-      padding:18px 12px;
-      transform: translateX(-320px);
-      transition: transform .28s ease;
-      position:fixed;
-      top:64px;
-      left:0;
-      bottom:0;
-      z-index:60;
-      box-shadow: 12px 0 30px rgba(2,6,23,0.06);
-      overflow:auto;
-      border-top-right-radius:12px;
-      border-bottom-right-radius:12px;
-    }
-    nav.side-menu.open{ transform: translateX(0); }
-    nav.side-menu h3{ margin:0 0 10px 6px; color:var(--blue-900); font-size:14px }
-    nav.side-menu ul{ list-style:none; padding:0; margin:10px 0 0 }
-    nav.side-menu li{
-      padding:12px 10px;
-      margin-bottom:6px;
-      border-radius:8px;
-      cursor:pointer;
-      font-weight:600;
-      color:#0b1220;
-    }
-    nav.side-menu li:hover{ background: rgba(13,42,87,0.03) }
-
-    .close-menu{
-      float:right;
-      font-size:20px;
-      cursor:pointer;
-      padding:6px;
-      color:var(--muted);
+    /* Side Menu */
+    #side-menu {
+      position: fixed;
+      left: -60%;
+      top: 0;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, #9b59b6, #e91e63);
+      padding: 20px;
+      transition: 0.3s;
+      z-index: 100;
+      color: #fff;
     }
 
-    /* Main content area */
-    main.content{
-      flex:1;
-      padding:22px;
-      margin-left:0;
-      width:100%;
-      transition: margin-left .28s;
-    }
-    /* When menu open, push content on wide screens */
-    @media(min-width:880px){
-      nav.side-menu{ transform: translateX(0); position:relative; top:0; left:0; height:auto; box-shadow:none; }
-      main.content{ margin-left: 280px; }
+    #side-menu.active { left: 0; }
+    #side-menu ul { list-style: none; margin-top: 50px; padding: 0; }
+    #side-menu ul li { margin: 20px 0; font-weight: bold; cursor: pointer; }
+    #close-menu { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; }
+
+    /* Main */
+    main { padding: 20px; margin-left: 0; transition: margin-left 0.3s; }
+    #side-menu.active ~ main { margin-left: 60%; }
+
+    .profile { display: flex; align-items: center; margin-bottom: 20px; }
+    .avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: #ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat;
+      margin-right: 15px; cursor: pointer;
     }
 
-    /* Profile card */
-    .profile-card{
-      display:flex;
-      gap:18px;
-      align-items:center;
-      padding:18px;
-      background:var(--card-bg);
-      border-radius:12px;
-      box-shadow: 0 6px 18px rgba(12,23,51,0.06);
-      margin-bottom:18px;
-      align-items:center;
-    }
-    .avatar{
-      width:84px; height:84px; border-radius:50%;
-      background: url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat;
-      border:4px solid rgba(13,42,87,0.06);
-      cursor:pointer;
-      flex-shrink:0;
-      position:relative;
-      overflow:hidden;
-    }
-    .avatar .edit-dot{
-      position:absolute; right:6px; bottom:6px;
-      background:white; color:var(--blue-900);
-      font-weight:700; border-radius:50%; width:28px; height:28px;
-      display:flex; align-items:center; justify-content:center;
-      box-shadow:0 4px 10px rgba(2,6,23,0.08);
-      font-size:14px;
-    }
-    .profile-info h2{ margin:0; font-size:18px }
-    .profile-info p{ margin:6px 0 0; color:var(--muted) }
+    .balance { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
 
-    .balance{
-      margin-left:auto;
-      text-align:right;
-    }
-    .balance .label{ font-size:12px; color:var(--muted) }
-    .balance .amount{ font-size:20px; font-weight:700; color:var(--blue-900) }
-
-    /* Action buttons row */
-    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
-    .btn{
-      padding:10px 14px; border-radius:10px; border:none; cursor:pointer;
-      background:var(--blue-700); color:white; font-weight:700;
-      box-shadow:0 6px 18px rgba(19,93,209,0.12);
-    }
-    .btn.ghost{ background:transparent; color:var(--blue-900); border:1px solid rgba(11,61,145,0.06) }
-
-    /* Card */
-    .card{
-      background:var(--card-bg);
-      padding:16px;
-      border-radius:12px;
-      box-shadow:0 6px 18px rgba(12,23,51,0.04);
-      margin-bottom:18px;
+    button {
+      padding: 12px 20px;
+      background: linear-gradient(90deg, #9b59b6, #e91e63);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      margin-right: 10px;
     }
 
-    /* Transactions table */
-    table{ width:100%; border-collapse:collapse; font-size:14px; }
-    th,td{ padding:12px 10px; border-bottom:1px solid rgba(15,23,42,0.04); text-align:left }
-    th{ color: #06102b; font-weight:700; font-size:13px }
-    .small{ font-size:13px; color:var(--muted) }
-
-    /* Modals */
-    .modal-backdrop{
-      position:fixed; inset:0; background:rgba(2,6,23,0.45);
-      display:none; align-items:center; justify-content:center; z-index:120;
-    }
-    .modal-backdrop.open{ display:flex; }
-    .modal{
-      width:95%; max-width:520px; background:white; padding:18px; border-radius:12px;
-      box-shadow:0 20px 60px rgba(2,6,23,0.3);
-    }
-    .modal h3{ margin:0 0 12px; color:var(--blue-900) }
-
-    .form-row{ margin-bottom:10px; }
-    .form-row label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px }
-    .form-row input, .form-row textarea{
-      width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(12,23,51,0.06);
-      outline:none; font-size:14px;
-    }
-
-    .toast-wrap{ position:fixed; right:18px; bottom:18px; z-index:140; display:flex; flex-direction:column; gap:8px; }
-    .toast{ padding:10px 12px; border-radius:10px; color:white; font-weight:700; min-width:180px; display:flex; gap:8px; align-items:center; box-shadow:0 8px 26px rgba(2,6,23,0.18) }
-    .toast.success{ background:var(--success) }
-    .toast.error{ background:var(--danger) }
-
-    /* Responsive */
-    @media(max-width:760px){
-      .profile-card{ flex-direction:row; gap:12px; align-items:center }
-      .balance{ margin-left:0; text-align:left }
-    }
-
-    /* tiny helpers */
-    .muted{ color:var(--muted) }
-    .gap-12{ gap:12px }
+    /* Table */
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    table th { background: #9b59b6; color: #fff; }
+    table tr:nth-child(even) { background: #f2f2f2; }
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <header class="app-header">
-    <div class="brand">
-      <button class="icon-btn" id="menu-btn" aria-label="Open menu">☰</button>
-      <h1>Sublime Logs</h1>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <a class="back-home" href="#" id="back-home">Back to Homepage</a>
-      <button class="icon-btn" id="logout-btn" title="Log out">⎋</button>
-    </div>
-  </header>
 
-  <div class="container">
-    <!-- Side Menu -->
-    <nav class="side-menu" id="side-menu" aria-hidden="true">
-      <span class="close-menu" id="close-menu" title="Close menu">✕</span>
-      <h3>Quick Actions</h3>
-      <ul>
-        <li id="menu-profile">Profile</li>
-        <li id="menu-fund">Fund Account</li>
-        <li id="menu-buy">Buy Number</li>
-        <li id="menu-send">Send Gift</li>
-        <li id="menu-transactions">Transaction History</li>
-        <li id="menu-logout">Logout</li>
-      </ul>
-    </nav>
+<header>
+  <span id="menu-btn">≡</span>
+  <h1>Sublime Logs</h1>
+  <a href="index.html" id="back-home">Home</a>
+</header>
 
-    <!-- Main content -->
-    <main class="content" id="main-content">
-      <div class="profile-card card">
-        <div class="avatar" id="avatar" title="Click to upload avatar">
-          <div class="edit-dot">✎</div>
-        </div>
+<nav id="side-menu">
+  <span id="close-menu">×</span>
+  <ul>
+    <li id="menu-profile">Profile</li>
+    <li id="menu-fund">Fund Account</li>
+    <li id="menu-buy">Buy Number</li>
+    <li id="menu-send">Send Gift</li>
+    <li id="menu-transactions">Transaction History</li>
+    <li id="menu-logout">Logout</li>
+  </ul>
+</nav>
 
-        <div class="profile-info">
-          <h2 id="user-name">Welcome</h2>
-          <p id="user-email" class="muted">your.email@example.com</p>
-          <div class="small muted" id="member-since">Member since: —</div>
-        </div>
-
-        <div class="balance">
-          <div class="label small">Balance</div>
-          <div class="amount" id="balance">₦0.00</div>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn" id="btn-profile">Profile</button>
-        <button class="btn" id="btn-fund">Fund Account</button>
-        <button class="btn" id="btn-buy">Buy Number</button>
-        <button class="btn" id="btn-send">Send Gift</button>
-        <button class="btn ghost" id="btn-trans-history">Transaction History</button>
-      </div>
-
-      <div class="card">
-        <h3 style="margin-top:0">Transaction History</h3>
-        <div style="overflow:auto">
-          <table aria-live="polite" id="transactions-table">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Reference</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- rows injected here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <!-- Hidden file input for avatar -->
-  <input id="avatar-input" type="file" accept="image/*" style="display:none" />
-
-  <!-- Modals -->
-  <div class="modal-backdrop" id="modal-backdrop">
-    <div class="modal" role="dialog" aria-modal="true" id="modal">
-      <!-- dynamic content injected -->
+<main>
+  <div class="profile">
+    <div class="avatar" id="avatar"></div>
+    <div class="profile-info">
+      <h2 id="user-name">Welcome</h2>
+      <p id="user-email"></p>
     </div>
   </div>
+  <div class="balance">Balance: ₦<span id="balance">0</span></div>
+  <button id="fund-btn">Fund Account</button>
 
-  <!-- Toasts -->
-  <div class="toast-wrap" id="toast-wrap"></div>
+  <table id="transactions-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
 
-  <script>
-    /***********************
-     * Local storage keys
-     ***********************/
-    const KEY_PROFILE = 'sublime_profile';
-    const KEY_BALANCE = 'sublime_balance';
-    const KEY_TRANSACTIONS = 'sublime_transactions';
-    const KEY_AVATAR = 'sublime_avatar';
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script type="module">
+  // --- Firebase ---
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-    /* Simple helpers */
-    const $ = id => document.getElementById(id);
-    const qs = sel => document.querySelector(sel);
-    const qsa = sel => document.querySelectorAll(sel);
+  const firebaseConfig = {
+    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
+    authDomain: "sublime-logs.firebaseapp.com",
+    projectId: "sublime-logs",
+    storageBucket: "sublime-logs.firebasestorage.app",
+    messagingSenderId: "381847722551",
+    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
+    measurementId: "G-8YHHJC1MP7"
+  };
 
-    function formatNaira(val){
-      return '₦' + Number(val || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-    }
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    function showToast(message, type='success'){
-      const wrap = $('toast-wrap');
-      const t = document.createElement('div');
-      t.className = 'toast ' + (type==='error' ? 'error': 'success');
-      t.innerHTML = `<div style="font-weight:800">${type==='error'?'✕':'✓'}</div><div style="margin-left:6px">${message}</div>`;
-      wrap.appendChild(t);
-      setTimeout(()=> {
-        t.style.transition = 'opacity .4s, transform .4s';
-        t.style.opacity = '0';
-        t.style.transform = 'translateX(30px)';
-        setTimeout(()=> t.remove(), 420);
-      }, 2400);
-    }
+  const menuBtn = document.getElementById('menu-btn');
+  const closeMenu = document.getElementById('close-menu');
+  const sideMenu = document.getElementById('side-menu');
+  const userNameEl = document.getElementById('user-name');
+  const userEmailEl = document.getElementById('user-email');
+  const balanceEl = document.getElementById('balance');
+  const avatarEl = document.getElementById('avatar');
+  const fundBtn = document.getElementById('fund-btn');
+  const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
 
-    /* Data access */
-    function loadProfile(){
-      const raw = localStorage.getItem(KEY_PROFILE);
-      if(raw) return JSON.parse(raw);
-      return { firstName:'User', surname:'', email:'user@example.com', createdAt: new Date().toISOString() };
-    }
-    function saveProfile(profile){
-      localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
-    }
-    function loadBalance(){
-      return parseFloat(localStorage.getItem(KEY_BALANCE) || '0');
-    }
-    function saveBalance(amount){
-      localStorage.setItem(KEY_BALANCE, String(Number(amount)));
-    }
-    function loadTransactions(){
-      return JSON.parse(localStorage.getItem(KEY_TRANSACTIONS) || '[]');
-    }
-    function saveTransactions(arr){
-      localStorage.setItem(KEY_TRANSACTIONS, JSON.stringify(arr));
-    }
-    function loadAvatar(){
-      return localStorage.getItem(KEY_AVATAR) || null;
-    }
-    function saveAvatar(dataUrl){
-      localStorage.setItem(KEY_AVATAR, dataUrl);
-    }
+  // Menu toggle
+  menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
+  closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
 
-    /* Renderers */
-    function renderProfile(){
-      const p = loadProfile();
-      $('user-name').textContent = `Welcome, ${p.firstName} ${p.surname}`.trim();
-      $('user-email').textContent = p.email;
-      $('member-since').textContent = 'Member since: ' + new Date(p.createdAt).toLocaleDateString();
-      const avatar = loadAvatar();
-      if(avatar) $('avatar').style.backgroundImage = `url(${avatar})`;
-      $('balance').textContent = formatNaira(loadBalance());
+  // Auth state
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.href = "login.html"; return; }
+
+    const userDoc = doc(db, 'users', user.uid);
+    let snap = await getDoc(userDoc);
+    if (!snap.exists()) {
+      await setDoc(userDoc, {
+        firstName: user.displayName?.split(' ')[0] || 'User',
+        surname: user.displayName?.split(' ')[1] || '',
+        email: user.email,
+        balance: 0,
+        avatar: null
+      });
+      snap = await getDoc(userDoc);
     }
 
-    function renderTransactions(){
-      const rows = loadTransactions();
-      const tbody = document.querySelector('#transactions-table tbody');
-      tbody.innerHTML = '';
-      if(rows.length === 0){
-        tbody.innerHTML = `<tr><td class="muted" colspan="5">No transactions yet.</td></tr>`;
-        return;
-      }
-      rows.slice().reverse().forEach(t=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+    const data = snap.data();
+    userNameEl.textContent = `Welcome, ${data.firstName} ${data.surname}`;
+    userEmailEl.textContent = data.email;
+    balanceEl.textContent = (data.balance || 0).toFixed(2);
+    if (data.avatar) avatarEl.style.backgroundImage = `url(${data.avatar})`;
+
+    // Live transactions
+    const transCol = collection(db, 'users', user.uid, 'transactions');
+    onSnapshot(transCol, snapshot => {
+      transactionsTable.innerHTML = '';
+      snapshot.forEach(docSnap => {
+        const t = docSnap.data();
+        const row = document.createElement('tr');
+        row.innerHTML = `
           <td>${t.type}</td>
-          <td>${formatNaira(t.amount)}</td>
+          <td>₦${t.amount.toFixed(2)}</td>
           <td>${new Date(t.date).toLocaleString()}</td>
           <td>${t.status}</td>
-          <td class="small">${t.reference || '—'}</td>
         `;
-        tbody.appendChild(tr);
+        transactionsTable.appendChild(row);
       });
-    }
-
-    /* UI modals */
-    const modalBackdrop = $('modal-backdrop');
-    const modal = $('modal');
-    function openModal(html){
-      modal.innerHTML = html;
-      modalBackdrop.classList.add('open');
-      // attach close for any .modal-close
-      modal.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', closeModal));
-    }
-    function closeModal(){
-      modalBackdrop.classList.remove('open');
-      modal.innerHTML = '';
-    }
-    modalBackdrop.addEventListener('click', (e)=> {
-      if(e.target === modalBackdrop) closeModal();
     });
+  });
 
-    /* Fake Paystack simulation */
-    function simulatePaystackCheckout(amount, email){
-      // returns a promise that resolves with a fake response
-      return new Promise((resolve) => {
-        setTimeout(()=> {
-          const ref = 'PSK_' + Math.random().toString(36).slice(2,10).toUpperCase() + Date.now().toString().slice(-4);
-          resolve({ status: 'success', reference: ref, amount });
-        }, 1100 + Math.random()*700);
-      });
-    }
+  // Fund account with Paystack
+  fundBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return;
 
-    /* Actions */
-    function openProfileModal(){
-      const p = loadProfile();
-      openModal(`
-        <h3>Edit Profile</h3>
-        <div class="form-row">
-          <label>First name</label>
-          <input id="inp-first" value="${escapeHtml(p.firstName||'')}" />
-        </div>
-        <div class="form-row">
-          <label>Surname</label>
-          <input id="inp-surname" value="${escapeHtml(p.surname||'')}" />
-        </div>
-        <div class="form-row">
-          <label>Email</label>
-          <input id="inp-email" value="${escapeHtml(p.email||'')}" />
-        </div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-          <button class="btn ghost modal-close">Cancel</button>
-          <button class="btn" id="save-profile-btn">Save</button>
-        </div>`);
-      $('save-profile-btn').addEventListener('click', ()=>{
-        const updated = {
-          firstName: $('inp-first').value.trim() || 'User',
-          surname: $('inp-surname').value.trim() || '',
-          email: $('inp-email').value.trim() || 'user@example.com',
-          createdAt: loadProfile().createdAt || new Date().toISOString()
-        };
-        saveProfile(updated);
-        renderProfile();
-        showToast('Profile updated');
-        closeModal();
-      });
-    }
+    const amount = parseFloat(prompt("Enter amount to fund (₦):"));
+    if (!amount || amount <= 0) return alert("Invalid amount");
 
-    function openFundModal(){
-      openModal(`
-        <h3>Fund Account</h3>
-        <div class="form-row">
-          <label>Amount (₦)</label>
-          <input id="inp-amount" type="number" min="1" placeholder="e.g. 1000" />
-        </div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-          <button class="btn ghost modal-close">Cancel</button>
-          <button class="btn" id="pay-btn">Proceed to Pay</button>
-        </div>`);
-      $('pay-btn').addEventListener('click', async ()=>{
-        const a = parseFloat( $('inp-amount').value );
-        if(!a || a <= 0){ showToast('Enter a valid amount', 'error'); return; }
-        const profile = loadProfile();
-        // simulate checkout
-        $('pay-btn').disabled = true;
-        $('pay-btn').textContent = 'Processing...';
-        try{
-          const res = await simulatePaystackCheckout(a, profile.email);
-          if(res.status === 'success'){
-            // update balance
-            const old = loadBalance();
-            const newB = Number(old) + Number(a);
-            saveBalance(newB);
-            // add transaction
-            const tx = { type:'Fund', amount: Number(a), date: new Date().toISOString(), status:'Success', reference: res.reference };
-            const txs = loadTransactions(); txs.push(tx); saveTransactions(txs);
-            renderProfile(); renderTransactions();
-            showToast('Payment successful: ' + res.reference);
-            closeModal();
-          } else {
-            showToast('Payment failed', 'error');
-          }
-        }catch(e){
-          console.error(e);
-          showToast('Payment error', 'error');
-        } finally {
-          if($('pay-btn')){ $('pay-btn').disabled = false; $('pay-btn').textContent = 'Proceed to Pay'; }
-        }
-      });
-    }
+    const handler = PaystackPop.setup({
+      key: 'YOUR_PAYSTACK_PUBLIC_KEY', // ⚡ Replace with your real Paystack public key
+      email: user.email,
+      amount: amount * 100, // kobo
+      currency: 'NGN',
+      callback: async function(response) {
+        alert('Payment successful! Reference: ' + response.reference);
 
-    function openBuyModal(){
-      openModal(`
-        <h3>Buy Number</h3>
-        <div class="form-row">
-          <label>Phone Number</label>
-          <input id="buy-phone" placeholder="e.g. 08123456789" />
-        </div>
-        <div class="form-row">
-          <label>Amount (₦)</label>
-          <input id="buy-amount" type="number" min="1" placeholder="e.g. 300" />
-        </div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-          <button class="btn ghost modal-close">Cancel</button>
-          <button class="btn" id="buy-btn">Buy</button>
-        </div>`);
-      $('buy-btn').addEventListener('click', async ()=>{
-        const phone = $('buy-phone').value.trim();
-        const amt = parseFloat($('buy-amount').value);
-        if(!phone){ showToast('Enter phone number', 'error'); return; }
-        if(!amt || amt <= 0){ showToast('Enter valid amount', 'error'); return; }
-        const bal = loadBalance();
-        if(bal < amt){ showToast('Insufficient balance', 'error'); return; }
-        // simulate purchase
-        const ref = 'BN_' + Math.random().toString(36).slice(2,9).toUpperCase();
-        const newB = Number(bal) - Number(amt);
-        saveBalance(newB);
-        const tx = { type:'Buy Number', amount:amt, date:new Date().toISOString(), status:'Success', reference: ref };
-        const txs = loadTransactions(); txs.push(tx); saveTransactions(txs);
-        renderProfile(); renderTransactions();
-        showToast(`Number purchased (${ref})`);
-        closeModal();
-      });
-    }
+        const userDoc = doc(db, 'users', user.uid);
+        const snap = await getDoc(userDoc);
+        const newBalance = (snap.data().balance || 0) + amount;
+        await updateDoc(userDoc, { balance: newBalance });
 
-    function openSendGiftModal(){
-      openModal(`
-        <h3>Send Gift</h3>
-        <div class="form-row">
-          <label>Recipient Email</label>
-          <input id="gift-email" placeholder="recipient@example.com" />
-        </div>
-        <div class="form-row">
-          <label>Amount (₦)</label>
-          <input id="gift-amount" type="number" min="1" placeholder="e.g. 500" />
-        </div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-          <button class="btn ghost modal-close">Cancel</button>
-          <button class="btn" id="gift-btn">Send Gift</button>
-        </div>`);
-      $('gift-btn').addEventListener('click', async ()=>{
-        const email = $('gift-email').value.trim();
-        const amt = parseFloat($('gift-amount').value);
-        if(!email){ showToast('Enter recipient email', 'error'); return; }
-        if(!amt || amt <= 0){ showToast('Enter valid amount', 'error'); return; }
-        const bal = loadBalance();
-        if(bal < amt){ showToast('Insufficient balance', 'error'); return; }
-        const ref = 'GF_' + Math.random().toString(36).slice(2,9).toUpperCase();
-        const newB = Number(bal) - Number(amt);
-        saveBalance(newB);
-        const tx = { type:'Send Gift', amount:amt, date:new Date().toISOString(), status:'Success', reference: ref };
-        const txs = loadTransactions(); txs.push(tx); saveTransactions(txs);
-        renderProfile(); renderTransactions();
-        showToast(`Gift sent (${ref})`);
-        closeModal();
-      });
-    }
-
-    /* Avatar upload */
-    $('avatar').addEventListener('click', ()=> $('avatar-input').click() );
-    $('avatar-input').addEventListener('change', (e)=>{
-      const f = e.target.files && e.target.files[0];
-      if(!f) return;
-      if(!f.type.startsWith('image/')){ showToast('Please select an image', 'error'); return; }
-      const reader = new FileReader();
-      reader.onload = function(ev){
-        const url = ev.target.result;
-        $('avatar').style.backgroundImage = `url(${url})`;
-        saveAvatar(url);
-        showToast('Avatar updated');
-      };
-      reader.readAsDataURL(f);
-    });
-
-    /* Side menu toggle */
-    const sideMenu = $('side-menu');
-    const menuBtn = $('menu-btn');
-    const closeMenu = $('close-menu');
-    menuBtn.addEventListener('click', ()=> {
-      sideMenu.classList.toggle('open');
-    });
-    closeMenu.addEventListener('click', ()=> sideMenu.classList.remove('open'));
-
-    /* Hook menu items */
-    $('menu-profile').addEventListener('click', ()=> { openProfileModal(); sideMenu.classList.remove('open'); });
-    $('menu-fund').addEventListener('click', ()=> { openFundModal(); sideMenu.classList.remove('open'); });
-    $('menu-buy').addEventListener('click', ()=> { openBuyModal(); sideMenu.classList.remove('open'); });
-    $('menu-send').addEventListener('click', ()=> { openSendGiftModal(); sideMenu.classList.remove('open'); });
-    $('menu-transactions').addEventListener('click', ()=> {
-      window.scrollTo({top: document.querySelector('#transactions-table').offsetTop - 60, behavior:'smooth'});
-      sideMenu.classList.remove('open');
-    });
-    $('menu-logout').addEventListener('click', ()=> doLogout());
-
-    /* Buttons */
-    $('btn-profile').addEventListener('click', openProfileModal);
-    $('btn-fund').addEventListener('click', openFundModal);
-    $('btn-buy').addEventListener('click', openBuyModal);
-    $('btn-send').addEventListener('click', openSendGiftModal);
-    $('btn-trans-history').addEventListener('click', ()=> {
-      const el = document.querySelector('#transactions-table');
-      el.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-
-    /* Logout */
-    function doLogout(){
-      // For demo: clear stored profile & redirect (simulate)
-      if(confirm('Log out? This will clear demo data.')) {
-        localStorage.removeItem(KEY_PROFILE);
-        localStorage.removeItem(KEY_BALANCE);
-        localStorage.removeItem(KEY_TRANSACTIONS);
-        localStorage.removeItem(KEY_AVATAR);
-        renderProfile();
-        renderTransactions();
-        showToast('Logged out (demo reset)');
+        await addDoc(collection(db, 'users', user.uid, 'transactions'), {
+          type: 'Fund',
+          amount: amount,
+          date: new Date().toISOString(),
+          status: 'Successful',
+          reference: response.reference
+        });
+      },
+      onClose: function() {
+        alert('Payment cancelled.');
       }
-    }
-    $('logout-btn').addEventListener('click', doLogout);
-    $('back-home').addEventListener('click', (e)=>{
-      e.preventDefault();
-      showToast('Back to homepage (replace link as needed)', 'success');
     });
-
-    /* Utilities */
-    function escapeHtml(str=''){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-    /* Boot */
-    (function init(){
-      // Set default profile if none
-      if(!localStorage.getItem(KEY_PROFILE)){
-        const now = new Date().toISOString();
-        saveProfile({ firstName:'John', surname:'Doe', email:'john.doe@example.com', createdAt:now });
-      }
-      if(!localStorage.getItem(KEY_BALANCE)) saveBalance(0);
-      if(!localStorage.getItem(KEY_TRANSACTIONS)) saveTransactions([]);
-      renderProfile();
-      renderTransactions();
-    })();
-
-  </script>
+    handler.openIframe();
+  });
+</script>
 </body>
 </html>
