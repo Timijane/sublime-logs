@@ -7,45 +7,96 @@
 <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'David', sans-serif; background:#fefefe; min-height:100vh; }
+
+  body {
+    font-family: 'David', sans-serif;
+    background: #fefefe;
+    min-height:100vh;
+  }
 
   header {
-    display:flex; justify-content:space-between; align-items:center;
-    padding:15px 20px; background:linear-gradient(90deg,#9b59b6,#e91e63); color:#fff;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 20px;
+    background: linear-gradient(90deg,#9b59b6,#e91e63);
+    color:#fff;
+    position:fixed;
+    width:100%;
+    z-index:200;
   }
-  header h1 { font-family:'Lobster', cursive; font-size:1.8em; }
-  #menu-btn { font-size:1.5em; cursor:pointer; z-index:300; }
+  header h1 { font-family:'Lobster',cursive; font-size:1.8em; }
+  #menu-btn { font-size:1.5em; cursor:pointer; }
   #back-home { background:#fff; color:#9b59b6; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold; text-decoration:none; }
 
-  /* Side Menu */
-  #side-menu {
-    position:fixed; left:-250px; top:0; width:250px; height:100%; background:gold;
-    padding:20px; transition:left 0.3s ease; z-index:200;
+  nav#side-menu {
+    position:fixed;
+    left:-40%;
+    top:0;
+    width:40%;
+    height:100%;
+    background:gold;
+    padding:20px;
+    transition:0.3s;
+    z-index:150;
   }
-  #side-menu.active { left:0; }
-  #side-menu ul { list-style:none; margin-top:50px; }
-  #side-menu ul li { margin:20px 0; font-weight:bold; cursor:pointer; }
+  nav#side-menu.active { left:0; }
+  nav#side-menu ul { list-style:none; margin-top:50px; }
+  nav#side-menu ul li { margin:20px 0; font-weight:bold; cursor:pointer; }
   #close-menu { position:absolute; top:10px; right:15px; font-size:1.5em; cursor:pointer; }
 
-  main { padding:20px; transition: margin-left 0.3s ease; }
-  .profile { display:flex; align-items:center; margin-bottom:20px; }
+  main {
+    padding:80px 20px 20px 20px;
+    transition:margin-left 0.3s;
+    margin-left:0;
+  }
+  nav#side-menu.active ~ main { margin-left:40%; }
+
+  .profile {
+    display:flex;
+    align-items:center;
+    margin-bottom:20px;
+  }
   .avatar {
-    width:80px; height:80px; border-radius:50%; background:#ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat;
-    margin-right:15px; cursor:pointer;
+    width:80px;
+    height:80px;
+    border-radius:50%;
+    background:#ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat;
+    margin-right:15px;
+    cursor:pointer;
   }
   .profile-info h2 { font-size:1.5em; margin-bottom:5px; }
   .profile-info p { color:#555; }
+
   .balance { font-size:1.2em; margin-bottom:20px; font-weight:bold; }
 
-  button { padding:12px 20px; background:linear-gradient(90deg,#9b59b6,#e91e63); border:none; border-radius:8px; color:#fff; font-weight:bold; cursor:pointer; margin-right:10px; }
+  button {
+    padding:12px 20px;
+    background: linear-gradient(90deg,#9b59b6,#e91e63);
+    border:none;
+    border-radius:8px;
+    color:#fff;
+    font-weight:bold;
+    cursor:pointer;
+    margin-right:10px;
+  }
 
-  table { width:100%; border-collapse:collapse; margin-top:20px; }
-  table th, table td { border:1px solid #ccc; padding:10px; text-align:left; }
+  table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+  }
+  table th, table td {
+    border:1px solid #ccc;
+    padding:10px;
+    text-align:left;
+  }
   table th { background:#9b59b6; color:#fff; }
   table tr:nth-child(even) { background:#f2f2f2; }
 
-  @media (max-width:768px) {
-    #side-menu { width:60%; }
+  @media (max-width:768px){
+    nav#side-menu { width:60%; }
+    nav#side-menu.active ~ main { margin-left:60%; }
   }
 </style>
 </head>
@@ -79,7 +130,7 @@
   </div>
   <div class="balance">Balance: ₦<span id="balance">0</span></div>
   <button id="fund-btn">Fund Account</button>
-
+  
   <table id="transactions-table">
     <thead>
       <tr>
@@ -90,6 +141,7 @@
       </tr>
     </thead>
     <tbody>
+      <!-- Transactions will load dynamically -->
     </tbody>
   </table>
 </main>
@@ -109,19 +161,18 @@
   const fundBtn = document.getElementById('fund-btn');
   const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
 
-  menuBtn.addEventListener('click', ()=> sideMenu.classList.add('active'));
-  closeMenu.addEventListener('click', ()=> sideMenu.classList.remove('active'));
-  document.addEventListener('click', (e)=>{
-    if(!sideMenu.contains(e.target) && !menuBtn.contains(e.target)) sideMenu.classList.remove('active');
-  });
+  // Hamburger toggle
+  menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
+  closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
 
-  onAuthStateChanged(auth, async user=>{
-    if(!user){ window.location.href="login.html"; return; }
+  // Auth state
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.href = "login.html"; return; }
 
-    const userDoc = doc(db,'users',user.uid);
-    const snap = await getDoc(userDoc);
+    const userDocRef = doc(db,'users',user.uid);
+    const snap = await getDoc(userDocRef);
     if(!snap.exists()){
-      await setDoc(userDoc,{
+      await setDoc(userDocRef,{
         firstName:user.displayName?.split(' ')[0]||'User',
         surname:user.displayName?.split(' ')[1]||'',
         email:user.email,
@@ -130,12 +181,14 @@
       });
     }
 
-    const data = (await getDoc(userDoc)).data();
+    const data = (await getDoc(userDocRef)).data();
     userNameEl.textContent = `Welcome, ${data.firstName}`;
     userEmailEl.textContent = data.email;
-    balanceEl.textContent = data.balance.toFixed(2);
+    balanceEl.textContent = data.balance.toLocaleString();
+
     if(data.avatar) avatarEl.style.backgroundImage = `url(${data.avatar})`;
 
+    // Transactions
     const transCol = collection(db,'users',user.uid,'transactions');
     onSnapshot(transCol,snapshot=>{
       transactionsTable.innerHTML='';
@@ -144,7 +197,7 @@
         const row=document.createElement('tr');
         row.innerHTML=`
           <td>${t.type}</td>
-          <td>₦${t.amount.toFixed(2)}</td>
+          <td>₦${t.amount.toLocaleString()}</td>
           <td>${new Date(t.date.seconds*1000).toLocaleString()}</td>
           <td>${t.status}</td>
         `;
@@ -153,21 +206,21 @@
     });
   });
 
-  fundBtn.addEventListener('click',async ()=>{
-    const user = auth.currentUser;
+  // Fund account
+  fundBtn.addEventListener('click', async ()=>{
+    const user=auth.currentUser;
     if(!user) return;
-    const amount=parseFloat(prompt("Enter amount to fund:"));
+    const amount=parseFloat(prompt("Enter amount to fund in Naira:"));
     if(!amount || amount<=0) return alert("Invalid amount");
 
-    // Placeholder: insert Paystack integration here
-    alert(`Payment of ₦${amount.toFixed(2)} successful!`);
+    alert(`Payment of ₦${amount.toLocaleString()} successful!`);
 
-    const userDoc = doc(db,'users',user.uid);
-    const snap = await getDoc(userDoc);
+    const userDocRef=doc(db,'users',user.uid);
+    const snap=await getDoc(userDocRef);
     const currentBalance = snap.data().balance||0;
-    const newBalance = currentBalance + amount;
+    const newBalance=currentBalance+amount;
 
-    await updateDoc(userDoc,{balance:newBalance});
+    await updateDoc(userDocRef,{balance:newBalance});
     await addDoc(collection(db,'users',user.uid,'transactions'),{
       type:'Fund Account',
       amount,
@@ -175,30 +228,34 @@
       status:'Successful'
     });
 
-    balanceEl.textContent = newBalance.toFixed(2);
+    balanceEl.textContent=newBalance.toLocaleString();
     alert("Thanks for trading with us!");
   });
 
-  avatarEl.addEventListener('click',async ()=>{
+  // Avatar upload
+  avatarEl.addEventListener('click', async ()=>{
     const fileInput=document.createElement('input');
-    fileInput.type='file'; fileInput.accept='image/*'; fileInput.click();
+    fileInput.type='file';
+    fileInput.accept='image/*';
+    fileInput.click();
     fileInput.onchange=async ()=>{
-      const file=fileInput.files[0]; if(!file) return;
-      const reader=new FileReader();
-      reader.onload=async (e)=>{
-        avatarEl.style.backgroundImage=`url(${e.target.result})`;
+      const file=fileInput.files[0];
+      if(!file) return;
+const reader = new FileReader();
+      reader.onload = async (e) => {
+        avatarEl.style.backgroundImage = `url(${e.target.result})`;
         const user = auth.currentUser;
-        await updateDoc(doc(db,'users',user.uid),{avatar:e.target.result});
+        await updateDoc(doc(db, 'users', user.uid), { avatar: e.target.result });
       };
       reader.readAsDataURL(file);
     };
   });
 
-  document.getElementById('menu-logout').addEventListener('click',async ()=>{
+  // Logout
+  document.getElementById('menu-logout').addEventListener('click', async () => {
     await signOut(auth);
-    window.location.href="login.html";
+    window.location.href = "login.html";
   });
-
 </script>
 </body>
 </html>
