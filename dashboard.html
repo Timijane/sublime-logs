@@ -6,239 +6,268 @@
 <title>Sublime Logs - Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
 <style>
+  /* Reset */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
   body {
     font-family: 'David', sans-serif;
-    margin: 0;
     background: #fefefe;
+    min-height: 100vh;
   }
-  .header {
-    background: linear-gradient(90deg, #9b59b6, #e91e63);
-    color: white;
-    padding: 15px;
+
+  /* Header */
+  header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: linear-gradient(90deg, #9b59b6, #e91e63);
+    color: #fff;
   }
-  .menu-btn {
-    font-size: 1.5em;
-    cursor: pointer;
-  }
-  .menu {
+  header h1 { font-family: 'Lobster', cursive; font-size: 1.8em; }
+  #menu-btn { font-size: 1.5em; cursor: pointer; }
+  #back-home { background: #fff; color: #9b59b6; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; }
+
+  /* Side Menu */
+  #side-menu {
     position: fixed;
-    top: 0;
     left: -40%;
+    top: 0;
     width: 40%;
     height: 100%;
-    background-color: gold;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    background: gold;
+    padding: 20px;
     transition: 0.3s;
+    z-index: 100;
+  }
+  #side-menu.active { left: 0; }
+  #side-menu ul { list-style: none; margin-top: 50px; }
+  #side-menu ul li { margin: 20px 0; font-weight: bold; cursor: pointer; }
+  #side-menu #close-menu { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; }
+
+  /* Main Content */
+  main {
     padding: 20px;
-    z-index: 10;
+    transition: margin-left 0.3s;
+    margin-left: 0;
   }
-  .menu.active {
-    left: 0;
-  }
-  .menu button {
-    display: block;
-    margin: 10px 0;
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    background: #fff;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  .close-menu {
-    font-size: 1.5em;
-    cursor: pointer;
-    margin-bottom: 20px;
-  }
-  .content {
-    padding: 20px;
-  }
-  .user-info {
+  #side-menu.active ~ main { margin-left: 40%; }
+
+  .profile {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
   }
   .avatar {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    background: #ccc;
+    background: #ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat;
     margin-right: 15px;
+    cursor: pointer;
   }
-  .user-details {
-    font-size: 1em;
-  }
-  #user-balance {
+  .profile-info h2 { font-size: 1.5em; margin-bottom: 5px; }
+  .profile-info p { color: #555; }
+
+  .balance {
+    font-size: 1.2em;
+    margin-bottom: 20px;
     font-weight: bold;
-    margin-top: 5px;
   }
-  .fund-account button {
-    width: 100%;
-    padding: 12px;
+
+  /* Buttons */
+  button {
+    padding: 12px 20px;
+    background: linear-gradient(90deg, #9b59b6, #e91e63);
     border: none;
     border-radius: 8px;
-    background: linear-gradient(90deg, #9b59b6, #e91e63);
     color: #fff;
-    font-size: 1em;
+    font-weight: bold;
     cursor: pointer;
-    margin-bottom: 20px;
+    margin-right: 10px;
   }
-  .transactions {
+
+  /* Transactions Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
     margin-top: 20px;
   }
-  .transaction {
-    border-bottom: 1px solid #ccc;
-    padding: 10px 0;
+  table th, table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
   }
-  .home-btn {
-    margin-top: 20px;
-    display: inline-block;
-    padding: 10px 15px;
-    background: #9b59b6;
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
+  table th { background: #9b59b6; color: #fff; }
+  table tr:nth-child(even) { background: #f2f2f2; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    #side-menu { width: 60%; }
+    #side-menu.active ~ main { margin-left: 60%; }
   }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <span class="menu-btn" id="menu-btn">☰</span>
-  <h1>Dashboard</h1>
-</div>
+<header>
+  <span id="menu-btn">≡</span>
+  <h1>Sublime Logs</h1>
+  <a href="index.html" id="back-home">Home</a>
+</header>
 
-<div class="menu" id="menu">
-  <span class="close-menu" id="close-menu">×</span>
-  <button id="profile-btn">Profile</button>
+<nav id="side-menu">
+  <span id="close-menu">×</span>
+  <ul>
+    <li id="menu-profile">Profile</li>
+    <li id="menu-fund">Fund Account</li>
+    <li id="menu-buy">Buy Number</li>
+    <li id="menu-send">Send Gift</li>
+    <li id="menu-transactions">Transaction History</li>
+    <li id="menu-logout">Logout</li>
+  </ul>
+</nav>
+
+<main>
+  <div class="profile">
+    <div class="avatar" id="avatar"></div>
+    <div class="profile-info">
+      <h2 id="user-name">Welcome</h2>
+      <p id="user-email"></p>
+    </div>
+  </div>
+  <div class="balance">Balance: $<span id="balance">0</span></div>
   <button id="fund-btn">Fund Account</button>
-  <button id="buy-number-btn">Buy Number</button>
-  <button id="send-gifs-btn">Send Gifs</button>
-  <button id="back-home-btn">Back to Homepage</button>
-  <button id="transaction-btn">Transaction</button>
-  <button id="logout-btn">Logout</button>
-</div>
-
-<div class="content">
-  <div class="user-info">
-    <div class="avatar"></div>
-    <div class="user-details">
-      <div id="user-name">User Name</div>
-      <div id="user-email">user@example.com</div>
-      <div>Balance: ₦<span id="user-balance">0</span></div>
-    </div>
-  </div>
-
-  <div class="transactions">
-    <h2>Transaction History</h2>
-    <div id="transaction-list">
-      <!-- Transactions will be appended here -->
-    </div>
-  </div>
-
-  <a href="index.html" class="home-btn">Back to Home</a>
-</div>
+  
+  <table id="transactions-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Sample transactions displayed dynamically -->
+    </tbody>
+  </table>
+</main>
 
 <script type="module">
-  import { auth } from './js/firebase.js';
-  import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { auth, db } from './js/firebase.js';
+  import { doc, getDoc, setDoc, collection, addDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
-  const db = getFirestore();
-
-  const menu = document.getElementById('menu');
   const menuBtn = document.getElementById('menu-btn');
   const closeMenu = document.getElementById('close-menu');
+  const sideMenu = document.getElementById('side-menu');
+  const userNameEl = document.getElementById('user-name');
+  const userEmailEl = document.getElementById('user-email');
+  const balanceEl = document.getElementById('balance');
+  const avatarEl = document.getElementById('avatar');
+  const fundBtn = document.getElementById('fund-btn');
+  const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
 
-  menuBtn.addEventListener('click', () => menu.classList.add('active'));
-  closeMenu.addEventListener('click', () => menu.classList.remove('active'));
+  // Menu toggle
+  menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
+  closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
 
-  const userName = document.getElementById('user-name');
-  const userEmail = document.getElementById('user-email');
-  const userBalance = document.getElementById('user-balance');
-  const transactionList = document.getElementById('transaction-list');
+  // Authentication state
+  onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.href = "login.html"; return; }
 
-  // Load user info and transactions
-  auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-      window.location.href = 'login.html';
-      return;
+    // Load user data
+    const userDoc = doc(db, 'users', user.uid);
+    const snap = await getDoc(userDoc);
+    if (!snap.exists()) {
+      await setDoc(userDoc, {
+        firstName: user.displayName?.split(' ')[0] || 'User',
+        surname: user.displayName?.split(' ')[1] || '',
+        email: user.email,
+        balance: 0,
+        avatar: null
+      });
     }
 
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    if (userDoc.exists()) {
-      const data = userDoc.data();
-      userName.textContent = data.firstName + ' ' + data.surname;
-      userEmail.textContent = data.email;
-      userBalance.textContent = data.balance || 0;
-    }
+    const data = (await getDoc(userDoc)).data();
+    userNameEl.textContent = `Welcome, ${data.firstName}`;
+    userEmailEl.textContent = data.email;
+    balanceEl.textContent = data.balance.toFixed(2);
 
-    const txSnapshot = await getDocs(collection(db, 'users', user.uid, 'transactions'));
-    transactionList.innerHTML = '';
-    txSnapshot.forEach(doc => {
-      const tx = doc.data();
-      transactionList.innerHTML += `
-        <div class="transaction">
-          <strong>${tx.type}</strong>: ₦${tx.amount} <br>
-          ${tx.description || ''} <br>
-          <small>${new Date(tx.date.seconds * 1000).toLocaleString()}</small>
-        </div>
-      `;
+    if (data.avatar) avatarEl.style.backgroundImage = `url(${data.avatar})`;
+
+    // Load transactions dynamically
+    const transCol = collection(db, 'users', user.uid, 'transactions');
+    onSnapshot(transCol, snapshot => {
+      transactionsTable.innerHTML = '';
+      snapshot.forEach(docSnap => {
+        const t = docSnap.data();
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${t.type}</td>
+          <td>$${t.amount.toFixed(2)}</td>
+          <td>${new Date(t.date.seconds*1000).toLocaleString()}</td>
+          <td>${t.status}</td>
+        `;
+        transactionsTable.appendChild(row);
+      });
     });
   });
 
-  // Fund Account
-  const fundBtn = document.getElementById('fund-btn');
+  // Fund account
   fundBtn.addEventListener('click', async () => {
     const user = auth.currentUser;
-    if (!user) return alert("Please log in!");
+    if (!user) return;
 
-    let amount = prompt("Enter amount to fund (₦):");
-    if (!amount || isNaN(amount) || amount <= 0) return alert("Invalid amount!");
-    amount = parseFloat(amount) * 100; // kobo for Paystack
+    const amount = parseFloat(prompt("Enter amount to fund:"));
+    if (!amount || amount <= 0) return alert("Invalid amount");
 
-    const handler = PaystackPop.setup({
-      key: 'YOUR_PUBLIC_KEY_HERE', // replace with your Paystack public key
-      email: user.email,
-      amount: amount,
-      currency: "NGN",
-      ref: '' + Math.floor(Math.random() * 1000000000 + 1),
-      callback: async function(response) {
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        const currentBalance = userSnap.data().balance || 0;
-        await updateDoc(userRef, { balance: currentBalance + (amount/100) });
+    // Simulate Paystack payment
+    alert(`Payment of $${amount.toFixed(2)} successful!`);
 
-        const txRef = collection(db, 'users', user.uid, 'transactions');
-        await addDoc(txRef, {
-          type: "Credit",
-          amount: amount/100,
-          date: new Date(),
-          reference: response.reference,
-          description: "Account Funding"
-        });
+    const userDoc = doc(db, 'users', user.uid);
+    const snap = await getDoc(userDoc);
+    const currentBalance = snap.data().balance || 0;
+    const newBalance = currentBalance + amount;
 
-        userBalance.textContent = currentBalance + (amount/100);
-        alert("Payment successful! Balance updated.");
-      },
-      onClose: function() {
-        alert('Payment cancelled.');
-      }
+    await updateDoc(userDoc, { balance: newBalance });
+    await addDoc(collection(db, 'users', user.uid, 'transactions'), {
+      type: 'Fund Account',
+      amount,
+      date: new Date(),
+      status: 'Successful'
     });
-    handler.openIframe();
+
+    balanceEl.textContent = newBalance.toFixed(2);
+    alert("Thanks for trading with us!");
+  });
+
+  // Avatar upload
+  avatarEl.addEventListener('click', async () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.click();
+    fileInput.onchange = async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        avatarEl.style.backgroundImage = `url(${e.target.result})`;
+        const user = auth.currentUser;
+        await updateDoc(doc(db, 'users', user.uid), { avatar: e.target.result });
+      };
+      reader.readAsDataURL(file);
+    };
   });
 
   // Logout
-  const logoutBtn = document.getElementById('logout-btn');
-  logoutBtn.addEventListener('click', () => {
-    auth.signOut().then(() => window.location.href = 'login.html');
+  document.getElementById('menu-logout').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.href = "login.html";
   });
-</script>
 
-<!-- Paystack script -->
-<script src="https://js.paystack.co/v1/inline.js"></script>
+</script>
 </body>
 </html>
