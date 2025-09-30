@@ -8,6 +8,9 @@
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Lobster&display=swap" rel="stylesheet">
 
+<!-- Paystack SDK -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
 <style>
 :root{
   --primary-gradient: linear-gradient(90deg, #9b59b6, #e91e63);
@@ -59,6 +62,7 @@ header.app-header{
   color:white;
   font-size:22px;
   padding:8px;
+  cursor:pointer;
 }
 .back-home{
   background:white;
@@ -308,472 +312,212 @@ th{ color: #06102b; font-weight:700; font-size:13px }
 
 <!-- Modals -->
 <div class="modal-backdrop" id="modal-backdrop">
-  <div class="modal" role="dialog" aria-modal="true" id="modal">
-    <!-- dynamic content injected -->
-  <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+  <div class="modal" role="dialog" aria-modal="true" id="modal"></div>
+</div>
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-  authDomain: "sublime-logs.firebaseapp.com",
-  projectId: "sublime-logs",
-  storageBucket: "sublime-logs.firebasestorage.app",
-  messagingSenderId: "381847722551",
-  appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-  measurementId: "G-8YHHJC1MP7"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-// Demo user data
-let currentUser = {
-  uid: "demo_user",
-  name: "John Doe",
-  email: "johndoe@example.com",
-  balance: 0,
-  avatarUrl: "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-};
-
-// DOM Elements
-const menuBtn = document.getElementById('menu-btn');
+<script>
+// ====== DOM Elements ======
 const sideMenu = document.getElementById('side-menu');
-const closeMenu = document.getElementById('close-menu');
-const avatarEl = document.getElementById('avatar');
-const avatarInput = document.getElementById('avatar-input');
-const userNameEl = document.getElementById('user-name');
-const userEmailEl = document.getElementById('user-email');
-const balanceEl = document.getElementById('balance');
-const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
+const menuBtn = document.getElementById('menu-btn');
+const closeMenuBtn = document.getElementById('close-menu');
 const modalBackdrop = document.getElementById('modal-backdrop');
 const modal = document.getElementById('modal');
+const avatar = document.getElementById('avatar');
+const avatarInput = document.getElementById('avatar-input');
+const balanceEl = document.getElementById('balance');
+const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
 
-// Menu toggle
-menuBtn.addEventListener('click', () => sideMenu.classList.add('open'));
-closeMenu.addEventListener('click', () => sideMenu.classList.remove('open'));
-
-// Populate user data
-function updateUserUI(){
-  userNameEl.textContent = currentUser.name;
-  userEmailEl.textContent = currentUser.email;
-  balanceEl.textContent = `₦${currentUser.balance.toFixed(2)}`;
-  avatarEl.style.backgroundImage = `url(${currentUser.avatarUrl})`;
-}
-
-// Avatar upload
-avatarEl.addEventListener('click', () => avatarInput.click());
-avatarInput.addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const storageReference = storageRef(storage, `avatars/${currentUser.uid}/${file.name}`);
-  await uploadBytes(storageReference, file);
-  const url = await getDownloadURL(storageReference);
-  currentUser.avatarUrl = url;
-  updateUserUI();
-});
-
-// Paystack funding
-async function fundAccount(amount){
-  const handler = PaystackPop.setup({
-    key: 'YOUR_PUBLIC_KEY', // Replace with your Paystack public key
-    email: currentUser.email,
-    amount: amount * 100, // in kobo
-    currency: "NGN",
-    callback: async function(response){
-      // Record transaction in Firestore
-      await addDoc(collection(db, "transactions"), {
-        userId: currentUser.uid,
-        type: "fund",
-        amount: amount,
-        status: "success",
-        reference: response.reference,
-        timestamp: serverTimestamp()
-      });
-      currentUser.balance += amount;
-      updateUserUI();
-      loadTransactions();
-      alert("Funding successful! Reference: "+response.reference);
-    },
-    onClose: function(){
-      alert('Payment window closed.');
-    }
-  });
-  handler.openIframe();
-}
-
-// Load transactions from Firestore
-async function loadTransactions(){
-  transactionsTable.innerHTML = '';
-  const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
-  const snapshot = await getDocs(q);
-  snapshot.forEach(doc=>{
-    const tx = doc.data();
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${tx.type}</td>
-      <td>₦${tx.amount}</td>
-      <td>${tx.timestamp?.toDate().toLocaleString() || '-'}</td>
-      <td>${tx.status}</td>
-      <td>${tx.reference}</td>
-    `;
-    transactionsTable.appendChild(tr);
-  });
-}
-
-// Button events
-document.getElementById('btn-fund').addEventListener('click', ()=>{
-  const amount = parseFloat(prompt("Enter amount to fund account:", "500"));
-  if(amount && !isNaN(amount)){
-    fundAccount(amount);
-  }
-});
-
-// Initial setup
-updateUserUI();
-loadTransactions();
-</script>
-
-<!-- Paystack SDK -->
-<script src="https://js.paystack.co/v1/inline.js"></script>
-    <script type="module">
-import { addDoc, collection, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-
-// --- BUY NUMBER ---
-async function buyNumber(phone, amount){
-  if(!phone || !amount || amount <= 0) { alert("Enter valid phone and amount"); return; }
-  if(currentUser.balance < amount){ alert("Insufficient balance"); return; }
-
-  // Deduct locally
-  currentUser.balance -= amount;
-  updateUserUI();
-
-  // Record transaction in Firestore
-  const refCode = 'BN_' + Math.random().toString(36).slice(2,9).toUpperCase();
-  await addDoc(collection(db, "transactions"), {
-    userId: currentUser.uid,
-    type: "Buy Number",
-    phoneNumber: phone,
-    amount: amount,
-    status: "success",
-    reference: refCode,
-    timestamp: serverTimestamp()
-  });
-
-  alert(`Number purchased successfully! Ref: ${refCode}`);
-  loadTransactions();
-}
-
-// --- SEND GIFT ---
-async function sendGift(recipientEmail, amount){
-  if(!recipientEmail || !amount || amount <= 0) { alert("Enter valid recipient and amount"); return; }
-  if(currentUser.balance < amount){ alert("Insufficient balance"); return; }
-
-  // Deduct locally
-  currentUser.balance -= amount;
-  updateUserUI();
-
-  // Record transaction in Firestore
-  const refCode = 'GF_' + Math.random().toString(36).slice(2,9).toUpperCase();
-  await addDoc(collection(db, "transactions"), {
-    userId: currentUser.uid,
-    type: "Send Gift",
-    recipientEmail: recipientEmail,
-    amount: amount,
-    status: "success",
-    reference: refCode,
-    timestamp: serverTimestamp()
-  });
-
-  alert(`Gift sent successfully! Ref: ${refCode}`);
-  loadTransactions();
-}
-
-// --- Modals ---
-function openBuyModal(){
-  modal.innerHTML = `
-    <h3>Buy Number</h3>
-    <div class="form-row">
-      <label>Phone Number</label>
-      <input id="buy-phone" placeholder="e.g. 08123456789" />
-    </div>
-    <div class="form-row">
-      <label>Amount (₦)</label>
-      <input id="buy-amount" type="number" min="1" placeholder="e.g. 300" />
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn ghost modal-close">Cancel</button>
-      <button class="btn" id="buy-btn">Buy</button>
-    </div>`;
-  modalBackdrop.classList.add('open');
-
-  document.getElementById('buy-btn').addEventListener('click', ()=>{
-    const phone = document.getElementById('buy-phone').value.trim();
-    const amount = parseFloat(document.getElementById('buy-amount').value);
-    buyNumber(phone, amount);
-    modalBackdrop.classList.remove('open');
-  });
-
-  modal.querySelectorAll('.modal-close').forEach(btn=> btn.addEventListener('click', ()=> modalBackdrop.classList.remove('open')));
-}
-
-function openSendGiftModal(){
-  modal.innerHTML = `
-    <h3>Send Gift</h3>
-    <div class="form-row">
-      <label>Recipient Email</label>
-      <input id="gift-email" placeholder="recipient@example.com" />
-    </div>
-    <div class="form-row">
-      <label>Amount (₦)</label>
-      <input id="gift-amount" type="number" min="1" placeholder="e.g. 500" />
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn ghost modal-close">Cancel</button>
-      <button class="btn" id="gift-btn">Send Gift</button>
-    </div>`;
-  modalBackdrop.classList.add('open');
-
-  document.getElementById('gift-btn').addEventListener('click', ()=>{
-    const recipient = document.getElementById('gift-email').value.trim();
-    const amount = parseFloat(document.getElementById('gift-amount').value);
-    sendGift(recipient, amount);
-    modalBackdrop.classList.remove('open');
-  });
-
-  modal.querySelectorAll('.modal-close').forEach(btn=> btn.addEventListener('click', ()=> modalBackdrop.classList.remove('open')));
-}
-
-// --- Menu Hooks ---
-document.getElementById('menu-buy').addEventListener('click', ()=>{
-  openBuyModal();
-  sideMenu.classList.remove('open');
-});
-document.getElementById('menu-send').addEventListener('click', ()=>{
-  openSendGiftModal();
-  sideMenu.classList.remove('open');
-});
-
-// --- Buttons ---
-document.getElementById('btn-buy').addEventListener('click', openBuyModal);
-document.getElementById('btn-send').addEventListener('click', openSendGiftModal);
-
-    </script>
-    <script type="module">
-import { getFirestore, collection, addDoc, query, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-  authDomain: "sublime-logs.firebaseapp.com",
-  projectId: "sublime-logs",
-  storageBucket: "sublime-logs.firebasestorage.app",
-  messagingSenderId: "381847722551",
-  appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-  measurementId: "G-8YHHJC1MP7"
+// ====== Dummy Data ======
+let user = {
+    name: "Opeyemi Temilola",
+    email: "opeyemi.temilola@example.com",
+    balance: 300000,
+    memberSince: "2025-01-01",
+    avatarUrl: "https://cdn-icons-png.flaticon.com/512/149/149071.png"
 };
 
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const db = getFirestore(app);
+let transactions = [
+    {type: "Fund Account", amount: 50000, date: "2025-09-30", status: "Success", ref: "TRX001"},
+    {type: "Buy Number", amount: 10000, date: "2025-09-29", status: "Success", ref: "TRX002"},
+    {type: "Send Gift", amount: 15000, date: "2025-09-28", status: "Pending", ref: "TRX003"}
+];
 
-// ---- Local user demo ----
-let currentUser = { uid: "demoUser", balance: 5000 }; // Demo user
+// ====== Functions ======
+function openMenu() { sideMenu.classList.add('open'); sideMenu.setAttribute('aria-hidden','false'); }
+function closeMenu() { sideMenu.classList.remove('open'); sideMenu.setAttribute('aria-hidden','true'); }
 
-function updateUserUI(){
-  document.getElementById('balance').textContent = `₦${currentUser.balance.toLocaleString(undefined,{minimumFractionDigits:2})}`;
+function showModal(contentHtml) {
+    modal.innerHTML = contentHtml;
+    modalBackdrop.classList.add('open');
+}
+function closeModal() {
+    modalBackdrop.classList.remove('open');
 }
 
-// ---- Load Transactions ----
-async function loadTransactions(){
-  const tbody = document.querySelector('#transactions-table tbody');
-  tbody.innerHTML = '';
-  const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
-  const snapshot = await getDocs(q);
-  if(snapshot.empty){
-    tbody.innerHTML = `<tr><td class="muted" colspan="5">No transactions yet.</td></tr>`;
-    return;
-  }
-  snapshot.forEach(doc=>{
-    const t = doc.data();
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${t.type}</td>
-      <td>₦${t.amount.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-      <td>${t.timestamp?.toDate().toLocaleString() || '—'}</td>
-      <td>${t.status}</td>
-      <td class="small">${t.reference || '—'}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+function updateProfileUI() {
+    document.getElementById('user-name').textContent = user.name;
+    document.getElementById('user-email').textContent = user.email;
+    document.getElementById('member-since').textContent = `Member since: ${user.memberSince}`;
+    balanceEl.textContent = `₦${user.balance.toLocaleString()}`;
+    avatar.style.backgroundImage = `url('${user.avatarUrl}')`;
 }
 
-// ---- Paystack simulation ----
-function paystackCheckout(amount, email){
-  return new Promise(resolve => {
-    const ref = 'PSK_' + Math.random().toString(36).slice(2,10).toUpperCase() + Date.now().toString().slice(-4);
-    setTimeout(()=> resolve({status:'success', reference: ref, amount}), 1200);
-  });
+function renderTransactions() {
+    transactionsTable.innerHTML = "";
+    transactions.forEach(tx => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${tx.type}</td>
+            <td>₦${tx.amount.toLocaleString()}</td>
+            <td>${tx.date}</td>
+            <td>${tx.status}</td>
+            <td>${tx.ref}</td>
+        `;
+        transactionsTable.appendChild(row);
+    });
 }
 
-// ---- Fund Account ----
-function openFundModal(){
-  modal.innerHTML = `
-    <h3>Fund Account</h3>
-    <div class="form-row">
-      <label>Amount (₦)</label>
-      <input id="inp-amount" type="number" min="1" placeholder="e.g. 1000" />
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn ghost modal-close">Cancel</button>
-      <button class="btn" id="pay-btn">Proceed to Pay</button>
-    </div>`;
-  modalBackdrop.classList.add('open');
+function payWithPaystack(amount, callback) {
+    const handler = PaystackPop.setup({
+        key: 'YOUR_PUBLIC_PAYSTACK_KEY', // Replace with your public key
+        email: user.email,
+        amount: amount * 100, // Paystack expects amount in kobo
+        currency: "NGN",
+        ref: `SUBLIME-${Math.floor(Math.random()*1000000)}`,
+        onClose: function() {
+            alert('Payment cancelled.');
+        },
+        callback: function(response) {
+            alert('Payment successful! Reference: ' + response.reference);
+            // Update balance and transactions
+            user.balance += amount;
+            transactions.unshift({
+                type: "Fund Account",
+                amount: amount,
+                date: new Date().toISOString().split('T')[0],
+                status: "Success",
+                ref: response.reference
+            });
+            updateProfileUI();
+            renderTransactions();
+        }
+    });
+    handler.openIframe();
+}
 
-  document.getElementById('pay-btn').addEventListener('click', async ()=>{
-    const a = parseFloat(document.getElementById('inp-amount').value);
-    if(!a || a <= 0){ alert('Enter valid amount'); return; }
+// ====== Event Listeners ======
+menuBtn.addEventListener('click', openMenu);
+closeMenuBtn.addEventListener('click', closeMenu);
+modalBackdrop.addEventListener('click', e => { if(e.target===modalBackdrop) closeModal(); });
 
-    const email = "demo@user.com"; // replace with actual user email
-    const res = await paystackCheckout(a, email);
-    if(res.status === 'success'){
-      currentUser.balance += a;
-      updateUserUI();
-      // Add transaction to Firestore
-      await addDoc(collection(db, "transactions"), {
-        userId: currentUser.uid,
-        type: "Fund",
-        amount: a,
-        status: "success",
-        reference: res.reference,
-        timestamp: serverTimestamp()
-      });
-      alert(`Payment successful! Ref: ${res.reference}`);
-      loadTransactions();
-      modalBackdrop.classList.remove('open');
-    } else {
-      alert('Payment failed');
+// Avatar upload
+avatar.addEventListener('click', () => avatarInput.click());
+avatarInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(file){
+        const reader = new FileReader();
+        reader.onload = function(evt){
+            user.avatarUrl = evt.target.result;
+            avatar.style.backgroundImage = `url('${user.avatarUrl}')`;
+        }
+        reader.readAsDataURL(file);
     }
-  });
+});
 
-  modal.querySelectorAll('.modal-close').forEach(btn=> btn.addEventListener('click', ()=> modalBackdrop.classList.remove('open')));
-}
+// Action buttons
+document.getElementById('btn-profile').addEventListener('click', () => {
+    showModal(`
+        <h3>Profile Info</h3>
+        <p><strong>Name:</strong> ${user.name}</p>
+        <p><strong>Email:</strong> ${user.email}</p>
+        <p><strong>Member Since:</strong> ${user.memberSince}</p>
+        <button class="btn" onclick="closeModal()">Close</button>
+    `);
+});
 
-// ---- Buy Number ----
-async function buyNumber(phone, amount){
-  if(!phone || !amount || amount <=0){ alert('Enter valid data'); return; }
-  if(currentUser.balance < amount){ alert('Insufficient balance'); return; }
-  currentUser.balance -= amount;
-  updateUserUI();
-  const refCode = 'BN_' + Math.random().toString(36).slice(2,9).toUpperCase();
-  await addDoc(collection(db, "transactions"), {
-    userId: currentUser.uid,
-    type: "Buy Number",
-    phoneNumber: phone,
-    amount: amount,
-    status: "success",
-    reference: refCode,
-    timestamp: serverTimestamp()
-  });
-  alert(`Number purchased! Ref: ${refCode}`);
-  loadTransactions();
-}
+document.getElementById('btn-fund').addEventListener('click', () => {
+    showModal(`
+        <h3>Fund Account</h3>
+        <div class="form-row">
+            <label>Amount (₦)</label>
+            <input type="number" id="fund-amount" value="1000" min="100" />
+        </div>
+        <button class="btn" id="fund-pay-btn">Pay Now</button>
+        <button class="btn ghost" onclick="closeModal()">Cancel</button>
+    `);
+    document.getElementById('fund-pay-btn').addEventListener('click', () => {
+        const amt = parseFloat(document.getElementById('fund-amount').value);
+        if(amt > 0) payWithPaystack(amt);
+        closeModal();
+    });
+});
 
-// ---- Send Gift ----
-async function sendGift(recipientEmail, amount){
-  if(!recipientEmail || !amount || amount <= 0){ alert('Enter valid data'); return; }
-  if(currentUser.balance < amount){ alert('Insufficient balance'); return; }
-  currentUser.balance -= amount;
-  updateUserUI();
-  const refCode = 'GF_' + Math.random().toString(36).slice(2,9).toUpperCase();
-  await addDoc(collection(db, "transactions"), {
-    userId: currentUser.uid,
-    type: "Send Gift",
-    recipientEmail: recipientEmail,
-    amount: amount,
-    status: "success",
-    reference: refCode,
-    timestamp: serverTimestamp()
-  });
-  alert(`Gift sent! Ref: ${refCode}`);
-  loadTransactions();
-}
+document.getElementById('btn-buy').addEventListener('click', () => {
+    showModal(`
+        <h3>Buy Number</h3>
+        <div class="form-row">
+            <label>Number to Buy</label>
+            <input type="text" id="buy-number" placeholder="Enter number"/>
+        </div>
+        <button class="btn" id="buy-number-btn">Buy</button>
+        <button class="btn ghost" onclick="closeModal()">Cancel</button>
+    `);
+    document.getElementById('buy-number-btn').addEventListener('click', () => {
+        const num = document.getElementById('buy-number').value;
+        if(num){
+            transactions.unshift({
+                type: "Buy Number",
+                amount: 3000,
+                date: new Date().toISOString().split('T')[0],
+                status: "Success",
+                ref: `BUY-${Math.floor(Math.random()*10000)}`
+            });
+            user.balance -= 3000;
+            updateProfileUI();
+            renderTransactions();
+            alert(`Number ${num} purchased successfully!`);
+            closeModal();
+        }
+    });
+});
 
-// ---- Modals ----
-function openBuyModal(){
-  modal.innerHTML = `
-    <h3>Buy Number</h3>
-    <div class="form-row">
-      <label>Phone Number</label>
-      <input id="buy-phone" placeholder="e.g. 08123456789" />
-    </div>
-    <div class="form-row">
-      <label>Amount (₦)</label>
-      <input id="buy-amount" type="number" min="1" placeholder="e.g. 300" />
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn ghost modal-close">Cancel</button>
-      <button class="btn" id="buy-btn">Buy</button>
-    </div>`;
-  modalBackdrop.classList.add('open');
+document.getElementById('btn-send').addEventListener('click', () => {
+    showModal(`
+        <h3>Send Gift</h3>
+        <div class="form-row">
+            <label>Recipient Email</label>
+            <input type="email" id="gift-email" placeholder="Enter email"/>
+        </div>
+        <div class="form-row">
+            <label>Amount (₦)</label>
+            <input type="number" id="gift-amount" placeholder="Enter amount"/>
+        </div>
+        <button class="btn" id="send-gift-btn">Send</button>
+        <button class="btn ghost" onclick="closeModal()">Cancel</button>
+    `);
+    document.getElementById('send-gift-btn').addEventListener('click', () => {
+        const email = document.getElementById('gift-email').value;
+        const amount = parseFloat(document.getElementById('gift-amount').value);
+        if(email && amount>0 && amount<=user.balance){
+            transactions.unshift({
+                type: "Send Gift",
+                amount: amount,
+                date: new Date().toISOString().split('T')[0],
+                status: "Success",
+                ref: `GIFT-${Math.floor(Math.random()*10000)}`
+            });
+            user.balance -= amount;
+            updateProfileUI();
+            renderTransactions();
+            alert(`₦${amount.toLocaleString()} sent to ${email} successfully!`);
+            closeModal();
+        } else alert('Invalid input or insufficient balance.');
+    });
+});
 
-  document.getElementById('buy-btn').addEventListener('click', ()=>{
-    const phone = document.getElementById('buy-phone').value.trim();
-    const amount = parseFloat(document.getElementById('buy-amount').value);
-    buyNumber(phone, amount);
-    modalBackdrop.classList.remove('open');
-  });
-
-  modal.querySelectorAll('.modal-close').forEach(btn=> btn.addEventListener('click', ()=> modalBackdrop.classList.remove('open')));
-}
-
-function openSendGiftModal(){
-  modal.innerHTML = `
-    <h3>Send Gift</h3>
-    <div class="form-row">
-      <label>Recipient Email</label>
-      <input id="gift-email" placeholder="recipient@example.com" />
-    </div>
-    <div class="form-row">
-      <label>Amount (₦)</label>
-      <input id="gift-amount" type="number" min="1" placeholder="e.g. 500" />
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn ghost modal-close">Cancel</button>
-      <button class="btn" id="gift-btn">Send Gift</button>
-    </div>`;
-  modalBackdrop.classList.add('open');
-
-  document.getElementById('gift-btn').addEventListener('click', ()=>{
-    const email = document.getElementById('gift-email').value.trim();
-    const amount = parseFloat(document.getElementById('gift-amount').value);
-    sendGift(email, amount);
-    modalBackdrop.classList.remove('open');
-  });
-
-  modal.querySelectorAll('.modal-close').forEach(btn=> btn.addEventListener('click', ()=> modalBackdrop.classList.remove('open')));
-}
-
-// ---- Hook buttons and menu ----
-document.getElementById('btn-fund').addEventListener('click', openFundModal);
-document.getElementById('btn-buy').addEventListener('click', openBuyModal);
-document.getElementById('btn-send').addEventListener('click', openSendGiftModal);
-
-document.getElementById('menu-fund').addEventListener('click', ()=> { openFundModal(); sideMenu.classList.remove('open'); });
-document.getElementById('menu-buy').addEventListener('click', ()=> { openBuyModal(); sideMenu.classList.remove('open'); });
-document.getElementById('menu-send').addEventListener('click', ()=> { openSendGiftModal(); sideMenu.classList.remove('open'); });
-
-// ---- Init ----
-updateUserUI();
-loadTransactions();
-    </script>
+// Initialize
+updateProfileUI();
+renderTransactions();
+</script>
 </body>
-  </html>
+</html>
