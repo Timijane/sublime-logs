@@ -11,119 +11,234 @@
     margin: 0;
     background: #fefefe;
   }
-  nav {
+  .header {
     background: linear-gradient(90deg, #9b59b6, #e91e63);
-    padding: 15px 30px;
-    color: #fff;
+    color: white;
+    padding: 15px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    position: sticky;
+    justify-content: space-between;
+  }
+  .menu-btn {
+    font-size: 1.5em;
+    cursor: pointer;
+  }
+  .menu {
+    position: fixed;
     top: 0;
+    left: -40%;
+    width: 40%;
+    height: 100%;
+    background-color: gold;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    transition: 0.3s;
+    padding: 20px;
+    z-index: 10;
   }
-  nav h1 {
-    font-family: 'Lobster', cursive;
-    font-size: 1.8em;
-    margin: 0;
+  .menu.active {
+    left: 0;
   }
-  nav a {
-    color: #fff;
-    text-decoration: none;
-    margin-left: 20px;
+  .menu button {
+    display: block;
+    margin: 10px 0;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
     font-weight: bold;
   }
-  nav a:hover {
-    text-decoration: underline;
+  .close-menu {
+    font-size: 1.5em;
+    cursor: pointer;
+    margin-bottom: 20px;
   }
-  .dashboard-container {
-    max-width: 900px;
-    margin: 40px auto;
+  .content {
     padding: 20px;
   }
   .user-info {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
   }
-  .user-info p {
-    font-size: 1.2em;
+  .avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #ccc;
+    margin-right: 15px;
   }
-  .fund-account {
-    margin-top: 20px;
-    text-align: center;
+  .user-details {
+    font-size: 1em;
+  }
+  #user-balance {
+    font-weight: bold;
+    margin-top: 5px;
   }
   .fund-account button {
-    padding: 12px 20px;
+    width: 100%;
+    padding: 12px;
     border: none;
     border-radius: 8px;
     background: linear-gradient(90deg, #9b59b6, #e91e63);
     color: #fff;
-    font-size: 1.1em;
+    font-size: 1em;
     cursor: pointer;
-    transition: 0.3s;
+    margin-bottom: 20px;
   }
-  .fund-account button:hover {
-    opacity: 0.9;
+  .transactions {
+    margin-top: 20px;
+  }
+  .transaction {
+    border-bottom: 1px solid #ccc;
+    padding: 10px 0;
+  }
+  .home-btn {
+    margin-top: 20px;
+    display: inline-block;
+    padding: 10px 15px;
+    background: #9b59b6;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
   }
 </style>
 </head>
 <body>
 
-<nav>
-  <h1>Sublime Logs</h1>
-  <div>
-    <a href="#">Dashboard</a>
-    <a href="logout.html">Logout</a>
-  </div>
-</nav>
+<div class="header">
+  <span class="menu-btn" id="menu-btn">☰</span>
+  <h1>Dashboard</h1>
+</div>
 
-<div class="dashboard-container">
+<div class="menu" id="menu">
+  <span class="close-menu" id="close-menu">×</span>
+  <button id="profile-btn">Profile</button>
+  <button id="fund-btn">Fund Account</button>
+  <button id="buy-number-btn">Buy Number</button>
+  <button id="send-gifs-btn">Send Gifs</button>
+  <button id="back-home-btn">Back to Homepage</button>
+  <button id="transaction-btn">Transaction</button>
+  <button id="logout-btn">Logout</button>
+</div>
+
+<div class="content">
   <div class="user-info">
-    <p>Welcome, <span id="user-name">User</span></p>
-    <p>Balance: <span id="user-balance">₦0.00</span></p>
+    <div class="avatar"></div>
+    <div class="user-details">
+      <div id="user-name">User Name</div>
+      <div id="user-email">user@example.com</div>
+      <div>Balance: ₦<span id="user-balance">0</span></div>
+    </div>
   </div>
 
-  <div class="fund-account">
-    <button onclick="window.open('https://paystack.shop/pay/hweuw46d87', '_blank')">Fund Account</button>
+  <div class="transactions">
+    <h2>Transaction History</h2>
+    <div id="transaction-list">
+      <!-- Transactions will be appended here -->
+    </div>
   </div>
 
-  <div class="features" style="margin-top:40px;">
-    <p>Buy SMS Numbers, Send Gifts Internationally, and other features will appear here...</p>
-  </div>
+  <a href="index.html" class="home-btn">Back to Home</a>
 </div>
 
 <script type="module">
   import { auth } from './js/firebase.js';
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { doc, onSnapshot, getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const db = getFirestore();
-  const userNameSpan = document.getElementById('user-name');
-  const userBalanceSpan = document.getElementById('user-balance');
 
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      userNameSpan.textContent = user.displayName || user.email;
+  const menu = document.getElementById('menu');
+  const menuBtn = document.getElementById('menu-btn');
+  const closeMenu = document.getElementById('close-menu');
 
-      // Listen to balance changes in Firestore
-      const userRef = doc(db, 'users', user.uid);
-      onSnapshot(userRef, docSnap => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          userBalanceSpan.textContent = data.balance ? `₦${data.balance}` : '₦0.00';
-        }
-      });
+  menuBtn.addEventListener('click', () => menu.classList.add('active'));
+  closeMenu.addEventListener('click', () => menu.classList.remove('active'));
 
-    } else {
-      // If no user, redirect to login
+  const userName = document.getElementById('user-name');
+  const userEmail = document.getElementById('user-email');
+  const userBalance = document.getElementById('user-balance');
+  const transactionList = document.getElementById('transaction-list');
+
+  // Load user info and transactions
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
       window.location.href = 'login.html';
+      return;
     }
+
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      userName.textContent = data.firstName + ' ' + data.surname;
+      userEmail.textContent = data.email;
+      userBalance.textContent = data.balance || 0;
+    }
+
+    const txSnapshot = await getDocs(collection(db, 'users', user.uid, 'transactions'));
+    transactionList.innerHTML = '';
+    txSnapshot.forEach(doc => {
+      const tx = doc.data();
+      transactionList.innerHTML += `
+        <div class="transaction">
+          <strong>${tx.type}</strong>: ₦${tx.amount} <br>
+          ${tx.description || ''} <br>
+          <small>${new Date(tx.date.seconds * 1000).toLocaleString()}</small>
+        </div>
+      `;
+    });
+  });
+
+  // Fund Account
+  const fundBtn = document.getElementById('fund-btn');
+  fundBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return alert("Please log in!");
+
+    let amount = prompt("Enter amount to fund (₦):");
+    if (!amount || isNaN(amount) || amount <= 0) return alert("Invalid amount!");
+    amount = parseFloat(amount) * 100; // kobo for Paystack
+
+    const handler = PaystackPop.setup({
+      key: 'YOUR_PUBLIC_KEY_HERE', // replace with your Paystack public key
+      email: user.email,
+      amount: amount,
+      currency: "NGN",
+      ref: '' + Math.floor(Math.random() * 1000000000 + 1),
+      callback: async function(response) {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        const currentBalance = userSnap.data().balance || 0;
+        await updateDoc(userRef, { balance: currentBalance + (amount/100) });
+
+        const txRef = collection(db, 'users', user.uid, 'transactions');
+        await addDoc(txRef, {
+          type: "Credit",
+          amount: amount/100,
+          date: new Date(),
+          reference: response.reference,
+          description: "Account Funding"
+        });
+
+        userBalance.textContent = currentBalance + (amount/100);
+        alert("Payment successful! Balance updated.");
+      },
+      onClose: function() {
+        alert('Payment cancelled.');
+      }
+    });
+    handler.openIframe();
+  });
+
+  // Logout
+  const logoutBtn = document.getElementById('logout-btn');
+  logoutBtn.addEventListener('click', () => {
+    auth.signOut().then(() => window.location.href = 'login.html');
   });
 </script>
 
+<!-- Paystack script -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
 </body>
 </html>
