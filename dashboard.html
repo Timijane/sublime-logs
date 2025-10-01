@@ -28,26 +28,46 @@
 
     header h1 { font-family: 'Lobster', cursive; font-size: 1.8em; }
     #menu-btn { font-size: 1.8em; cursor: pointer; }
-    #back-home { background: #fff; color: #9b59b6; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; }
+    #back-home {
+      background: #fff;
+      color: #9b59b6;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+    }
 
     /* Side Menu */
     #side-menu {
       position: fixed;
-      left: -60%;
+      left: -100%;   /* hidden off-screen initially */
       top: 0;
       width: 60%;
       height: 100%;
       background: linear-gradient(90deg, #9b59b6, #e91e63);
       padding: 20px;
-      transition: 0.3s;
+      transition: 0.3s ease-in-out;
       z-index: 100;
       color: #fff;
     }
 
     #side-menu.active { left: 0; }
+
     #side-menu ul { list-style: none; margin-top: 50px; }
-    #side-menu ul li { margin: 20px 0; font-weight: bold; cursor: pointer; }
-    #side-menu #close-menu { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; }
+    #side-menu ul li {
+      margin: 20px 0;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #side-menu #close-menu {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.5em;
+      cursor: pointer;
+    }
 
     /* Main Content */
     main {
@@ -55,8 +75,6 @@
       transition: margin-left 0.3s;
       margin-left: 0;
     }
-
-    #side-menu.active ~ main { margin-left: 60%; }
 
     .profile {
       display: flex;
@@ -113,7 +131,6 @@
     /* Responsive */
     @media (max-width: 768px) {
       #side-menu { width: 80%; }
-      #side-menu.active ~ main { margin-left: 0; }
     }
   </style>
 </head>
