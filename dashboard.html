@@ -2,72 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sublime Logs - Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
+
   <style>
-    body {
-      font-family: 'David', sans-serif;
-      background: #fefefe;
-      min-height: 100vh;
-      margin: 0;
-    }
+    /* Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'David', sans-serif; background: #fefefe; min-height: 100vh; }
 
     /* Header */
     header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: flex; justify-content: space-between; align-items: center;
       padding: 15px 20px;
       background: linear-gradient(90deg, #9b59b6, #e91e63);
-      color: #fff;
-      position: relative;
-      z-index: 10;
+      color: #fff; position: relative; z-index: 10;
     }
     header h1 { font-family: 'Lobster', cursive; font-size: 1.8em; }
     #menu-btn { font-size: 1.8em; cursor: pointer; }
-    #back-home { background: #fff; color: #9b59b6; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-weight: bold; }
+    #back-home { background: #fff; color: #9b59b6; padding: 8px 12px; border-radius: 6px; font-weight: bold; text-decoration: none; }
 
     /* Side Menu */
     #side-menu {
       position: fixed;
-      left: -60%;
       top: 0;
+      left: -100%;   /* hidden by default */
       width: 60%;
       height: 100%;
       background: linear-gradient(90deg, #9b59b6, #e91e63);
       padding: 20px;
-      transition: 0.3s;
+      transition: left 0.3s ease-in-out;
       z-index: 100;
+      color: #fff;
     }
     #side-menu.active { left: 0; }
-    #side-menu ul { list-style: none; margin-top: 50px; padding: 0; }
-    #side-menu ul li { margin: 20px 0; font-weight: bold; cursor: pointer; color: #fff; }
-    #side-menu #close-menu { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; color: #fff; }
+    #side-menu ul { list-style: none; margin-top: 50px; }
+    #side-menu ul li { margin: 20px 0; font-weight: bold; cursor: pointer; }
+    #side-menu #close-menu { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; }
 
     /* Main Content */
     main { padding: 20px; }
     .profile { display: flex; align-items: center; margin-bottom: 20px; }
     .avatar {
-      width: 80px; height: 80px;
-      border-radius: 50%;
+      width: 80px; height: 80px; border-radius: 50%;
       background: #ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat;
       margin-right: 15px; cursor: pointer;
     }
     .profile-info h2 { font-size: 1.5em; margin-bottom: 5px; }
+    .profile-info p { color: #555; }
     .balance { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
 
+    /* Buttons */
     button {
       padding: 12px 20px;
       background: linear-gradient(90deg, #9b59b6, #e91e63);
       border: none; border-radius: 8px;
       color: #fff; font-weight: bold; cursor: pointer;
+      margin-right: 10px;
     }
 
+    /* Transactions Table */
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }
     table th { background: #9b59b6; color: #fff; }
     table tr:nth-child(even) { background: #f2f2f2; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #side-menu { width: 80%; }
+    }
   </style>
 </head>
 <body>
@@ -83,6 +86,8 @@
   <ul>
     <li id="menu-profile">Profile</li>
     <li id="menu-fund">Fund Account</li>
+    <li id="menu-buy">Buy Number</li>
+    <li id="menu-send">Send Gift</li>
     <li id="menu-transactions">Transaction History</li>
     <li id="menu-logout">Logout</li>
   </ul>
@@ -96,23 +101,29 @@
       <p id="user-email"></p>
     </div>
   </div>
+
   <div class="balance">Balance: ₦<span id="balance">0</span></div>
   <button id="fund-btn">Fund Account</button>
 
   <table id="transactions-table">
     <thead>
-      <tr><th>Type</th><th>Amount</th><th>Date</th><th>Status</th></tr>
+      <tr>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Status</th>
+      </tr>
     </thead>
     <tbody></tbody>
   </table>
 </main>
 
+<!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
     authDomain: "sublime-logs.firebaseapp.com",
@@ -127,6 +138,7 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // Elements
   const menuBtn = document.getElementById('menu-btn');
   const closeMenu = document.getElementById('close-menu');
   const sideMenu = document.getElementById('side-menu');
@@ -134,20 +146,30 @@
   const userEmailEl = document.getElementById('user-email');
   const balanceEl = document.getElementById('balance');
   const fundBtn = document.getElementById('fund-btn');
-  const transactionsTable = document.querySelector('#transactions-table tbody');
+  const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
 
-  // Toggle menu
+  // Menu toggle
   menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
   closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
 
-  // Auth + Firestore
-  onAuthStateChanged(auth, async user => {
-    if (!user) { window.location.href = "login.html"; return; }
+  // Auth listener
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
 
-    const userDoc = doc(db, "users", user.uid);
+    // Load user data
+    const userDoc = doc(db, 'users', user.uid);
     let snap = await getDoc(userDoc);
     if (!snap.exists()) {
-      await setDoc(userDoc, { firstName: "User", surname: "", email: user.email, balance: 0 });
+      await setDoc(userDoc, {
+        firstName: user.displayName?.split(' ')[0] || 'User',
+        surname: user.displayName?.split(' ')[1] || '',
+        email: user.email,
+        balance: 0,
+        avatar: null
+      });
       snap = await getDoc(userDoc);
     }
 
@@ -156,26 +178,30 @@
     userEmailEl.textContent = data.email;
     balanceEl.textContent = data.balance.toFixed(2);
 
-    // Real-time balance + transactions
-    onSnapshot(userDoc, snap => {
-      balanceEl.textContent = snap.data().balance.toFixed(2);
-    });
-
-    onSnapshot(collection(db, "users", user.uid, "transactions"), snapshot => {
-      transactionsTable.innerHTML = "";
+    // Listen to transactions live
+    const transCol = collection(db, 'users', user.uid, 'transactions');
+    onSnapshot(transCol, snapshot => {
+      transactionsTable.innerHTML = '';
       snapshot.forEach(docSnap => {
         const t = docSnap.data();
-        const row = document.createElement("tr");
-        row.innerHTML = `<td>${t.type}</td><td>₦${t.amount.toFixed(2)}</td><td>${new Date(t.date).toLocaleString()}</td><td>${t.status}</td>`;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${t.type}</td>
+          <td>₦${t.amount.toFixed(2)}</td>
+          <td>${new Date(t.date.seconds*1000).toLocaleString()}</td>
+          <td>${t.status}</td>
+        `;
         transactionsTable.appendChild(row);
       });
     });
+  });
 
-    // Fund account → Paystack link
-    fundBtn.addEventListener("click", () => {
-      window.location.href = "https://paystack.shop/pay/hweuw46d87"; 
-    });
+  // Fund Account
+  fundBtn.addEventListener('click', () => {
+    // Redirect directly to your Paystack page
+    window.location.href = "https://paystack.shop/pay/hweuw46d87";
   });
 </script>
+
 </body>
 </html>
