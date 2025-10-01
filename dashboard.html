@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sublime Logs - Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
       font-family: 'David', sans-serif;
       background: #fefefe;
       min-height: 100vh;
-      margin: 0;
-      padding: 0;
     }
 
     /* Header */
@@ -28,15 +28,7 @@
 
     header h1 { font-family: 'Lobster', cursive; font-size: 1.8em; }
     #menu-btn { font-size: 1.8em; cursor: pointer; }
-    #back-home {
-      background: #fff;
-      color: #9b59b6;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      text-decoration: none;
-    }
+    #back-home { background: #fff; color: #9b59b6; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; }
 
     /* Side Menu */
     #side-menu {
@@ -53,24 +45,44 @@
     }
 
     #side-menu.active { left: 0; }
-    #side-menu ul { list-style: none; margin-top: 50px; padding: 0; }
+    #side-menu ul { list-style: none; margin-top: 50px; }
     #side-menu ul li { margin: 20px 0; font-weight: bold; cursor: pointer; }
-    #close-menu { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; }
+    #side-menu #close-menu { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; }
 
-    /* Main */
-    main { padding: 20px; margin-left: 0; transition: margin-left 0.3s; }
-    #side-menu.active ~ main { margin-left: 60%; }
-
-    .profile { display: flex; align-items: center; margin-bottom: 20px; }
-    .avatar {
-      width: 80px; height: 80px;
-      border-radius: 50%;
-      background: #ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat;
-      margin-right: 15px; cursor: pointer;
+    /* Main Content */
+    main {
+      padding: 20px;
+      transition: margin-left 0.3s;
+      margin-left: 0;
     }
 
-    .balance { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
+    #side-menu.active ~ main { margin-left: 60%; }
 
+    .profile {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat;
+      margin-right: 15px;
+      cursor: pointer;
+    }
+
+    .profile-info h2 { font-size: 1.5em; margin-bottom: 5px; }
+    .profile-info p { color: #555; }
+
+    .balance {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    /* Buttons */
     button {
       padding: 12px 20px;
       background: linear-gradient(90deg, #9b59b6, #e91e63);
@@ -82,168 +94,113 @@
       margin-right: 10px;
     }
 
-    /* Table */
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    /* Transactions Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+
     table th { background: #9b59b6; color: #fff; }
     table tr:nth-child(even) { background: #f2f2f2; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #side-menu { width: 80%; }
+      #side-menu.active ~ main { margin-left: 0; }
+    }
   </style>
 </head>
 <body>
 
-<header>
-  <span id="menu-btn">≡</span>
-  <h1>Sublime Logs</h1>
-  <a href="index.html" id="back-home">Home</a>
-</header>
+  <!-- Header -->
+  <header>
+    <span id="menu-btn">≡</span>
+    <h1>Sublime Logs</h1>
+    <a href="index.html" id="back-home">Home</a>
+  </header>
 
-<nav id="side-menu">
-  <span id="close-menu">×</span>
-  <ul>
-    <li id="menu-profile">Profile</li>
-    <li id="menu-fund">Fund Account</li>
-    <li id="menu-buy">Buy Number</li>
-    <li id="menu-send">Send Gift</li>
-    <li id="menu-transactions">Transaction History</li>
-    <li id="menu-logout">Logout</li>
-  </ul>
-</nav>
+  <!-- Side Menu -->
+  <nav id="side-menu">
+    <span id="close-menu">×</span>
+    <ul>
+      <li id="menu-profile">Profile</li>
+      <li id="menu-fund">Fund Account</li>
+      <li id="menu-buy">Buy Number</li>
+      <li id="menu-send">Send Gift</li>
+      <li id="menu-transactions">Transaction History</li>
+      <li id="menu-logout">Logout</li>
+    </ul>
+  </nav>
 
-<main>
-  <div class="profile">
-    <div class="avatar" id="avatar"></div>
-    <div class="profile-info">
-      <h2 id="user-name">Welcome</h2>
-      <p id="user-email"></p>
+  <!-- Main -->
+  <main>
+    <div class="profile">
+      <div class="avatar" id="avatar"></div>
+      <input type="file" id="avatar-upload" accept="image/*" style="display:none;" />
+      <div class="profile-info">
+        <h2 id="user-name">Welcome</h2>
+        <p id="user-email">user@email.com</p>
+      </div>
     </div>
-  </div>
-  <div class="balance">Balance: ₦<span id="balance">0</span></div>
-  <button id="fund-btn">Fund Account</button>
 
-  <table id="transactions-table">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Amount</th>
-        <th>Date</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</main>
+    <div class="balance">Balance: ₦<span id="balance">0</span></div>
+    <button id="fund-btn">Fund Account</button>
+    <button id="logout-btn">Logout</button>
 
-<script src="https://js.paystack.co/v1/inline.js"></script>
-<script type="module">
-  // --- Firebase ---
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    <table id="transactions-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-    authDomain: "sublime-logs.firebaseapp.com",
-    projectId: "sublime-logs",
-    storageBucket: "sublime-logs.firebasestorage.app",
-    messagingSenderId: "381847722551",
-    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-    measurementId: "G-8YHHJC1MP7"
-  };
+  <script>
+    // Menu toggle
+    const menuBtn = document.getElementById('menu-btn');
+    const closeMenu = document.getElementById('close-menu');
+    const sideMenu = document.getElementById('side-menu');
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
+    closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
 
-  const menuBtn = document.getElementById('menu-btn');
-  const closeMenu = document.getElementById('close-menu');
-  const sideMenu = document.getElementById('side-menu');
-  const userNameEl = document.getElementById('user-name');
-  const userEmailEl = document.getElementById('user-email');
-  const balanceEl = document.getElementById('balance');
-  const avatarEl = document.getElementById('avatar');
-  const fundBtn = document.getElementById('fund-btn');
-  const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
+    // Avatar upload
+    const avatarEl = document.getElementById('avatar');
+    const fileInput = document.getElementById('avatar-upload');
 
-  // Menu toggle
-  menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
-  closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
-
-  // Auth state
-  onAuthStateChanged(auth, async user => {
-    if (!user) { window.location.href = "login.html"; return; }
-
-    const userDoc = doc(db, 'users', user.uid);
-    let snap = await getDoc(userDoc);
-    if (!snap.exists()) {
-      await setDoc(userDoc, {
-        firstName: user.displayName?.split(' ')[0] || 'User',
-        surname: user.displayName?.split(' ')[1] || '',
-        email: user.email,
-        balance: 0,
-        avatar: null
-      });
-      snap = await getDoc(userDoc);
-    }
-
-    const data = snap.data();
-    userNameEl.textContent = `Welcome, ${data.firstName} ${data.surname}`;
-    userEmailEl.textContent = data.email;
-    balanceEl.textContent = (data.balance || 0).toFixed(2);
-    if (data.avatar) avatarEl.style.backgroundImage = `url(${data.avatar})`;
-
-    // Live transactions
-    const transCol = collection(db, 'users', user.uid, 'transactions');
-    onSnapshot(transCol, snapshot => {
-      transactionsTable.innerHTML = '';
-      snapshot.forEach(docSnap => {
-        const t = docSnap.data();
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${t.type}</td>
-          <td>₦${t.amount.toFixed(2)}</td>
-          <td>${new Date(t.date).toLocaleString()}</td>
-          <td>${t.status}</td>
-        `;
-        transactionsTable.appendChild(row);
-      });
-    });
-  });
-
-  // Fund account with Paystack
-  fundBtn.addEventListener('click', async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const amount = parseFloat(prompt("Enter amount to fund (₦):"));
-    if (!amount || amount <= 0) return alert("Invalid amount");
-
-    const handler = PaystackPop.setup({
-      key: 'YOUR_PAYSTACK_PUBLIC_KEY', // ⚡ Replace with your real Paystack public key
-      email: user.email,
-      amount: amount * 100, // kobo
-      currency: 'NGN',
-      callback: async function(response) {
-        alert('Payment successful! Reference: ' + response.reference);
-
-        const userDoc = doc(db, 'users', user.uid);
-        const snap = await getDoc(userDoc);
-        const newBalance = (snap.data().balance || 0) + amount;
-        await updateDoc(userDoc, { balance: newBalance });
-
-        await addDoc(collection(db, 'users', user.uid, 'transactions'), {
-          type: 'Fund',
-          amount: amount,
-          date: new Date().toISOString(),
-          status: 'Successful',
-          reference: response.reference
-        });
-      },
-      onClose: function() {
-        alert('Payment cancelled.');
+    avatarEl.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          avatarEl.style.backgroundImage = `url(${e.target.result})`;
+        };
+        reader.readAsDataURL(file);
       }
     });
-    handler.openIframe();
-  });
-</script>
+
+    // Buttons demo
+    document.getElementById('fund-btn').addEventListener('click', () => {
+      alert("Fund account clicked!");
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      alert("Logout clicked!");
+    });
+  </script>
+
 </body>
 </html>
