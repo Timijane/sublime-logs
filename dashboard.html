@@ -7,34 +7,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
-    /* Reset */
+    /* Reset & basic styles */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'David', sans-serif; background: #fefefe; min-height: 100vh; }
-
-    /* Header */
-    header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 15px 20px;
-      background: linear-gradient(90deg, #9b59b6, #e91e63);
-      color: #fff; position: relative; z-index: 10;
-    }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(90deg, #9b59b6, #e91e63); color: #fff; }
     header h1 { font-family: 'Lobster', cursive; font-size: 1.8em; }
     #menu-btn { font-size: 1.8em; cursor: pointer; }
     #back-home { background: #fff; color: #9b59b6; padding: 8px 12px; border-radius: 6px; font-weight: bold; text-decoration: none; }
 
     /* Side Menu */
-    #side-menu {
-      position: fixed;
-      top: 0;
-      left: -100%;   /* hidden by default */
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(90deg, #9b59b6, #e91e63);
-      padding: 20px;
-      transition: left 0.3s ease-in-out;
-      z-index: 100;
-      color: #fff;
-    }
+    #side-menu { position: fixed; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, #9b59b6, #e91e63); padding: 20px; transition: left 0.3s ease-in-out; z-index: 100; color: #fff; }
     #side-menu.active { left: 0; }
     #side-menu ul { list-style: none; margin-top: 50px; }
     #side-menu ul li { margin: 20px 0; font-weight: bold; cursor: pointer; }
@@ -43,34 +25,16 @@
     /* Main Content */
     main { padding: 20px; }
     .profile { display: flex; align-items: center; margin-bottom: 20px; }
-    .avatar {
-      width: 80px; height: 80px; border-radius: 50%;
-      background: #ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat;
-      margin-right: 15px; cursor: pointer;
-    }
+    .avatar { width: 80px; height: 80px; border-radius: 50%; background: #ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat; margin-right: 15px; cursor: pointer; }
     .profile-info h2 { font-size: 1.5em; margin-bottom: 5px; }
     .profile-info p { color: #555; }
     .balance { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
-
-    /* Buttons */
-    button {
-      padding: 12px 20px;
-      background: linear-gradient(90deg, #9b59b6, #e91e63);
-      border: none; border-radius: 8px;
-      color: #fff; font-weight: bold; cursor: pointer;
-      margin-right: 10px;
-    }
-
-    /* Transactions Table */
+    button { padding: 12px 20px; background: linear-gradient(90deg, #9b59b6, #e91e63); border: none; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer; margin-right: 10px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }
     table th { background: #9b59b6; color: #fff; }
     table tr:nth-child(even) { background: #f2f2f2; }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      #side-menu { width: 80%; }
-    }
+    @media (max-width: 768px) { #side-menu { width: 80%; } }
   </style>
 </head>
 <body>
@@ -118,116 +82,109 @@
   </table>
 </main>
 
-<!-- Firebase & Paystack -->
+<!-- Paystack -->
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-    authDomain: "sublime-logs.firebaseapp.com",
-    projectId: "sublime-logs",
-    storageBucket: "sublime-logs.firebasestorage.app",
-    messagingSenderId: "381847722551",
-    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-    measurementId: "G-8YHHJC1MP7"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
+  authDomain: "sublime-logs.firebaseapp.com",
+  projectId: "sublime-logs",
+  storageBucket: "sublime-logs.firebasestorage.app",
+  messagingSenderId: "381847722551",
+  appId: "1:381847722551:web:8ec68f018291d3927f3db2",
+  measurementId: "G-8YHHJC1MP7"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  // Elements
-  const menuBtn = document.getElementById('menu-btn');
-  const closeMenu = document.getElementById('close-menu');
-  const sideMenu = document.getElementById('side-menu');
-  const userNameEl = document.getElementById('user-name');
-  const userEmailEl = document.getElementById('user-email');
-  const balanceEl = document.getElementById('balance');
-  const fundBtn = document.getElementById('fund-btn');
-  const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
+// Elements
+const menuBtn = document.getElementById('menu-btn');
+const closeMenu = document.getElementById('close-menu');
+const sideMenu = document.getElementById('side-menu');
+const userNameEl = document.getElementById('user-name');
+const userEmailEl = document.getElementById('user-email');
+const balanceEl = document.getElementById('balance');
+const fundBtn = document.getElementById('fund-btn');
+const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
 
-  // Menu toggle
-  menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
-  closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
+// Menu toggle
+menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
+closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
 
-  // Auth listener
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = "login.html";
-      return;
-    }
+// Auth listener
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
-    // Load user data
-    const userDocRef = doc(db, 'users', user.uid);
-    let snap = await getDoc(userDocRef);
-    if (!snap.exists()) {
-      await setDoc(userDocRef, {
-        firstName: user.displayName?.split(' ')[0] || 'User',
-        surname: user.displayName?.split(' ')[1] || '',
-        email: user.email,
-        balance: 0,
-        avatar: null
-      });
-      snap = await getDoc(userDocRef);
-    }
-
-    const data = snap.data();
-    userNameEl.textContent = `Welcome, ${data.firstName} ${data.surname}`;
-    userEmailEl.textContent = data.email;
-    balanceEl.textContent = data.balance.toFixed(2);
-
-    // Live transaction updates
-    const transCol = collection(db, 'users', user.uid, 'transactions');
-    onSnapshot(transCol, snapshot => {
-      transactionsTable.innerHTML = '';
-      snapshot.forEach(docSnap => {
-        const t = docSnap.data();
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${t.type}</td>
-          <td>₦${t.amount.toFixed(2)}</td>
-          <td>${new Date(t.date.seconds*1000).toLocaleString()}</td>
-          <td>${t.status}</td>
-        `;
-        transactionsTable.appendChild(row);
-      });
-    });
-  });
-
-  // Fund Account with Paystack Inline
-  fundBtn.addEventListener('click', async () => {
-    const user = auth.currentUser;
-    if (!user) {
-      alert("Please log in first");
-      return;
-    }
-
-    const amountInput = prompt("Enter amount to fund (NGN):", "1000");
-    if (!amountInput || isNaN(amountInput) || amountInput <= 0) return;
-    const amountKobo = parseFloat(amountInput) * 100;
-
-    const handler = PaystackPop.setup({
-      key: "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492", // live public key
+  // Load user data
+  const userDocRef = doc(db, 'users', user.uid);
+  let snap = await getDoc(userDocRef);
+  if (!snap.exists()) {
+    await setDoc(userDocRef, {
+      firstName: user.displayName?.split(' ')[0] || 'User',
+      surname: user.displayName?.split(' ')[1] || '',
       email: user.email,
-      amount: amountKobo,
-      metadata: {
-        userId: user.uid // crucial for webhook
-      },
-      callback: function(response) {
-        alert("Payment successful! Reference: " + response.reference);
-        // Optionally, you can trigger a server-side call to record the transaction immediately
-        // But since we use webhook, Firebase should update balance automatically
-      },
-      onClose: function() {
-        alert("Payment window closed.");
-      }
+      balance: 0,
+      avatar: null
     });
+    snap = await getDoc(userDocRef);
+  }
 
-    handler.openIframe();
+  const data = snap.data();
+  userNameEl.textContent = `Welcome, ${data.firstName} ${data.surname}`;
+  userEmailEl.textContent = data.email;
+  balanceEl.textContent = data.balance.toFixed(2);
+
+  // Live transaction updates
+  const transCol = collection(db, 'users', user.uid, 'transactions');
+  onSnapshot(transCol, snapshot => {
+    transactionsTable.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      const t = docSnap.data();
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${t.type}</td>
+        <td>₦${t.amount.toFixed(2)}</td>
+        <td>${new Date(t.date.seconds*1000).toLocaleString()}</td>
+        <td>${t.status}</td>
+      `;
+      transactionsTable.appendChild(row);
+    });
   });
+});
+
+// Fund Account with Paystack Inline
+fundBtn.addEventListener('click', async () => {
+  const user = auth.currentUser;
+  if (!user) { alert("Please log in first"); return; }
+
+  const amountInput = prompt("Enter amount to fund (NGN):", "1000");
+  if (!amountInput || isNaN(amountInput) || amountInput <= 0) return;
+  const amountKobo = parseFloat(amountInput) * 100;
+
+  const handler = PaystackPop.setup({
+    key: "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492", // live public key
+    email: user.email,
+    amount: amountKobo,
+    metadata: {
+      userId: user.uid // ✅ Meta data for webhook
+    },
+    callback: function(response) {
+      alert("Payment successful! Reference: " + response.reference);
+    },
+    onClose: function() { alert("Payment window closed."); }
+  });
+
+  handler.openIframe();
+});
 </script>
 
 </body>
