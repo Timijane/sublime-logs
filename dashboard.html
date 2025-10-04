@@ -3,8 +3,14 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { 
+  getFirestore, doc, getDoc, setDoc, collection, onSnapshot 
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
+
+// ==========================
+// 🔧 FIREBASE CONFIGURATION
+// ==========================
 const firebaseConfig = {
   apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
   authDomain: "sublime-logs.firebaseapp.com",
@@ -19,7 +25,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Elements
+
+// ==========================
+// 🌐 UI ELEMENTS
+// ==========================
 const menuBtn = document.getElementById('menu-btn');
 const closeMenu = document.getElementById('close-menu');
 const sideMenu = document.getElementById('side-menu');
@@ -27,22 +36,29 @@ const userNameEl = document.getElementById('user-name');
 const userEmailEl = document.getElementById('user-email');
 const balanceEl = document.getElementById('balance');
 const fundBtn = document.getElementById('fund-btn');
-const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
+const transactionsTable = document.querySelector('#transactions-table tbody');
 
-// Menu toggle
-menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
-closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
 
-// Auth listener
+// ==========================
+// 📱 MENU TOGGLE
+// ==========================
+menuBtn?.addEventListener('click', () => sideMenu?.classList.add('active'));
+closeMenu?.addEventListener('click', () => sideMenu?.classList.remove('active'));
+
+
+// ==========================
+// 👤 AUTH STATE LISTENER
+// ==========================
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
     return;
   }
 
-  // Load user data
   const userDocRef = doc(db, 'users', user.uid);
   let snap = await getDoc(userDocRef);
+
+  // Create user record if new
   if (!snap.exists()) {
     await setDoc(userDocRef, {
       firstName: user.displayName?.split(' ')[0] || 'User',
@@ -59,16 +75,19 @@ onAuthStateChanged(auth, async (user) => {
   userEmailEl.textContent = data.email;
   balanceEl.textContent = data.balance.toFixed(2);
 
-  // Live transaction updates
+
+  // ==========================
+  // 🔁 LIVE TRANSACTION UPDATES
+  // ==========================
   const transCol = collection(db, 'users', user.uid, 'transactions');
-  onSnapshot(transCol, snapshot => {
+  onSnapshot(transCol, (snapshot) => {
     transactionsTable.innerHTML = '';
     snapshot.forEach(docSnap => {
       const t = docSnap.data();
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${t.type}</td>
-        <td>₦${t.amount.toFixed(2)}</td>
+        <td>${t.type || 'Fund'}</td>
+        <td>₦${(t.amount / 100).toFixed(2)}</td>
         <td>${new Date(t.date.seconds * 1000).toLocaleString()}</td>
         <td>${t.status}</td>
       `;
@@ -76,36 +95,51 @@ onAuthStateChanged(auth, async (user) => {
     });
   });
 
-  // Fund Account with Paystack Inline
-  fundBtn.addEventListener('click', async () => {
-    const amountInput = prompt("Enter amount to fund (NGN):", "1000");
+
+  // ==========================
+  // 💳 FUND ACCOUNT (PAYSTACK)
+  // ==========================
+  fundBtn?.addEventListener('click', async () => {
+    const amountInput = prompt("Enter amount to fund (₦):", "1000");
     if (!amountInput || isNaN(amountInput) || amountInput <= 0) return;
     const amountKobo = parseFloat(amountInput) * 100;
 
+    // Initialize Paystack popup
     const handler = PaystackPop.setup({
       key: "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492", // ✅ your live public key
       email: user.email,
       amount: amountKobo,
-      metadata: {
-        userId: user.uid // ✅ links payment to Firestore user
-      },
-      callback: function(response) {
-        alert("✅ Payment successful! Reference: " + response.reference);
+      metadata: { userId: user.uid },
 
-        // 🔁 Send payment reference to your backend (Pipedream)
+      callback: function(response) {
+        alert("✅ Payment successful! Ref: " + response.reference);
+
+        // Send payment details to backend (Pipedream)
         fetch("https://eojegh3ks8gvl0e.m.pipedream.net", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             reference: response.reference,
             userId: user.uid,
-            amount: amountKobo
+            amount: amountKobo,
+            email: user.email
           })
         })
-        .then(res => res.json())
-        .then(data => console.log("Pipedream response:", data))
-        .catch(err => console.error("Error sending to Pipedream:", err));
+        .then(async (res) => {
+          try {
+            const data = await res.json();
+            console.log("Pipedream response:", data);
+            alert("🎉 Account credited successfully!");
+          } catch {
+            alert("⚠️ Payment recorded, awaiting backend confirmation.");
+          }
+        })
+        .catch(err => {
+          console.error("Error contacting backend:", err);
+          alert("⚠️ Payment succeeded, but backend failed to update balance.");
+        });
       },
+
       onClose: function() {
         alert("Payment window closed.");
       }
