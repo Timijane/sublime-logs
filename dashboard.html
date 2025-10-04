@@ -47,9 +47,9 @@
   <div class="balance">Balance: ₦<span id="balance">0.00</span></div>
 
   <div class="top-actions">
-    <button id="fund-btn">Fund Account</button>
-    <button id="refresh-btn" class="small">Refresh</button>
-    <div style="margin-left:auto" class="small muted">Logged in users: your Firebase Auth session is used</div>
+    <button id="fund-btn" type="button">Fund Account</button>
+    <button id="refresh-btn" type="button" class="small">Refresh</button>
+    <div style="margin-left:auto" class="small muted">Logged in users: Firebase Auth session used</div>
   </div>
 
   <div class="note">Transactions (latest first)</div>
@@ -60,7 +60,7 @@
     <tbody></tbody>
   </table>
 
-  <p class="muted note">If a payment shows “successful” in Paystack but your balance does not change, open the browser console and check network logs — then check your Pipedream workflow logs to ensure webhook verification & Firestore update ran successfully.</p>
+  <p class="muted note">If a payment shows “successful” in Paystack but your balance does not change, open the console and check network logs. Then check your Pipedream workflow logs to ensure webhook verification & Firestore update ran successfully.</p>
 </main>
 
 <!-- Paystack inline -->
@@ -68,12 +68,6 @@
 
 <!-- Firebase v11 modules (CDN) -->
 <script type="module">
-/* ================== CONFIG (replace ONLY if you want different values) ==================
-   You already provided these values — they are inserted here.
-   - FIREBASE_CONFIG: your Firebase web config
-   - PAYSTACK_PUBLIC_KEY: your Paystack public key (test or live)
-   - PIPEDREAM_ENDPOINT: the Pipedream webhook endpoint that verifies + updates Firestore
-   ====================================================================================== */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
   authDomain: "sublime-logs.firebaseapp.com",
@@ -83,13 +77,8 @@ const FIREBASE_CONFIG = {
   appId: "1:381847722551:web:8ec68f018291d3927f3db2",
   measurementId: "G-8YHHJC1MP7"
 };
-
-// Use the public key you want: test or live. You provided both; this uses the live one you gave.
 const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
-
-// Your Pipedream endpoint (must be the one that verifies Paystack & updates Firestore)
 const PIPEDREAM_ENDPOINT = "https://eojegh3ks8gvl0e.m.pipedream.net";
-/* ====================================================================================== */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
@@ -98,12 +87,10 @@ import {
   onSnapshot, getDocs
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-/* Initialize Firebase app */
 const app = initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* UI elements */
 const userNameEl = document.getElementById("user-name");
 const userEmailEl = document.getElementById("user-email");
 const balanceEl = document.getElementById("balance");
@@ -111,11 +98,8 @@ const fundBtn = document.getElementById("fund-btn");
 const refreshBtn = document.getElementById("refresh-btn");
 const transactionsTableBody = document.querySelector("#transactions-table tbody");
 
-/* Helpers */
-function formatNgn(n) {
-  if (n === undefined || n === null) return "0.00";
-  return Number(n).toFixed(2);
-}
+function formatNgn(n) { return n == null ? "0.00" : Number(n).toFixed(2); }
+
 function renderTransactions(list) {
   transactionsTableBody.innerHTML = "";
   if (!list || list.length === 0) {
@@ -123,136 +107,105 @@ function renderTransactions(list) {
     return;
   }
   list.forEach(t => {
-    const date = t.date && t.date.seconds ? new Date(t.date.seconds * 1000).toLocaleString() : (t.date || "");
-    const amount = Number(t.amount || 0).toFixed(2);
+    const date = t.date?.seconds ? new Date(t.date.seconds*1000).toLocaleString() : (t.date||"");
+    const amount = Number(t.amount||0).toFixed(2);
     const row = document.createElement("tr");
-    row.innerHTML = `<td>${t.type || "—"}</td>
+    row.innerHTML = `<td>${t.type||"—"}</td>
                      <td>₦${amount}</td>
                      <td>${date}</td>
-                     <td>${t.status || "—"}</td>`;
+                     <td>${t.status||"—"}</td>`;
     transactionsTableBody.appendChild(row);
   });
 }
 
-/* Refresh user doc + recent transactions */
 async function refreshUserData(uid) {
   try {
-    const userRef = doc(db, "users", uid);
+    const userRef = doc(db,"users",uid);
     const snap = await getDoc(userRef);
-    if (!snap.exists()) {
-      userNameEl.textContent = "Welcome";
-      userEmailEl.textContent = "";
-      balanceEl.textContent = formatNgn(0);
+    if(!snap.exists()){
+      userNameEl.textContent="Welcome";
+      userEmailEl.textContent="";
+      balanceEl.textContent=formatNgn(0);
       renderTransactions([]);
       return;
     }
     const data = snap.data();
-    userNameEl.textContent = `Welcome, ${data.firstName || ""} ${data.surname || ""}`.trim();
-    userEmailEl.textContent = data.email || "";
-    balanceEl.textContent = formatNgn(data.balance || 0);
+    userNameEl.textContent=`Welcome, ${data.firstName||""} ${data.surname||""}`.trim();
+    userEmailEl.textContent=data.email||"";
+    balanceEl.textContent=formatNgn(data.balance||0);
 
-    // get latest 50 transactions sorted by date
-    const txCol = collection(db, "users", uid, "transactions");
-    const txQuery = query(txCol, orderBy("date", "desc"), limit(50));
+    const txCol = collection(db,"users",uid,"transactions");
+    const txQuery = query(txCol,orderBy("date","desc"),limit(50));
     const txSnap = await getDocs(txQuery);
-    const txs = [];
-    txSnap.forEach(d => txs.push(d.data()));
+    const txs=[];
+    txSnap.forEach(d=>txs.push(d.data()));
     renderTransactions(txs);
-  } catch (err) {
-    console.error("refreshUserData error:", err);
-  }
+  } catch(err){ console.error("refreshUserData error:",err); }
 }
 
-/* ---------- Auth state (redirects to login if not signed in) ---------- */
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    // make sure you have 'login.html' in your site
-    window.location.href = "login.html";
-    return;
-  }
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){ window.location.href="login.html"; return; }
 
-  // ensure Firestore user doc exists (balance default 0)
-  const userRef = doc(db, "users", user.uid);
+  const userRef = doc(db,"users",user.uid);
   const snap = await getDoc(userRef);
-  if (!snap.exists()) {
-    await setDoc(userRef, {
-      firstName: user.displayName?.split(" ")[0] || "User",
-      surname: user.displayName?.split(" ")[1] || "",
-      email: user.email || "",
+  if(!snap.exists()){
+    await setDoc(userRef,{
+      firstName: user.displayName?.split(" ")[0]||"User",
+      surname: user.displayName?.split(" ")[1]||"",
+      email: user.email||"",
       balance: 0
     });
   }
 
-  // initial refresh and a real-time listener for transactions
   await refreshUserData(user.uid);
-  const txCol = collection(db, "users", user.uid, "transactions");
-  const txQuery = query(txCol, orderBy("date", "desc"), limit(50));
-  onSnapshot(txQuery, (snapshot) => {
-    const txs = [];
-    snapshot.forEach(d => txs.push(d.data()));
+
+  const txCol = collection(db,"users",user.uid,"transactions");
+  const txQuery = query(txCol,orderBy("date","desc"),limit(50));
+  onSnapshot(txQuery,(snapshot)=>{
+    const txs=[];
+    snapshot.forEach(d=>txs.push(d.data()));
     renderTransactions(txs);
   });
 });
 
-/* ---------- Fund: Paystack inline + notify backend (Pipedream) ---------- */
-fundBtn.addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) { alert("Please log in first"); return; }
+fundBtn.addEventListener("click", async e=>{
+  e.preventDefault();
+  const user=auth.currentUser;
+  if(!user){ alert("Please log in first"); return; }
 
-  const amountInput = prompt("Enter amount to fund (NGN):", "1000");
-  if (!amountInput) return;
-  const amountNumber = parseFloat(amountInput);
-  if (isNaN(amountNumber) || amountNumber <= 0) { alert("Enter a valid amount"); return; }
+  const amountInput=prompt("Enter amount to fund (NGN):","1000");
+  if(!amountInput) return;
+  const amountNumber=parseFloat(amountInput);
+  if(isNaN(amountNumber)||amountNumber<=0){ alert("Enter a valid amount"); return; }
 
-  const amountKobo = Math.round(amountNumber * 100);
+  const amountKobo=Math.round(amountNumber*100);
 
-  // Prepare Paystack
-  const handler = PaystackPop.setup({
-    key: PAYSTACK_PUBLIC_KEY,
-    email: user.email,
-    amount: amountKobo,
-    metadata: { userId: user.uid },
-    callback: async function(response) {
-      // Client-side callback: payment completed at Paystack side.
-      alert("Payment initiated (client). Reference: " + response.reference);
-
-      // Send reference to backend (Pipedream) for server-side verification & Firestore update
-      try {
-        const res = await fetch(PIPEDREAM_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            reference: response.reference,
-            userId: user.uid,
-            amount: amountKobo
-          })
+  const handler=PaystackPop.setup({
+    key:PAYSTACK_PUBLIC_KEY,
+    email:user.email,
+    amount:amountKobo,
+    metadata:{userId:user.uid},
+    callback: async function(response){
+      alert("Payment initiated. Reference: "+response.reference);
+      try{
+        const res=await fetch(PIPEDREAM_ENDPOINT,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({reference:response.reference,userId:user.uid,amount:amountKobo})
         });
-
-        let result;
-        try { result = await res.json(); } catch(e) { result = await res.text(); }
-        console.log("Pipedream response:", result);
-
-        // Refresh local UI from Firestore (server should have updated it)
         await refreshUserData(user.uid);
-        alert("Verification requested — check your wallet balance. If it doesn't update, check Pipedream logs.");
-      } catch (err) {
-        console.error("Error calling backend:", err);
-        alert("Could not contact verification backend. Contact support.");
-      }
+      } catch(err){ console.error(err); }
     },
-    onClose: function() {
-      console.log("Payment window closed by user");
-    }
+    onClose: function(){ console.log("Payment window closed"); }
   });
 
-  // open Paystack checkout
   handler.openIframe();
 });
 
-/* Manual refresh */
-refreshBtn.addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) { alert("Please log in first"); return; }
+refreshBtn.addEventListener("click", async e=>{
+  e.preventDefault();
+  const user=auth.currentUser;
+  if(!user){ alert("Please log in first"); return; }
   await refreshUserData(user.uid);
 });
 </script>
