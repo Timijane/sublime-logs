@@ -1,19 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sublime Logs — Dashboard</title>
-
-  <!-- Fonts & minimal styling -->
+  <meta name="description" content="Sublime Logs user dashboard — fund wallet, view balance & transactions" />
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
+
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'David',sans-serif;background:#fff;min-height:100vh;color:#222}
     header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(90deg,#9b59b6,#e91e63);color:#fff}
     header h1{font-family:'Lobster',cursive;font-size:1.6rem}
     #back-home{background:#fff;color:#9b59b6;padding:8px 12px;border-radius:6px;text-decoration:none;font-weight:700}
-    main{padding:18px}
+    main{padding:18px;max-width:900px;margin:0 auto}
     .profile{display:flex;align-items:center;gap:14px;margin-bottom:18px}
     .avatar{width:72px;height:72px;border-radius:50%;background:#ddd center/cover no-repeat}
     .balance{font-weight:700;margin:10px 0;font-size:1.05rem}
@@ -23,6 +23,9 @@
     th{background:#9b59b6;color:#fff}
     .small{font-size:.9rem;color:#555}
     .muted{color:#666;font-size:.9rem}
+    .top-actions{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+    .input-inline{padding:8px;border-radius:6px;border:1px solid #ddd}
+    .note { margin-top:10px;color:#444;font-size:0.9rem }
   </style>
 </head>
 <body>
@@ -42,18 +45,22 @@
   </div>
 
   <div class="balance">Balance: ₦<span id="balance">0.00</span></div>
-  <div style="margin:12px 0">
+
+  <div class="top-actions">
     <button id="fund-btn">Fund Account</button>
-    <button id="refresh-btn" class="small" style="margin-left:10px;padding:8px 10px;background:#eee;color:#333">Refresh</button>
+    <button id="refresh-btn" class="small">Refresh</button>
+    <div style="margin-left:auto" class="small muted">Logged in users: your Firebase Auth session is used</div>
   </div>
 
-  <div class="small">Transaction history</div>
+  <div class="note">Transactions (latest first)</div>
   <table id="transactions-table" aria-live="polite">
     <thead>
       <tr><th>Type</th><th>Amount</th><th>Date</th><th>Status</th></tr>
     </thead>
     <tbody></tbody>
   </table>
+
+  <p class="muted note">If a payment shows “successful” in Paystack but your balance does not change, open the browser console and check network logs — then check your Pipedream workflow logs to ensure webhook verification & Firestore update ran successfully.</p>
 </main>
 
 <!-- Paystack inline -->
@@ -61,7 +68,12 @@
 
 <!-- Firebase v11 modules (CDN) -->
 <script type="module">
-/* ====== CONFIGURE THESE (you already provided them) ====== */
+/* ================== CONFIG (replace ONLY if you want different values) ==================
+   You already provided these values — they are inserted here.
+   - FIREBASE_CONFIG: your Firebase web config
+   - PAYSTACK_PUBLIC_KEY: your Paystack public key (test or live)
+   - PIPEDREAM_ENDPOINT: the Pipedream webhook endpoint that verifies + updates Firestore
+   ====================================================================================== */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
   authDomain: "sublime-logs.firebaseapp.com",
@@ -72,9 +84,12 @@ const FIREBASE_CONFIG = {
   measurementId: "G-8YHHJC1MP7"
 };
 
+// Use the public key you want: test or live. You provided both; this uses the live one you gave.
 const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
-const PIPEDREAM_ENDPOINT = "https://eojegh3ks8gvl0e.m.pipedream.net"; // your Pipedream webhook verifying endpoint
-/* ======================================================= */
+
+// Your Pipedream endpoint (must be the one that verifies Paystack & updates Firestore)
+const PIPEDREAM_ENDPOINT = "https://eojegh3ks8gvl0e.m.pipedream.net";
+/* ====================================================================================== */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
@@ -96,13 +111,11 @@ const fundBtn = document.getElementById("fund-btn");
 const refreshBtn = document.getElementById("refresh-btn");
 const transactionsTableBody = document.querySelector("#transactions-table tbody");
 
-/* Helper: format NGN amounts nicely */
+/* Helpers */
 function formatNgn(n) {
   if (n === undefined || n === null) return "0.00";
   return Number(n).toFixed(2);
 }
-
-/* Helper: show transactions in table */
 function renderTransactions(list) {
   transactionsTableBody.innerHTML = "";
   if (!list || list.length === 0) {
@@ -121,13 +134,12 @@ function renderTransactions(list) {
   });
 }
 
-/* Re-fetch the user's Firestore doc and transactions (used after payment verification) */
+/* Refresh user doc + recent transactions */
 async function refreshUserData(uid) {
   try {
     const userRef = doc(db, "users", uid);
     const snap = await getDoc(userRef);
     if (!snap.exists()) {
-      // Nothing to show
       userNameEl.textContent = "Welcome";
       userEmailEl.textContent = "";
       balanceEl.textContent = formatNgn(0);
@@ -139,7 +151,7 @@ async function refreshUserData(uid) {
     userEmailEl.textContent = data.email || "";
     balanceEl.textContent = formatNgn(data.balance || 0);
 
-    // fetch latest 50 transactions sorted by date if available
+    // get latest 50 transactions sorted by date
     const txCol = collection(db, "users", uid, "transactions");
     const txQuery = query(txCol, orderBy("date", "desc"), limit(50));
     const txSnap = await getDocs(txQuery);
@@ -151,18 +163,15 @@ async function refreshUserData(uid) {
   }
 }
 
-/* ---------- Auth state: ensures user is logged in ----------
-   We rely on your existing login page. If the user is not logged in
-   we redirect them to login.html (you already had this behavior).
-   When logged in we ensure a user doc exists (balance defaults to 0).
-*/
+/* ---------- Auth state (redirects to login if not signed in) ---------- */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
+    // make sure you have 'login.html' in your site
     window.location.href = "login.html";
     return;
   }
 
-  // Ensure user doc exists with balance=0 (id = user.uid)
+  // ensure Firestore user doc exists (balance default 0)
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
   if (!snap.exists()) {
@@ -174,10 +183,8 @@ onAuthStateChanged(auth, async (user) => {
     });
   }
 
-  // Show initial user data
+  // initial refresh and a real-time listener for transactions
   await refreshUserData(user.uid);
-
-  // Start live transactions listener to update table in real-time
   const txCol = collection(db, "users", user.uid, "transactions");
   const txQuery = query(txCol, orderBy("date", "desc"), limit(50));
   onSnapshot(txQuery, (snapshot) => {
@@ -187,29 +194,29 @@ onAuthStateChanged(auth, async (user) => {
   });
 });
 
-/* ---------- Fund button: opens Paystack inline ---------- */
+/* ---------- Fund: Paystack inline + notify backend (Pipedream) ---------- */
 fundBtn.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) { alert("Please log in first"); return; }
 
-  // Ask user for amount (simple prompt — you can replace with nicer UI)
   const amountInput = prompt("Enter amount to fund (NGN):", "1000");
   if (!amountInput) return;
   const amountNumber = parseFloat(amountInput);
   if (isNaN(amountNumber) || amountNumber <= 0) { alert("Enter a valid amount"); return; }
 
-  const amountKobo = Math.round(amountNumber * 100); // Paystack expects kobo
+  const amountKobo = Math.round(amountNumber * 100);
 
+  // Prepare Paystack
   const handler = PaystackPop.setup({
     key: PAYSTACK_PUBLIC_KEY,
     email: user.email,
     amount: amountKobo,
-    metadata: { userId: user.uid }, // IMPORTANT: attach userId so backend knows which Firestore doc to update
+    metadata: { userId: user.uid },
     callback: async function(response) {
-      // Called when Paystack client thinks payment succeeded — we still must verify server-side.
-      alert("Payment initiated. Reference: " + response.reference);
+      // Client-side callback: payment completed at Paystack side.
+      alert("Payment initiated (client). Reference: " + response.reference);
 
-      // Send reference to your Pipedream endpoint which will verify with Paystack secret and update Firestore.
+      // Send reference to backend (Pipedream) for server-side verification & Firestore update
       try {
         const res = await fetch(PIPEDREAM_ENDPOINT, {
           method: "POST",
@@ -217,21 +224,17 @@ fundBtn.addEventListener("click", async () => {
           body: JSON.stringify({
             reference: response.reference,
             userId: user.uid,
-            // we send amount as kobo too — backend can double-check via Paystack verify
             amount: amountKobo
           })
         });
 
-        // Pipedream may return JSON or text depending on your workflow response
         let result;
         try { result = await res.json(); } catch(e) { result = await res.text(); }
-
         console.log("Pipedream response:", result);
 
-        // After the backend verifies and updates Firestore, refresh the UI
-        // (If your Pipedream returns success indicator check it — here we refresh regardless)
+        // Refresh local UI from Firestore (server should have updated it)
         await refreshUserData(user.uid);
-        alert("Verification requested — check your wallet balance. If it doesn't update, contact support.");
+        alert("Verification requested — check your wallet balance. If it doesn't update, check Pipedream logs.");
       } catch (err) {
         console.error("Error calling backend:", err);
         alert("Could not contact verification backend. Contact support.");
@@ -242,10 +245,11 @@ fundBtn.addEventListener("click", async () => {
     }
   });
 
+  // open Paystack checkout
   handler.openIframe();
 });
 
-/* Manual refresh button */
+/* Manual refresh */
 refreshBtn.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) { alert("Please log in first"); return; }
