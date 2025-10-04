@@ -1,151 +1,213 @@
-<!-- Paystack -->
-<script src="https://js.paystack.co/v1/inline.js"></script>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import { 
-  getFirestore, doc, getDoc, setDoc, collection, onSnapshot 
-} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sublime Logs - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'David', sans-serif; background: #fefefe; min-height: 100vh; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(90deg, #9b59b6, #e91e63); color: #fff; }
+    header h1 { font-family: 'Lobster', cursive; font-size: 1.8em; }
+    #menu-btn { font-size: 1.8em; cursor: pointer; }
+    #back-home { background: #fff; color: #9b59b6; padding: 8px 12px; border-radius: 6px; font-weight: bold; text-decoration: none; }
 
+    #side-menu { position: fixed; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, #9b59b6, #e91e63); padding: 20px; transition: left 0.3s ease-in-out; z-index: 100; color: #fff; }
+    #side-menu.active { left: 0; }
+    #side-menu ul { list-style: none; margin-top: 50px; }
+    #side-menu ul li { margin: 20px 0; font-weight: bold; cursor: pointer; }
+    #side-menu #close-menu { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; }
 
-// ==========================
-// 🔧 FIREBASE CONFIGURATION
-// ==========================
-const firebaseConfig = {
-  apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-  authDomain: "sublime-logs.firebaseapp.com",
-  projectId: "sublime-logs",
-  storageBucket: "sublime-logs.firebasestorage.app",
-  messagingSenderId: "381847722551",
-  appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-  measurementId: "G-8YHHJC1MP7"
-};
+    main { padding: 20px; }
+    .profile { display: flex; align-items: center; margin-bottom: 20px; }
+    .avatar { width: 80px; height: 80px; border-radius: 50%; background: #ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat; margin-right: 15px; cursor: pointer; }
+    .profile-info h2 { font-size: 1.5em; margin-bottom: 5px; }
+    .profile-info p { color: #555; }
+    .balance { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
+    button { padding: 12px 20px; background: linear-gradient(90deg, #9b59b6, #e91e63); border: none; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer; margin-right: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    table th { background: #9b59b6; color: #fff; }
+    table tr:nth-child(even) { background: #f2f2f2; }
+    @media (max-width: 768px) { #side-menu { width: 80%; } }
+  </style>
+</head>
+<body>
+  <header>
+    <span id="menu-btn">≡</span>
+    <h1>Sublime Logs</h1>
+    <a href="index.html" id="back-home">Home</a>
+  </header>
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+  <nav id="side-menu">
+    <span id="close-menu">×</span>
+    <ul>
+      <li id="menu-profile">Profile</li>
+      <li id="menu-fund">Fund Account</li>
+      <li id="menu-buy">Buy Number</li>
+      <li id="menu-send">Send Gift</li>
+      <li id="menu-transactions">Transaction History</li>
+      <li id="menu-logout">Logout</li>
+    </ul>
+  </nav>
 
+  <main>
+    <div class="profile">
+      <div class="avatar" id="avatar"></div>
+      <div class="profile-info">
+        <h2 id="user-name">Welcome</h2>
+        <p id="user-email"></p>
+      </div>
+    </div>
 
-// ==========================
-// 🌐 UI ELEMENTS
-// ==========================
-const menuBtn = document.getElementById('menu-btn');
-const closeMenu = document.getElementById('close-menu');
-const sideMenu = document.getElementById('side-menu');
-const userNameEl = document.getElementById('user-name');
-const userEmailEl = document.getElementById('user-email');
-const balanceEl = document.getElementById('balance');
-const fundBtn = document.getElementById('fund-btn');
-const transactionsTable = document.querySelector('#transactions-table tbody');
+    <div class="balance">Balance: ₦<span id="balance">0.00</span></div>
+    <button id="fund-btn">Fund Account</button>
 
+    <table id="transactions-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
 
-// ==========================
-// 📱 MENU TOGGLE
-// ==========================
-menuBtn?.addEventListener('click', () => sideMenu?.classList.add('active'));
-closeMenu?.addEventListener('click', () => sideMenu?.classList.remove('active'));
+  <!-- Paystack -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
+    // === Backend Connection ===
+    const API_BASE_URL = "https://eojegh3ks8gvl0e.m.pipedream.net";
 
-// ==========================
-// 👤 AUTH STATE LISTENER
-// ==========================
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
+    // === Firebase Config ===
+    const firebaseConfig = {
+      apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
+      authDomain: "sublime-logs.firebaseapp.com",
+      projectId: "sublime-logs",
+      storageBucket: "sublime-logs.firebasestorage.app",
+      messagingSenderId: "381847722551",
+      appId: "1:381847722551:web:8ec68f018291d3927f3db2",
+      measurementId: "G-8YHHJC1MP7"
+    };
 
-  const userDocRef = doc(db, 'users', user.uid);
-  let snap = await getDoc(userDocRef);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  // Create user record if new
-  if (!snap.exists()) {
-    await setDoc(userDocRef, {
-      firstName: user.displayName?.split(' ')[0] || 'User',
-      surname: user.displayName?.split(' ')[1] || '',
-      email: user.email,
-      balance: 0,
-      avatar: null
-    });
-    snap = await getDoc(userDocRef);
-  }
+    // === UI Elements ===
+    const menuBtn = document.getElementById('menu-btn');
+    const closeMenu = document.getElementById('close-menu');
+    const sideMenu = document.getElementById('side-menu');
+    const userNameEl = document.getElementById('user-name');
+    const userEmailEl = document.getElementById('user-email');
+    const balanceEl = document.getElementById('balance');
+    const fundBtn = document.getElementById('fund-btn');
+    const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
 
-  const data = snap.data();
-  userNameEl.textContent = `Welcome, ${data.firstName} ${data.surname}`;
-  userEmailEl.textContent = data.email;
-  balanceEl.textContent = data.balance.toFixed(2);
+    // === Menu Toggle ===
+    menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
+    closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
 
-
-  // ==========================
-  // 🔁 LIVE TRANSACTION UPDATES
-  // ==========================
-  const transCol = collection(db, 'users', user.uid, 'transactions');
-  onSnapshot(transCol, (snapshot) => {
-    transactionsTable.innerHTML = '';
-    snapshot.forEach(docSnap => {
-      const t = docSnap.data();
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${t.type || 'Fund'}</td>
-        <td>₦${(t.amount / 100).toFixed(2)}</td>
-        <td>${new Date(t.date.seconds * 1000).toLocaleString()}</td>
-        <td>${t.status}</td>
-      `;
-      transactionsTable.appendChild(row);
-    });
-  });
-
-
-  // ==========================
-  // 💳 FUND ACCOUNT (PAYSTACK)
-  // ==========================
-  fundBtn?.addEventListener('click', async () => {
-    const amountInput = prompt("Enter amount to fund (₦):", "1000");
-    if (!amountInput || isNaN(amountInput) || amountInput <= 0) return;
-    const amountKobo = parseFloat(amountInput) * 100;
-
-    // Initialize Paystack popup
-    const handler = PaystackPop.setup({
-      key: "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492", // ✅ your live public key
-      email: user.email,
-      amount: amountKobo,
-      metadata: { userId: user.uid },
-
-      callback: function(response) {
-        alert("✅ Payment successful! Ref: " + response.reference);
-
-        // Send payment details to backend (Pipedream)
-        fetch("https://eojegh3ks8gvl0e.m.pipedream.net", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            reference: response.reference,
-            userId: user.uid,
-            amount: amountKobo,
-            email: user.email
-          })
-        })
-        .then(async (res) => {
-          try {
-            const data = await res.json();
-            console.log("Pipedream response:", data);
-            alert("🎉 Account credited successfully!");
-          } catch {
-            alert("⚠️ Payment recorded, awaiting backend confirmation.");
-          }
-        })
-        .catch(err => {
-          console.error("Error contacting backend:", err);
-          alert("⚠️ Payment succeeded, but backend failed to update balance.");
-        });
-      },
-
-      onClose: function() {
-        alert("Payment window closed.");
+    // === Authentication State ===
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
       }
+
+      // Load or create user profile
+      const userDocRef = doc(db, 'users', user.uid);
+      let snap = await getDoc(userDocRef);
+      if (!snap.exists()) {
+        await setDoc(userDocRef, {
+          firstName: user.displayName?.split(' ')[0] || 'User',
+          surname: user.displayName?.split(' ')[1] || '',
+          email: user.email,
+          balance: 0,
+          avatar: null
+        });
+        snap = await getDoc(userDocRef);
+      }
+
+      const data = snap.data();
+      userNameEl.textContent = `Welcome, ${data.firstName} ${data.surname}`;
+      userEmailEl.textContent = data.email;
+      balanceEl.textContent = data.balance.toFixed(2);
+
+      // Live transactions
+      const transCol = collection(db, 'users', user.uid, 'transactions');
+      onSnapshot(transCol, snapshot => {
+        transactionsTable.innerHTML = '';
+        snapshot.forEach(docSnap => {
+          const t = docSnap.data();
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${t.type}</td>
+            <td>₦${t.amount.toFixed(2)}</td>
+            <td>${new Date(t.date.seconds * 1000).toLocaleString()}</td>
+            <td>${t.status}</td>
+          `;
+          transactionsTable.appendChild(row);
+        });
+      });
     });
 
-    handler.openIframe();
-  });
-});
-</script>
+    // === Fund Account ===
+    fundBtn.addEventListener('click', async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Please log in first");
+        return;
+      }
+
+      const amountInput = prompt("Enter amount to fund (NGN):", "1000");
+      if (!amountInput || isNaN(amountInput) || amountInput <= 0) return;
+      const amountKobo = parseFloat(amountInput) * 100;
+
+      const handler = PaystackPop.setup({
+        key: "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492",
+        email: user.email,
+        amount: amountKobo,
+        metadata: { userId: user.uid },
+        callback: async function (response) {
+          alert("Payment successful! Reference: " + response.reference);
+          try {
+            const res = await fetch(`${API_BASE_URL}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                reference: response.reference,
+                userId: user.uid,
+                amount: amountKobo
+              })
+            });
+            const result = await res.json();
+            console.log("Backend response:", result);
+            if (result.status === "success") {
+              alert("Your wallet has been updated!");
+            } else {
+              alert("Payment verification failed. Please contact support.");
+            }
+          } catch (error) {
+            console.error("Backend error:", error);
+            alert("Could not verify payment. Please try again.");
+          }
+        },
+        onClose: function () {
+          alert("Payment window closed.");
+        }
+      });
+
+      handler.openIframe();
+    });
+  </script>
+</body>
+</html>
