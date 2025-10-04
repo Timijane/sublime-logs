@@ -1,18 +1,16 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sublime Logs — Dashboard</title>
-  <meta name="description" content="Sublime Logs user dashboard — fund wallet, view balance & transactions" />
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
-
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'David',sans-serif;background:#fff;min-height:100vh;color:#222}
     header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(90deg,#9b59b6,#e91e63);color:#fff}
     header h1{font-family:'Lobster',cursive;font-size:1.6rem}
-    #back-home{background:#fff;color:#9b59b6;padding:8px 12px;border-radius:6px;text-decoration:none;font-weight:700;cursor:pointer;}
+    #back-home{background:#fff;color:#9b59b6;padding:8px 12px;border-radius:6px;text-decoration:none;font-weight:700}
     main{padding:18px;max-width:900px;margin:0 auto}
     .profile{display:flex;align-items:center;gap:14px;margin-bottom:18px}
     .avatar{width:72px;height:72px;border-radius:50%;background:#ddd center/cover no-repeat}
@@ -24,14 +22,12 @@
     .small{font-size:.9rem;color:#555}
     .muted{color:#666;font-size:.9rem}
     .top-actions{display:flex;gap:12px;align-items:center;margin-bottom:12px}
-    .note { margin-top:10px;color:#444;font-size:0.9rem }
   </style>
 </head>
 <body>
-
 <header>
   <h1>Sublime Logs</h1>
-  <span id="back-home">Home</span>
+  <a id="back-home" href="index.html">Home</a>
 </header>
 
 <main>
@@ -48,135 +44,144 @@
   <div class="top-actions">
     <button id="fund-btn">Fund Account</button>
     <button id="refresh-btn" class="small">Refresh</button>
-    <div style="margin-left:auto" class="small muted">Logged in users: Firebase Auth session is used</div>
   </div>
 
-  <div class="note">Transactions (latest first)</div>
+  <div class="small muted">Transactions (latest first)</div>
   <table id="transactions-table" aria-live="polite">
     <thead>
       <tr><th>Type</th><th>Amount</th><th>Date</th><th>Status</th></tr>
     </thead>
     <tbody></tbody>
   </table>
-
-  <p class="muted note">If a payment shows “successful” in Paystack but your balance does not change, check your Pipedream logs to ensure verification & Firestore update ran successfully.</p>
 </main>
 
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit,
-  onSnapshot, getDocs
-} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  // ================== CONFIG ==================
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
+    authDomain: "sublime-logs.firebaseapp.com",
+    projectId: "sublime-logs",
+    storageBucket: "sublime-logs.firebasestorage.app",
+    messagingSenderId: "381847722551",
+    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
+    measurementId: "G-8YHHJC1MP7"
+  };
 
-/* CONFIG */
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-  authDomain: "sublime-logs.firebaseapp.com",
-  projectId: "sublime-logs",
-  storageBucket: "sublime-logs.firebasestorage.app",
-  messagingSenderId: "381847722551",
-  appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-  measurementId: "G-8YHHJC1MP7"
-};
-const PIPEDREAM_ENDPOINT = "https://eojegh3ks8gvl0e.m.pipedream.net";
-const HOSTED_PAYSTACK_LINK = "https://paystack.shop/pay/hweuw46d87";
+  const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
+  const PIPEDREAM_ENDPOINT = "https://eojegh3ks8gvl0e.m.pipedream.net";
+  // ============================================
 
-/* Firebase init */
-const app = initializeApp(FIREBASE_CONFIG);
-const auth = getAuth(app);
-const db = getFirestore(app);
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-/* UI elements */
-const userNameEl = document.getElementById("user-name");
-const userEmailEl = document.getElementById("user-email");
-const balanceEl = document.getElementById("balance");
-const fundBtn = document.getElementById("fund-btn");
-const refreshBtn = document.getElementById("refresh-btn");
-const backHomeBtn = document.getElementById("back-home");
-const transactionsTableBody = document.querySelector("#transactions-table tbody");
+  const app = initializeApp(FIREBASE_CONFIG);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-/* Helpers */
-function formatNgn(n) { return n ? Number(n).toFixed(2) : "0.00"; }
-function renderTransactions(list) {
-  transactionsTableBody.innerHTML = "";
-  if (!list || list.length === 0) {
-    transactionsTableBody.innerHTML = `<tr><td colspan="4" class="muted">No transactions</td></tr>`;
-    return;
-  }
-  list.forEach(t => {
-    const date = t.date && t.date.seconds ? new Date(t.date.seconds*1000).toLocaleString() : t.date || "";
-    const amount = Number(t.amount || 0).toFixed(2);
-    const row = document.createElement("tr");
-    row.innerHTML = `<td>${t.type || "—"}</td><td>₦${amount}</td><td>${date}</td><td>${t.status || "—"}</td>`;
-    transactionsTableBody.appendChild(row);
-  });
-}
+  const userNameEl = document.getElementById("user-name");
+  const userEmailEl = document.getElementById("user-email");
+  const balanceEl = document.getElementById("balance");
+  const fundBtn = document.getElementById("fund-btn");
+  const refreshBtn = document.getElementById("refresh-btn");
+  const transactionsTableBody = document.querySelector("#transactions-table tbody");
 
-/* Refresh user data */
-async function refreshUserData(uid){
-  try {
-    const userRef = doc(db, "users", uid);
-    const snap = await getDoc(userRef);
-    if(!snap.exists()){ userNameEl.textContent="Welcome"; userEmailEl.textContent=""; balanceEl.textContent="0.00"; renderTransactions([]); return; }
-    const data = snap.data();
-    userNameEl.textContent = `Welcome, ${data.firstName || ""} ${data.surname || ""}`.trim();
-    userEmailEl.textContent = data.email || "";
-    balanceEl.textContent = formatNgn(data.balance || 0);
-    const txCol = collection(db, "users", uid, "transactions");
-    const txQuery = query(txCol, orderBy("date","desc"), limit(50));
-    const txSnap = await getDocs(txQuery);
-    const txs=[];
-    txSnap.forEach(d=>txs.push(d.data()));
-    renderTransactions(txs);
-  } catch(err){ console.error("refreshUserData error:",err); }
-}
+  function formatNgn(n){ return Number(n||0).toFixed(2); }
 
-/* Auth state */
-onAuthStateChanged(auth, async (user)=>{
-  if(!user){ window.location.href="login.html"; return; }
-  const userRef = doc(db, "users", user.uid);
-  const snap = await getDoc(userRef);
-  if(!snap.exists()){
-    await setDoc(userRef,{
-      firstName:user.displayName?.split(" ")[0]||"User",
-      surname:user.displayName?.split(" ")[1]||"",
-      email:user.email||"",
-      balance:0
+  function renderTransactions(list){
+    transactionsTableBody.innerHTML = "";
+    if(!list||list.length===0){
+      transactionsTableBody.innerHTML=`<tr><td colspan="4" class="muted">No transactions</td></tr>`;
+      return;
+    }
+    list.forEach(t=>{
+      const date=t.date&&t.date.seconds?new Date(t.date.seconds*1000).toLocaleString():(t.date||"");
+      const amount=Number(t.amount||0).toFixed(2);
+      const row=document.createElement("tr");
+      row.innerHTML=`<td>${t.type||"—"}</td><td>₦${amount}</td><td>${date}</td><td>${t.status||"—"}</td>`;
+      transactionsTableBody.appendChild(row);
     });
   }
-  await refreshUserData(user.uid);
-  const txCol = collection(db, "users", user.uid, "transactions");
-  const txQuery = query(txCol, orderBy("date","desc"), limit(50));
-  onSnapshot(txQuery,(snapshot)=>{
-    const txs=[];
-    snapshot.forEach(d=>txs.push(d.data()));
-    renderTransactions(txs);
+
+  async function refreshUserData(uid){
+    try{
+      const userRef = doc(db,"users",uid);
+      const snap = await getDoc(userRef);
+      if(!snap.exists()){
+        userNameEl.textContent="Welcome"; userEmailEl.textContent=""; balanceEl.textContent=formatNgn(0);
+        renderTransactions([]); return;
+      }
+      const data = snap.data();
+      userNameEl.textContent=`Welcome, ${data.firstName||""} ${data.surname||""}`.trim();
+      userEmailEl.textContent=data.email||"";
+      balanceEl.textContent=formatNgn(data.balance||0);
+      const txCol = collection(db,"users",uid,"transactions");
+      const txQuery=query(txCol,orderBy("date","desc"),limit(50));
+      const txSnap = await getDocs(txQuery);
+      const txs=[]; txSnap.forEach(d=>txs.push(d.data()));
+      renderTransactions(txs);
+    }catch(err){ console.error("refreshUserData error:",err); }
+  }
+
+  onAuthStateChanged(auth, async user=>{
+    if(!user){ window.location.href="login.html"; return; }
+    const userRef = doc(db,"users",user.uid);
+    const snap = await getDoc(userRef);
+    if(!snap.exists()){
+      await setDoc(userRef,{
+        firstName:user.displayName?.split(" ")[0]||"User",
+        surname:user.displayName?.split(" ")[1]||"",
+        email:user.email||"",
+        balance:0
+      });
+    }
+    await refreshUserData(user.uid);
+    const txCol = collection(db,"users",user.uid,"transactions");
+    const txQuery=query(txCol,orderBy("date","desc"),limit(50));
+    onSnapshot(txQuery,snapshot=>{
+      const txs=[]; snapshot.forEach(d=>txs.push(d.data())); renderTransactions(txs);
+    });
   });
-});
 
-/* FUND BUTTON: redirect to hosted Paystack link */
-fundBtn.addEventListener("click", ()=>{
-  const amountInput = prompt("Enter amount to fund (NGN):","1000");
-  if(!amountInput) return;
-  const amountNumber = parseFloat(amountInput);
-  if(isNaN(amountNumber) || amountNumber<=0){ alert("Enter a valid amount"); return; }
-  // Open hosted payment page in new tab
-  window.open(HOSTED_PAYSTACK_LINK,"_blank");
-});
+  fundBtn.addEventListener("click",async()=>{
+    const user=auth.currentUser;
+    if(!user){ alert("Please log in first"); return; }
+    const amountInput=prompt("Enter amount to fund (NGN):","1000");
+    if(!amountInput)return;
+    const amountNumber=parseFloat(amountInput);
+    if(isNaN(amountNumber)||amountNumber<=0){ alert("Enter a valid amount"); return; }
+    const amountKobo=Math.round(amountNumber*100);
 
-/* REFRESH BUTTON */
-refreshBtn.addEventListener("click", async ()=>{
-  const user = auth.currentUser;
-  if(!user){ alert("Please log in first"); return; }
-  await refreshUserData(user.uid);
-});
+    const handler=PaystackPop.setup({
+      key: PAYSTACK_PUBLIC_KEY,
+      email: user.email,
+      amount: amountKobo,
+      metadata:{userId:user.uid},
+      callback:async function(response){
+        console.log("Paystack response:",response);
+        try{
+          const res=await fetch(PIPEDREAM_ENDPOINT,{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({reference:response.reference,userId:user.uid,amount:amountKobo})
+          });
+          const result=await res.json();
+          console.log("Backend verification:",result);
+          if(result?.message){ alert(result.message); } else if(result?.error){ alert(result.error); }
+          await refreshUserData(user.uid);
+        }catch(err){ console.error("Backend error:",err); alert("Payment verified, but failed to update balance."); }
+      },
+      onClose:function(){ console.log("Payment window closed"); }
+    });
+    handler.openIframe();
+  });
 
-/* BACK HOME BUTTON */
-backHomeBtn.addEventListener("click", ()=>{
-  window.location.href = "index.html";
-});
+  refreshBtn.addEventListener("click",async()=>{
+    const user=auth.currentUser;
+    if(!user){ alert("Please log in first"); return; }
+    await refreshUserData(user.uid);
+  });
 </script>
 </body>
 </html>
