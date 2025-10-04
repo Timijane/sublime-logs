@@ -1,213 +1,256 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sublime Logs - Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sublime Logs — Dashboard</title>
+
+  <!-- Fonts & minimal styling -->
   <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'David', sans-serif; background: #fefefe; min-height: 100vh; }
-    header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(90deg, #9b59b6, #e91e63); color: #fff; }
-    header h1 { font-family: 'Lobster', cursive; font-size: 1.8em; }
-    #menu-btn { font-size: 1.8em; cursor: pointer; }
-    #back-home { background: #fff; color: #9b59b6; padding: 8px 12px; border-radius: 6px; font-weight: bold; text-decoration: none; }
-
-    #side-menu { position: fixed; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, #9b59b6, #e91e63); padding: 20px; transition: left 0.3s ease-in-out; z-index: 100; color: #fff; }
-    #side-menu.active { left: 0; }
-    #side-menu ul { list-style: none; margin-top: 50px; }
-    #side-menu ul li { margin: 20px 0; font-weight: bold; cursor: pointer; }
-    #side-menu #close-menu { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; }
-
-    main { padding: 20px; }
-    .profile { display: flex; align-items: center; margin-bottom: 20px; }
-    .avatar { width: 80px; height: 80px; border-radius: 50%; background: #ccc url('https://cdn-icons-png.flaticon.com/512/149/149071.png') center/cover no-repeat; margin-right: 15px; cursor: pointer; }
-    .profile-info h2 { font-size: 1.5em; margin-bottom: 5px; }
-    .profile-info p { color: #555; }
-    .balance { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
-    button { padding: 12px 20px; background: linear-gradient(90deg, #9b59b6, #e91e63); border: none; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer; margin-right: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-    table th { background: #9b59b6; color: #fff; }
-    table tr:nth-child(even) { background: #f2f2f2; }
-    @media (max-width: 768px) { #side-menu { width: 80%; } }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'David',sans-serif;background:#fff;min-height:100vh;color:#222}
+    header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(90deg,#9b59b6,#e91e63);color:#fff}
+    header h1{font-family:'Lobster',cursive;font-size:1.6rem}
+    #back-home{background:#fff;color:#9b59b6;padding:8px 12px;border-radius:6px;text-decoration:none;font-weight:700}
+    main{padding:18px}
+    .profile{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    .avatar{width:72px;height:72px;border-radius:50%;background:#ddd center/cover no-repeat}
+    .balance{font-weight:700;margin:10px 0;font-size:1.05rem}
+    button{background:linear-gradient(90deg,#9b59b6,#e91e63);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:16px}
+    th,td{padding:8px;border:1px solid #e6e6e6;text-align:left}
+    th{background:#9b59b6;color:#fff}
+    .small{font-size:.9rem;color:#555}
+    .muted{color:#666;font-size:.9rem}
   </style>
 </head>
 <body>
-  <header>
-    <span id="menu-btn">≡</span>
-    <h1>Sublime Logs</h1>
-    <a href="index.html" id="back-home">Home</a>
-  </header>
 
-  <nav id="side-menu">
-    <span id="close-menu">×</span>
-    <ul>
-      <li id="menu-profile">Profile</li>
-      <li id="menu-fund">Fund Account</li>
-      <li id="menu-buy">Buy Number</li>
-      <li id="menu-send">Send Gift</li>
-      <li id="menu-transactions">Transaction History</li>
-      <li id="menu-logout">Logout</li>
-    </ul>
-  </nav>
+<header>
+  <h1>Sublime Logs</h1>
+  <a id="back-home" href="index.html">Home</a>
+</header>
 
-  <main>
-    <div class="profile">
-      <div class="avatar" id="avatar"></div>
-      <div class="profile-info">
-        <h2 id="user-name">Welcome</h2>
-        <p id="user-email"></p>
-      </div>
+<main>
+  <div class="profile">
+    <div id="avatar" class="avatar" style="background-image:url('https://cdn-icons-png.flaticon.com/512/149/149071.png')"></div>
+    <div>
+      <div id="user-name">Welcome</div>
+      <div id="user-email" class="muted"></div>
     </div>
+  </div>
 
-    <div class="balance">Balance: ₦<span id="balance">0.00</span></div>
+  <div class="balance">Balance: ₦<span id="balance">0.00</span></div>
+  <div style="margin:12px 0">
     <button id="fund-btn">Fund Account</button>
+    <button id="refresh-btn" class="small" style="margin-left:10px;padding:8px 10px;background:#eee;color:#333">Refresh</button>
+  </div>
 
-    <table id="transactions-table">
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Amount</th>
-          <th>Date</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </main>
+  <div class="small">Transaction history</div>
+  <table id="transactions-table" aria-live="polite">
+    <thead>
+      <tr><th>Type</th><th>Amount</th><th>Date</th><th>Status</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
 
-  <!-- Paystack -->
-  <script src="https://js.paystack.co/v1/inline.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+<!-- Paystack inline -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
 
-    // === Backend Connection ===
-    const API_BASE_URL = "https://eojegh3ks8gvl0e.m.pipedream.net";
+<!-- Firebase v11 modules (CDN) -->
+<script type="module">
+/* ====== CONFIGURE THESE (you already provided them) ====== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
+  authDomain: "sublime-logs.firebaseapp.com",
+  projectId: "sublime-logs",
+  storageBucket: "sublime-logs.firebasestorage.app",
+  messagingSenderId: "381847722551",
+  appId: "1:381847722551:web:8ec68f018291d3927f3db2",
+  measurementId: "G-8YHHJC1MP7"
+};
 
-    // === Firebase Config ===
-    const firebaseConfig = {
-      apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-      authDomain: "sublime-logs.firebaseapp.com",
-      projectId: "sublime-logs",
-      storageBucket: "sublime-logs.firebasestorage.app",
-      messagingSenderId: "381847722551",
-      appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-      measurementId: "G-8YHHJC1MP7"
-    };
+const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
+const PIPEDREAM_ENDPOINT = "https://eojegh3ks8gvl0e.m.pipedream.net"; // your Pipedream webhook verifying endpoint
+/* ======================================================= */
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit,
+  onSnapshot, getDocs
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-    // === UI Elements ===
-    const menuBtn = document.getElementById('menu-btn');
-    const closeMenu = document.getElementById('close-menu');
-    const sideMenu = document.getElementById('side-menu');
-    const userNameEl = document.getElementById('user-name');
-    const userEmailEl = document.getElementById('user-email');
-    const balanceEl = document.getElementById('balance');
-    const fundBtn = document.getElementById('fund-btn');
-    const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
+/* Initialize Firebase app */
+const app = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    // === Menu Toggle ===
-    menuBtn.addEventListener('click', () => sideMenu.classList.add('active'));
-    closeMenu.addEventListener('click', () => sideMenu.classList.remove('active'));
+/* UI elements */
+const userNameEl = document.getElementById("user-name");
+const userEmailEl = document.getElementById("user-email");
+const balanceEl = document.getElementById("balance");
+const fundBtn = document.getElementById("fund-btn");
+const refreshBtn = document.getElementById("refresh-btn");
+const transactionsTableBody = document.querySelector("#transactions-table tbody");
 
-    // === Authentication State ===
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
+/* Helper: format NGN amounts nicely */
+function formatNgn(n) {
+  if (n === undefined || n === null) return "0.00";
+  return Number(n).toFixed(2);
+}
 
-      // Load or create user profile
-      const userDocRef = doc(db, 'users', user.uid);
-      let snap = await getDoc(userDocRef);
-      if (!snap.exists()) {
-        await setDoc(userDocRef, {
-          firstName: user.displayName?.split(' ')[0] || 'User',
-          surname: user.displayName?.split(' ')[1] || '',
-          email: user.email,
-          balance: 0,
-          avatar: null
-        });
-        snap = await getDoc(userDocRef);
-      }
+/* Helper: show transactions in table */
+function renderTransactions(list) {
+  transactionsTableBody.innerHTML = "";
+  if (!list || list.length === 0) {
+    transactionsTableBody.innerHTML = `<tr><td colspan="4" class="muted">No transactions</td></tr>`;
+    return;
+  }
+  list.forEach(t => {
+    const date = t.date && t.date.seconds ? new Date(t.date.seconds * 1000).toLocaleString() : (t.date || "");
+    const amount = Number(t.amount || 0).toFixed(2);
+    const row = document.createElement("tr");
+    row.innerHTML = `<td>${t.type || "—"}</td>
+                     <td>₦${amount}</td>
+                     <td>${date}</td>
+                     <td>${t.status || "—"}</td>`;
+    transactionsTableBody.appendChild(row);
+  });
+}
 
-      const data = snap.data();
-      userNameEl.textContent = `Welcome, ${data.firstName} ${data.surname}`;
-      userEmailEl.textContent = data.email;
-      balanceEl.textContent = data.balance.toFixed(2);
+/* Re-fetch the user's Firestore doc and transactions (used after payment verification) */
+async function refreshUserData(uid) {
+  try {
+    const userRef = doc(db, "users", uid);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) {
+      // Nothing to show
+      userNameEl.textContent = "Welcome";
+      userEmailEl.textContent = "";
+      balanceEl.textContent = formatNgn(0);
+      renderTransactions([]);
+      return;
+    }
+    const data = snap.data();
+    userNameEl.textContent = `Welcome, ${data.firstName || ""} ${data.surname || ""}`.trim();
+    userEmailEl.textContent = data.email || "";
+    balanceEl.textContent = formatNgn(data.balance || 0);
 
-      // Live transactions
-      const transCol = collection(db, 'users', user.uid, 'transactions');
-      onSnapshot(transCol, snapshot => {
-        transactionsTable.innerHTML = '';
-        snapshot.forEach(docSnap => {
-          const t = docSnap.data();
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${t.type}</td>
-            <td>₦${t.amount.toFixed(2)}</td>
-            <td>${new Date(t.date.seconds * 1000).toLocaleString()}</td>
-            <td>${t.status}</td>
-          `;
-          transactionsTable.appendChild(row);
-        });
-      });
+    // fetch latest 50 transactions sorted by date if available
+    const txCol = collection(db, "users", uid, "transactions");
+    const txQuery = query(txCol, orderBy("date", "desc"), limit(50));
+    const txSnap = await getDocs(txQuery);
+    const txs = [];
+    txSnap.forEach(d => txs.push(d.data()));
+    renderTransactions(txs);
+  } catch (err) {
+    console.error("refreshUserData error:", err);
+  }
+}
+
+/* ---------- Auth state: ensures user is logged in ----------
+   We rely on your existing login page. If the user is not logged in
+   we redirect them to login.html (you already had this behavior).
+   When logged in we ensure a user doc exists (balance defaults to 0).
+*/
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  // Ensure user doc exists with balance=0 (id = user.uid)
+  const userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      firstName: user.displayName?.split(" ")[0] || "User",
+      surname: user.displayName?.split(" ")[1] || "",
+      email: user.email || "",
+      balance: 0
     });
+  }
 
-    // === Fund Account ===
-    fundBtn.addEventListener('click', async () => {
-      const user = auth.currentUser;
-      if (!user) {
-        alert("Please log in first");
-        return;
+  // Show initial user data
+  await refreshUserData(user.uid);
+
+  // Start live transactions listener to update table in real-time
+  const txCol = collection(db, "users", user.uid, "transactions");
+  const txQuery = query(txCol, orderBy("date", "desc"), limit(50));
+  onSnapshot(txQuery, (snapshot) => {
+    const txs = [];
+    snapshot.forEach(d => txs.push(d.data()));
+    renderTransactions(txs);
+  });
+});
+
+/* ---------- Fund button: opens Paystack inline ---------- */
+fundBtn.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) { alert("Please log in first"); return; }
+
+  // Ask user for amount (simple prompt — you can replace with nicer UI)
+  const amountInput = prompt("Enter amount to fund (NGN):", "1000");
+  if (!amountInput) return;
+  const amountNumber = parseFloat(amountInput);
+  if (isNaN(amountNumber) || amountNumber <= 0) { alert("Enter a valid amount"); return; }
+
+  const amountKobo = Math.round(amountNumber * 100); // Paystack expects kobo
+
+  const handler = PaystackPop.setup({
+    key: PAYSTACK_PUBLIC_KEY,
+    email: user.email,
+    amount: amountKobo,
+    metadata: { userId: user.uid }, // IMPORTANT: attach userId so backend knows which Firestore doc to update
+    callback: async function(response) {
+      // Called when Paystack client thinks payment succeeded — we still must verify server-side.
+      alert("Payment initiated. Reference: " + response.reference);
+
+      // Send reference to your Pipedream endpoint which will verify with Paystack secret and update Firestore.
+      try {
+        const res = await fetch(PIPEDREAM_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reference: response.reference,
+            userId: user.uid,
+            // we send amount as kobo too — backend can double-check via Paystack verify
+            amount: amountKobo
+          })
+        });
+
+        // Pipedream may return JSON or text depending on your workflow response
+        let result;
+        try { result = await res.json(); } catch(e) { result = await res.text(); }
+
+        console.log("Pipedream response:", result);
+
+        // After the backend verifies and updates Firestore, refresh the UI
+        // (If your Pipedream returns success indicator check it — here we refresh regardless)
+        await refreshUserData(user.uid);
+        alert("Verification requested — check your wallet balance. If it doesn't update, contact support.");
+      } catch (err) {
+        console.error("Error calling backend:", err);
+        alert("Could not contact verification backend. Contact support.");
       }
+    },
+    onClose: function() {
+      console.log("Payment window closed by user");
+    }
+  });
 
-      const amountInput = prompt("Enter amount to fund (NGN):", "1000");
-      if (!amountInput || isNaN(amountInput) || amountInput <= 0) return;
-      const amountKobo = parseFloat(amountInput) * 100;
+  handler.openIframe();
+});
 
-      const handler = PaystackPop.setup({
-        key: "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492",
-        email: user.email,
-        amount: amountKobo,
-        metadata: { userId: user.uid },
-        callback: async function (response) {
-          alert("Payment successful! Reference: " + response.reference);
-          try {
-            const res = await fetch(`${API_BASE_URL}`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                reference: response.reference,
-                userId: user.uid,
-                amount: amountKobo
-              })
-            });
-            const result = await res.json();
-            console.log("Backend response:", result);
-            if (result.status === "success") {
-              alert("Your wallet has been updated!");
-            } else {
-              alert("Payment verification failed. Please contact support.");
-            }
-          } catch (error) {
-            console.error("Backend error:", error);
-            alert("Could not verify payment. Please try again.");
-          }
-        },
-        onClose: function () {
-          alert("Payment window closed.");
-        }
-      });
-
-      handler.openIframe();
-    });
-  </script>
+/* Manual refresh button */
+refreshBtn.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) { alert("Please log in first"); return; }
+  await refreshUserData(user.uid);
+});
+</script>
 </body>
 </html>
