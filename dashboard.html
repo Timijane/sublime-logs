@@ -183,5 +183,11 @@
     await refreshUserData(user.uid);
   });
 </script>
+  // Test sending to Pipedream
+fetch("https://eojegh3ks8gvl0e.m.pipedream.net", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ message: "hello from site test" })
+});
 </body>
 </html>
