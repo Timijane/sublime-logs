@@ -1,49 +1,41 @@
-// dashboard.js
-import { auth, db } from "./firebase.js";
-import { doc, getDoc, updateDoc, collection, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { auth, db } from "./firebase.js"; // Make sure your firebase.js exports db (Firestore)
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 window.onload = function () {
-  console.log("✅ Dashboard loaded");
+  console.log("✅ Dashboard loaded successfully");
 
-  // DOM Elements
+  // --- Select elements ---
   const fundBtn = document.getElementById("fundBtn");
   const amountInput = document.getElementById("amount");
   const balanceDisplay = document.getElementById("balance");
   const userEmailDisplay = document.getElementById("userEmail");
   const logoutBtn = document.getElementById("logoutBtn");
 
-  // ✅ Live Paystack public key
+  // --- LIVE Paystack Public Key ---
   const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
 
-  // ⚙️ Pipedream webhook
+  // --- Pipedream Webhook URL ---
   const WEBHOOK_URL = "https://eojegh3ks8gvl0e.m.pipedream.net";
 
-  // --- Load balance from Firestore ---
+  // --- Function to load user's real balance from Firestore ---
   async function loadBalance() {
     const user = auth.currentUser;
     if (!user) return;
 
-    balanceDisplay.textContent = "Loading...";
-    try {
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
 
-      if (userSnap.exists()) {
-        const balance = userSnap.data().balance || 0;
-        balanceDisplay.textContent = `₦${balance.toLocaleString()}`;
-      } else {
-        balanceDisplay.textContent = "₦0.00";
-      }
-    } catch (err) {
-      console.error("Error fetching balance:", err);
-      balanceDisplay.textContent = "Error";
+    if (docSnap.exists()) {
+      balanceDisplay.textContent = `₦${docSnap.data().balance || 0}`;
+    } else {
+      balanceDisplay.textContent = "₦0.00";
     }
   }
 
-  // --- Paystack payment ---
+  // --- Paystack Payment Function ---
   function payWithPaystack(amount, userId, email) {
     if (!window.PaystackPop) {
-      alert("Paystack not loaded yet.");
+      alert("Paystack not loaded. Refresh the page.");
       return;
     }
 
@@ -57,17 +49,17 @@ window.onload = function () {
         alert("❌ Transaction cancelled.");
       },
       callback: function (response) {
-        console.log("✅ Paystack response:", response);
+        console.log("✅ Paystack Response:", response);
 
-        // Send to Pipedream webhook for backend verification
+        // Send reference to backend (Pipedream workflow)
         fetch(WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reference: response.reference, userId }),
         })
           .then(() => {
-            alert("✅ Payment successful! Balance will update soon.");
-            loadBalance(); // refresh balance
+            alert("✅ Payment successful! Balance will update shortly.");
+            setTimeout(loadBalance, 2000); // Reload balance after backend updates
           })
           .catch((err) => {
             console.error("❌ Webhook error:", err);
@@ -79,29 +71,30 @@ window.onload = function () {
     handler.openIframe();
   }
 
-  // --- Fund button click ---
+  // --- Fund Button Click ---
   fundBtn.addEventListener("click", () => {
     const user = auth.currentUser;
     if (!user) return alert("Please log in first.");
 
     const amount = parseFloat(amountInput.value);
-    if (isNaN(amount) || amount < 100) {
-      return alert("Enter a valid amount (min ₦100).");
-    }
+    if (isNaN(amount) || amount < 100)
+      return alert("Enter a valid amount (min ₦100)");
 
     payWithPaystack(amount, user.uid, user.email);
   });
 
-  // --- Logout ---
+  // --- Logout Button ---
   logoutBtn.addEventListener("click", () => {
     auth.signOut().then(() => {
+      alert("Logged out successfully.");
       window.location.href = "login.html";
     });
   });
 
-  // --- Monitor auth state ---
+  // --- Monitor Auth ---
   auth.onAuthStateChanged((user) => {
     if (user) {
+      console.log("👤 Logged in as:", user.email);
       userEmailDisplay.textContent = user.email;
       loadBalance();
     } else {
