@@ -195,9 +195,11 @@
     </section>
   </main>
 
-  <!-- External Scripts -->
-  <script type="module" src="./firebase.js"></script>
+  <!-- ✅ Load Paystack first -->
   <script src="https://js.paystack.co/v1/inline.js"></script>
+
+  <!-- ✅ Then load Firebase and Dashboard JS -->
+  <script type="module" src="./firebase.js"></script>
   <script type="module" src="./dashboard.js"></script>
 </body>
 </html>
