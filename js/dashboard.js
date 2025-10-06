@@ -12,31 +12,35 @@ window.onload = function () {
   const userEmailDisplay = document.getElementById("userEmail");
   const logoutBtn = document.getElementById("logoutBtn");
 
-  // ✅ Paystack LIVE public key
+  // --- Paystack live public key ---
   const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
 
-  // ✅ Pipedream webhook URL for verification
+  // --- Pipedream webhook for verification ---
   const WEBHOOK_URL = "https://eojegh3ks8gvl0e.m.pipedream.net";
 
-  // --- Function to load real balance from Firestore ---
-  async function loadBalance(userId) {
+  // --- Load real balance from Firestore ---
+  async function loadBalance() {
     balanceDisplay.textContent = "Loading...";
+    const user = auth.currentUser;
+    if (!user) return;
+
     try {
-      const userRef = doc(db, "users", userId);
+      const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
+
       if (userSnap.exists()) {
         const balance = userSnap.data().balance || 0;
         balanceDisplay.textContent = `₦${balance.toLocaleString()}`;
       } else {
-        balanceDisplay.textContent = "₦0";
+        balanceDisplay.textContent = "₦0"; // New user, no balance yet
       }
-    } catch (err) {
-      console.error("Error loading balance:", err);
+    } catch (error) {
+      console.error("Error fetching balance:", error);
       balanceDisplay.textContent = "Error";
     }
   }
 
-  // --- Function to handle Paystack payment ---
+  // --- Paystack payment function ---
   function payWithPaystack(amount, userId, email) {
     if (!window.PaystackPop) {
       alert("Paystack not loaded yet. Refresh the page.");
@@ -62,10 +66,13 @@ window.onload = function () {
           body: JSON.stringify({ reference: response.reference, userId }),
         })
           .then(() => {
-            alert("✅ Payment successful! Balance will update shortly.");
-            loadBalance(userId); // Refresh balance after verification
+            alert("✅ Payment successful! Balance will update soon.");
+            loadBalance(); // Refresh balance after successful payment
           })
-          .catch(() => alert("❌ Failed to contact verification server."));
+          .catch((err) => {
+            console.error("❌ Webhook error:", err);
+            alert("Failed to contact verification server.");
+          });
       },
     });
 
@@ -75,21 +82,17 @@ window.onload = function () {
   // --- Fund Button click ---
   fundBtn.addEventListener("click", () => {
     const user = auth.currentUser;
-    if (!user) {
-      alert("Please log in first.");
-      return;
-    }
+    if (!user) return alert("Please log in first.");
 
     const amount = parseFloat(amountInput.value);
     if (isNaN(amount) || amount < 100) {
-      alert("Enter a valid amount (minimum ₦100).");
-      return;
+      return alert("Enter a valid amount (min ₦100)");
     }
 
     payWithPaystack(amount, user.uid, user.email);
   });
 
-  // --- Logout ---
+  // --- Logout Button ---
   logoutBtn.addEventListener("click", () => {
     auth.signOut().then(() => {
       alert("Logged out successfully.");
@@ -97,14 +100,14 @@ window.onload = function () {
     });
   });
 
-  // --- Monitor Auth State ---
+  // --- Monitor Auth state ---
   auth.onAuthStateChanged((user) => {
     if (user) {
       console.log("👤 Logged in as:", user.email);
       userEmailDisplay.textContent = user.email;
-      loadBalance(user.uid); // Load balance
+      loadBalance();
     } else {
-      console.log("⚠️ No user logged in. Redirecting...");
+      console.log("⚠️ No user found. Redirecting to login...");
       window.location.href = "login.html";
     }
   });
