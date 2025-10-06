@@ -3,296 +3,211 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sublime Logs — Dashboard</title>
-
-  <!-- Fonts & Styles -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://js.paystack.co/v1/inline.js"></script>
-
+  <title>User Dashboard | Sublime Logs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #0066ff;
+      --bg: #f5f7fa;
+      --text-dark: #1e1e1e;
+      --text-light: #6b6b6b;
+      --card-bg: #ffffff;
+      --radius: 16px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
     body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f7f7f7;
-      color: #222;
+      background: var(--bg);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
     }
 
     header {
-      background: linear-gradient(90deg, #9b59b6, #e91e63);
-      color: white;
-      padding: 15px 25px;
+      width: 100%;
+      max-width: 900px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      padding: 20px 30px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     header h1 {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
+      color: var(--primary);
       font-weight: 600;
     }
 
-    a#logout-btn {
-      background: #fff;
-      color: #9b59b6;
-      padding: 8px 14px;
-      text-decoration: none;
+    header button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
       border-radius: 8px;
-      font-weight: 600;
-      transition: 0.3s;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s ease;
     }
 
-    a#logout-btn:hover {
-      background: #e91e63;
-      color: white;
+    header button:hover {
+      opacity: 0.9;
     }
 
     main {
-      flex: 1;
+      margin-top: 30px;
+      width: 100%;
       max-width: 900px;
-      margin: 30px auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 25px;
-    }
-
-    .profile {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: #ddd center/cover no-repeat;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      padding: 30px;
     }
 
     .balance-box {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f3e5f5;
-      padding: 15px 20px;
-      border-radius: 10px;
+      text-align: center;
       margin-bottom: 25px;
     }
 
     .balance-box h2 {
-      font-size: 1.3rem;
+      color: var(--text-dark);
+      font-size: 1rem;
+      font-weight: 500;
     }
 
-    .balance-box span {
-      font-weight: 700;
-      color: #9b59b6;
-    }
-
-    .buttons {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    button {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(90deg, #9b59b6, #e91e63);
-      color: white;
-      cursor: pointer;
+    .balance-box p {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-top: 5px;
       font-weight: 600;
+    }
+
+    .fund-card {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .fund-card input {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      width: 60%;
+      font-size: 1rem;
+      margin-right: 10px;
+      outline: none;
+      transition: border 0.2s ease;
+    }
+
+    .fund-card input:focus {
+      border-color: var(--primary);
+    }
+
+    .fund-card button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
       transition: 0.3s;
     }
 
-    button:hover { opacity: 0.85; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
+    .fund-card button:hover {
+      opacity: 0.9;
     }
 
-    th, td {
-      padding: 10px;
-      border: 1px solid #eee;
-      text-align: left;
+    .transactions {
+      margin-top: 40px;
     }
 
-    th {
-      background: #9b59b6;
-      color: white;
+    .transactions h3 {
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+
+    .tx-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .tx-item:last-child {
+      border-bottom: none;
+    }
+
+    .tx-item span {
+      font-size: 0.9rem;
+      color: var(--text-light);
     }
 
     @media (max-width: 600px) {
-      main { padding: 18px; }
-      .balance-box { flex-direction: column; gap: 10px; text-align: center; }
+      .fund-card input {
+        width: 100%;
+        margin-bottom: 10px;
+      }
     }
   </style>
 </head>
 
 <body>
-<header>
-  <h1>Sublime Logs Dashboard</h1>
-  <a href="#" id="logout-btn">Logout</a>
-</header>
+  <header>
+    <h1>Sublime Wallet</h1>
+    <button id="logoutBtn">Logout</button>
+  </header>
 
-<main>
-  <div class="profile">
-    <div id="avatar" class="avatar" style="background-image:url('https://cdn-icons-png.flaticon.com/512/149/149071.png')"></div>
-    <div>
-      <div id="user-name">Welcome</div>
-      <div id="user-email" style="color:#555;"></div>
-    </div>
-  </div>
+  <main>
+    <section class="balance-box">
+      <h2>Available Balance</h2>
+      <p id="balance">₦0.00</p>
+    </section>
 
-  <div class="balance-box">
-    <h2>Account Balance: ₦<span id="balance">0.00</span></h2>
-    <div class="buttons">
-      <button id="fund-btn">Fund Account</button>
-      <button id="refresh-btn">Refresh</button>
-    </div>
-  </div>
+    <section class="fund-card">
+      <h3>Fund Your Account</h3>
+      <input
+        type="number"
+        id="amount"
+        placeholder="Enter amount (₦)"
+        min="100"
+      />
+      <button id="fundBtn">Fund</button>
+    </section>
 
-  <h3 style="margin-bottom:8px;">Recent Transactions</h3>
-  <table id="transactions-table">
-    <thead>
-      <tr><th>Type</th><th>Amount</th><th>Date</th><th>Status</th></tr>
-    </thead>
-    <tbody>
-      <tr><td colspan="4" style="text-align:center;color:#999;">No transactions yet</td></tr>
-    </tbody>
-  </table>
-</main>
+    <section class="transactions">
+      <h3>Recent Transactions</h3>
+      <div id="txList">
+        <div class="tx-item">
+          <span>Fund Account</span>
+          <span>₦5000</span>
+        </div>
+        <div class="tx-item">
+          <span>Purchase</span>
+          <span>-₦1200</span>
+        </div>
+      </div>
+    </section>
+  </main>
 
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-
-  // --- CONFIG ---
-  const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-    authDomain: "sublime-logs.firebaseapp.com",
-    projectId: "sublime-logs",
-    storageBucket: "sublime-logs.firebasestorage.app",
-    messagingSenderId: "381847722551",
-    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-    measurementId: "G-8YHHJC1MP7"
-  };
-
-  const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
-  const PIPEDREAM_ENDPOINT = "https://eojegh3ks8gvl0e.m.pipedream.net";
-
-  const app = initializeApp(FIREBASE_CONFIG);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  const nameEl = document.getElementById("user-name");
-  const emailEl = document.getElementById("user-email");
-  const balanceEl = document.getElementById("balance");
-  const tableBody = document.querySelector("#transactions-table tbody");
-
-  function formatAmount(n) {
-    return Number(n || 0).toFixed(2);
-  }
-
-  function renderTransactions(list) {
-    tableBody.innerHTML = "";
-    if (!list || list.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#999;">No transactions</td></tr>`;
-      return;
-    }
-    list.forEach(t => {
-      const date = t.date?.seconds ? new Date(t.date.seconds * 1000).toLocaleString() : "—";
-      tableBody.innerHTML += `<tr>
-        <td>${t.type}</td>
-        <td>₦${formatAmount(t.amount)}</td>
-        <td>${date}</td>
-        <td>${t.status}</td>
-      </tr>`;
-    });
-  }
-
-  async function refreshData(uid) {
-    const userRef = doc(db, "users", uid);
-    const snap = await getDoc(userRef);
-    if (snap.exists()) {
-      const data = snap.data();
-      nameEl.textContent = `${data.firstName || "User"} ${data.surname || ""}`;
-      emailEl.textContent = data.email || "";
-      balanceEl.textContent = formatAmount(data.balance || 0);
-
-      const txCol = collection(db, "users", uid, "transactions");
-      const txQuery = query(txCol, orderBy("date", "desc"), limit(20));
-      const txSnap = await getDocs(txQuery);
-      const txs = [];
-      txSnap.forEach(d => txs.push(d.data()));
-      renderTransactions(txs);
-    }
-  }
-
-  onAuthStateChanged(auth, async user => {
-    if (!user) {
-      window.location.href = "login.html";
-      return;
-    }
-    await refreshData(user.uid);
-    const txCol = collection(db, "users", user.uid, "transactions");
-    const txQuery = query(txCol, orderBy("date", "desc"), limit(20));
-    onSnapshot(txQuery, snapshot => {
-      const txs = [];
-      snapshot.forEach(d => txs.push(d.data()));
-      renderTransactions(txs);
-    });
-  });
-
-  document.getElementById("fund-btn").addEventListener("click", async () => {
-    const user = auth.currentUser;
-    if (!user) return alert("Please log in first");
-
-    const amount = parseFloat(prompt("Enter amount to fund (NGN):", "1000"));
-    if (isNaN(amount) || amount <= 0) return alert("Invalid amount");
-    const amountKobo = amount * 100;
-
-    const handler = PaystackPop.setup({
-      key: PAYSTACK_PUBLIC_KEY,
-      email: user.email,
-      amount: amountKobo,
-      metadata: { userId: user.uid },
-      callback: async function (response) {
-        const res = await fetch(PIPEDREAM_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reference: response.reference, userId: user.uid })
-        });
-        const data = await res.json();
-        alert(data.message || data.error || "Verification done!");
-        refreshData(user.uid);
-      },
-      onClose: function () {
-        console.log("Payment window closed");
-      }
-    });
-    handler.openIframe();
-  });
-
-  document.getElementById("refresh-btn").addEventListener("click", async () => {
-    const user = auth.currentUser;
-    if (user) refreshData(user.uid);
-  });
-
-  document.getElementById("logout-btn").addEventListener("click", () => {
-    signOut(auth).then(() => {
-      window.location.href = "login.html";
-    });
-  });
-</script>
+  <!-- Scripts -->
+  <script type="module" src="./firebase.js"></script>
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script type="module" src="./dashboard.js"></script>
 </body>
 </html>
