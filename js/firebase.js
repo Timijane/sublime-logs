@@ -1,8 +1,12 @@
+// firebase.js
+// Initialize Firebase and export auth & firestore instances
+
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-// Your Firebase configuration
+// --- Your Firebase configuration ---
 const firebaseConfig = {
   apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
   authDomain: "sublime-logs.firebaseapp.com",
@@ -13,7 +17,7 @@ const firebaseConfig = {
   measurementId: "G-8YHHJC1MP7"
 };
 
-// Initialize Firebase
+// --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-console.log("✅ Firebase initialized successfully");
+export const db = getFirestore(app);
