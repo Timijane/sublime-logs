@@ -1,29 +1,29 @@
 // dashboard.js
 import { auth, db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, collection, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 window.onload = function () {
-  console.log("✅ Dashboard loaded successfully");
+  console.log("✅ Dashboard loaded");
 
-  // Select elements
+  // DOM Elements
   const fundBtn = document.getElementById("fundBtn");
   const amountInput = document.getElementById("amount");
   const balanceDisplay = document.getElementById("balance");
   const userEmailDisplay = document.getElementById("userEmail");
   const logoutBtn = document.getElementById("logoutBtn");
 
-  // --- Paystack live public key ---
+  // ✅ Live Paystack public key
   const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
 
-  // --- Pipedream webhook for verification ---
+  // ⚙️ Pipedream webhook
   const WEBHOOK_URL = "https://eojegh3ks8gvl0e.m.pipedream.net";
 
-  // --- Load real balance from Firestore ---
+  // --- Load balance from Firestore ---
   async function loadBalance() {
-    balanceDisplay.textContent = "Loading...";
     const user = auth.currentUser;
     if (!user) return;
 
+    balanceDisplay.textContent = "Loading...";
     try {
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
@@ -32,34 +32,34 @@ window.onload = function () {
         const balance = userSnap.data().balance || 0;
         balanceDisplay.textContent = `₦${balance.toLocaleString()}`;
       } else {
-        balanceDisplay.textContent = "₦0"; // New user, no balance yet
+        balanceDisplay.textContent = "₦0.00";
       }
-    } catch (error) {
-      console.error("Error fetching balance:", error);
+    } catch (err) {
+      console.error("Error fetching balance:", err);
       balanceDisplay.textContent = "Error";
     }
   }
 
-  // --- Paystack payment function ---
+  // --- Paystack payment ---
   function payWithPaystack(amount, userId, email) {
     if (!window.PaystackPop) {
-      alert("Paystack not loaded yet. Refresh the page.");
+      alert("Paystack not loaded yet.");
       return;
     }
 
     const handler = PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
       email: email,
-      amount: amount * 100, // Convert Naira to Kobo
+      amount: amount * 100, // Naira to Kobo
       currency: "NGN",
       ref: "REF_" + Math.floor(Math.random() * 1000000000),
       onClose: function () {
         alert("❌ Transaction cancelled.");
       },
       callback: function (response) {
-        console.log("✅ Paystack Response:", response);
+        console.log("✅ Paystack response:", response);
 
-        // Send reference to Pipedream for backend verification
+        // Send to Pipedream webhook for backend verification
         fetch(WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -67,11 +67,11 @@ window.onload = function () {
         })
           .then(() => {
             alert("✅ Payment successful! Balance will update soon.");
-            loadBalance(); // Refresh balance after successful payment
+            loadBalance(); // refresh balance
           })
           .catch((err) => {
             console.error("❌ Webhook error:", err);
-            alert("Failed to contact verification server.");
+            alert("Failed to contact server.");
           });
       },
     });
@@ -79,35 +79,32 @@ window.onload = function () {
     handler.openIframe();
   }
 
-  // --- Fund Button click ---
+  // --- Fund button click ---
   fundBtn.addEventListener("click", () => {
     const user = auth.currentUser;
     if (!user) return alert("Please log in first.");
 
     const amount = parseFloat(amountInput.value);
     if (isNaN(amount) || amount < 100) {
-      return alert("Enter a valid amount (min ₦100)");
+      return alert("Enter a valid amount (min ₦100).");
     }
 
     payWithPaystack(amount, user.uid, user.email);
   });
 
-  // --- Logout Button ---
+  // --- Logout ---
   logoutBtn.addEventListener("click", () => {
     auth.signOut().then(() => {
-      alert("Logged out successfully.");
       window.location.href = "login.html";
     });
   });
 
-  // --- Monitor Auth state ---
+  // --- Monitor auth state ---
   auth.onAuthStateChanged((user) => {
     if (user) {
-      console.log("👤 Logged in as:", user.email);
       userEmailDisplay.textContent = user.email;
       loadBalance();
     } else {
-      console.log("⚠️ No user found. Redirecting to login...");
       window.location.href = "login.html";
     }
   });
