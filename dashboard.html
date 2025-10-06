@@ -177,38 +177,25 @@
     <section class="balance-box">
       <h2>Available Balance</h2>
       <p id="balance">₦0.00</p>
+      <p id="userEmail" style="color: #6b6b6b; font-size: 0.9rem; margin-top: 5px;"></p>
     </section>
 
     <section class="fund-card">
       <h3>Fund Your Account</h3>
-      <input
-        type="number"
-        id="amount"
-        placeholder="Enter amount (₦)"
-        min="100"
-      />
+      <input type="number" id="amount" placeholder="Enter amount (₦)" min="100" />
       <button id="fundBtn">Fund</button>
     </section>
 
     <section class="transactions">
       <h3>Recent Transactions</h3>
       <div id="txList">
-        <div class="tx-item">
-          <span>Fund Account</span>
-          <span>₦5000</span>
-        </div>
-        <div class="tx-item">
-          <span>Purchase</span>
-          <span>-₦1200</span>
-        </div>
+        <div class="tx-item"><span>Fund Account</span><span>₦5000</span></div>
+        <div class="tx-item"><span>Purchase</span><span>-₦1200</span></div>
       </div>
     </section>
   </main>
-<script>
-  const btn = document.getElementById("fund-btn");
-  btn.addEventListener("click", () => alert("Fund button clicked!"));
-</script>
-  <!-- Scripts -->
+
+  <!-- External Scripts -->
   <script type="module" src="./firebase.js"></script>
   <script src="https://js.paystack.co/v1/inline.js"></script>
   <script type="module" src="./dashboard.js"></script>
