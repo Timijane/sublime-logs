@@ -4,30 +4,142 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sublime Logs — Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Fonts & Styles -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'David',sans-serif;background:#fff;min-height:100vh;color:#222}
-    header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(90deg,#9b59b6,#e91e63);color:#fff}
-    header h1{font-family:'Lobster',cursive;font-size:1.6rem}
-    #back-home{background:#fff;color:#9b59b6;padding:8px 12px;border-radius:6px;text-decoration:none;font-weight:700}
-    main{padding:18px;max-width:900px;margin:0 auto}
-    .profile{display:flex;align-items:center;gap:14px;margin-bottom:18px}
-    .avatar{width:72px;height:72px;border-radius:50%;background:#ddd center/cover no-repeat}
-    .balance{font-weight:700;margin:10px 0;font-size:1.05rem}
-    button{background:linear-gradient(90deg,#9b59b6,#e91e63);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
-    table{width:100%;border-collapse:collapse;margin-top:16px}
-    th,td{padding:8px;border:1px solid #e6e6e6;text-align:left}
-    th{background:#9b59b6;color:#fff}
-    .small{font-size:.9rem;color:#555}
-    .muted{color:#666;font-size:.9rem}
-    .top-actions{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f7f7f7;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: linear-gradient(90deg, #9b59b6, #e91e63);
+      color: white;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    a#logout-btn {
+      background: #fff;
+      color: #9b59b6;
+      padding: 8px 14px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    a#logout-btn:hover {
+      background: #e91e63;
+      color: white;
+    }
+
+    main {
+      flex: 1;
+      max-width: 900px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 25px;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #ddd center/cover no-repeat;
+    }
+
+    .balance-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f3e5f5;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+    }
+
+    .balance-box h2 {
+      font-size: 1.3rem;
+    }
+
+    .balance-box span {
+      font-weight: 700;
+      color: #9b59b6;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #9b59b6, #e91e63);
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    button:hover { opacity: 0.85; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      background: #9b59b6;
+      color: white;
+    }
+
+    @media (max-width: 600px) {
+      main { padding: 18px; }
+      .balance-box { flex-direction: column; gap: 10px; text-align: center; }
+    }
   </style>
 </head>
+
 <body>
 <header>
-  <h1>Sublime Logs</h1>
-  <a id="back-home" href="index.html">Home</a>
+  <h1>Sublime Logs Dashboard</h1>
+  <a href="#" id="logout-btn">Logout</a>
 </header>
 
 <main>
@@ -35,29 +147,36 @@
     <div id="avatar" class="avatar" style="background-image:url('https://cdn-icons-png.flaticon.com/512/149/149071.png')"></div>
     <div>
       <div id="user-name">Welcome</div>
-      <div id="user-email" class="muted"></div>
+      <div id="user-email" style="color:#555;"></div>
     </div>
   </div>
 
-  <div class="balance">Balance: ₦<span id="balance">0.00</span></div>
-
-  <div class="top-actions">
-    <button id="fund-btn">Fund Account</button>
-    <button id="refresh-btn" class="small">Refresh</button>
+  <div class="balance-box">
+    <h2>Account Balance: ₦<span id="balance">0.00</span></h2>
+    <div class="buttons">
+      <button id="fund-btn">Fund Account</button>
+      <button id="refresh-btn">Refresh</button>
+    </div>
   </div>
 
-  <div class="small muted">Transactions (latest first)</div>
-  <table id="transactions-table" aria-live="polite">
+  <h3 style="margin-bottom:8px;">Recent Transactions</h3>
+  <table id="transactions-table">
     <thead>
       <tr><th>Type</th><th>Amount</th><th>Date</th><th>Status</th></tr>
     </thead>
-    <tbody></tbody>
+    <tbody>
+      <tr><td colspan="4" style="text-align:center;color:#999;">No transactions yet</td></tr>
+    </tbody>
   </table>
 </main>
 
-<script src="https://js.paystack.co/v1/inline.js"></script>
+<!-- Firebase SDK -->
 <script type="module">
-  // ================== CONFIG ==================
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  // --- CONFIG ---
   const FIREBASE_CONFIG = {
     apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
     authDomain: "sublime-logs.firebaseapp.com",
@@ -70,124 +189,110 @@
 
   const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
   const PIPEDREAM_ENDPOINT = "https://eojegh3ks8gvl0e.m.pipedream.net";
-  // ============================================
-
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const app = initializeApp(FIREBASE_CONFIG);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const userNameEl = document.getElementById("user-name");
-  const userEmailEl = document.getElementById("user-email");
+  const nameEl = document.getElementById("user-name");
+  const emailEl = document.getElementById("user-email");
   const balanceEl = document.getElementById("balance");
-  const fundBtn = document.getElementById("fund-btn");
-  const refreshBtn = document.getElementById("refresh-btn");
-  const transactionsTableBody = document.querySelector("#transactions-table tbody");
+  const tableBody = document.querySelector("#transactions-table tbody");
 
-  function formatNgn(n){ return Number(n||0).toFixed(2); }
+  function formatAmount(n) {
+    return Number(n || 0).toFixed(2);
+  }
 
-  function renderTransactions(list){
-    transactionsTableBody.innerHTML = "";
-    if(!list||list.length===0){
-      transactionsTableBody.innerHTML=`<tr><td colspan="4" class="muted">No transactions</td></tr>`;
+  function renderTransactions(list) {
+    tableBody.innerHTML = "";
+    if (!list || list.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#999;">No transactions</td></tr>`;
       return;
     }
-    list.forEach(t=>{
-      const date=t.date&&t.date.seconds?new Date(t.date.seconds*1000).toLocaleString():(t.date||"");
-      const amount=Number(t.amount||0).toFixed(2);
-      const row=document.createElement("tr");
-      row.innerHTML=`<td>${t.type||"—"}</td><td>₦${amount}</td><td>${date}</td><td>${t.status||"—"}</td>`;
-      transactionsTableBody.appendChild(row);
+    list.forEach(t => {
+      const date = t.date?.seconds ? new Date(t.date.seconds * 1000).toLocaleString() : "—";
+      tableBody.innerHTML += `<tr>
+        <td>${t.type}</td>
+        <td>₦${formatAmount(t.amount)}</td>
+        <td>${date}</td>
+        <td>${t.status}</td>
+      </tr>`;
     });
   }
 
-  async function refreshUserData(uid){
-    try{
-      const userRef = doc(db,"users",uid);
-      const snap = await getDoc(userRef);
-      if(!snap.exists()){
-        userNameEl.textContent="Welcome"; userEmailEl.textContent=""; balanceEl.textContent=formatNgn(0);
-        renderTransactions([]); return;
-      }
+  async function refreshData(uid) {
+    const userRef = doc(db, "users", uid);
+    const snap = await getDoc(userRef);
+    if (snap.exists()) {
       const data = snap.data();
-      userNameEl.textContent=`Welcome, ${data.firstName||""} ${data.surname||""}`.trim();
-      userEmailEl.textContent=data.email||"";
-      balanceEl.textContent=formatNgn(data.balance||0);
-      const txCol = collection(db,"users",uid,"transactions");
-      const txQuery=query(txCol,orderBy("date","desc"),limit(50));
+      nameEl.textContent = `${data.firstName || "User"} ${data.surname || ""}`;
+      emailEl.textContent = data.email || "";
+      balanceEl.textContent = formatAmount(data.balance || 0);
+
+      const txCol = collection(db, "users", uid, "transactions");
+      const txQuery = query(txCol, orderBy("date", "desc"), limit(20));
       const txSnap = await getDocs(txQuery);
-      const txs=[]; txSnap.forEach(d=>txs.push(d.data()));
+      const txs = [];
+      txSnap.forEach(d => txs.push(d.data()));
       renderTransactions(txs);
-    }catch(err){ console.error("refreshUserData error:",err); }
+    }
   }
 
-  onAuthStateChanged(auth, async user=>{
-    if(!user){ window.location.href="login.html"; return; }
-    const userRef = doc(db,"users",user.uid);
-    const snap = await getDoc(userRef);
-    if(!snap.exists()){
-      await setDoc(userRef,{
-        firstName:user.displayName?.split(" ")[0]||"User",
-        surname:user.displayName?.split(" ")[1]||"",
-        email:user.email||"",
-        balance:0
-      });
+  onAuthStateChanged(auth, async user => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
     }
-    await refreshUserData(user.uid);
-    const txCol = collection(db,"users",user.uid,"transactions");
-    const txQuery=query(txCol,orderBy("date","desc"),limit(50));
-    onSnapshot(txQuery,snapshot=>{
-      const txs=[]; snapshot.forEach(d=>txs.push(d.data())); renderTransactions(txs);
+    await refreshData(user.uid);
+    const txCol = collection(db, "users", user.uid, "transactions");
+    const txQuery = query(txCol, orderBy("date", "desc"), limit(20));
+    onSnapshot(txQuery, snapshot => {
+      const txs = [];
+      snapshot.forEach(d => txs.push(d.data()));
+      renderTransactions(txs);
     });
   });
 
-  fundBtn.addEventListener("click",async()=>{
-    const user=auth.currentUser;
-    if(!user){ alert("Please log in first"); return; }
-    const amountInput=prompt("Enter amount to fund (NGN):","1000");
-    if(!amountInput)return;
-    const amountNumber=parseFloat(amountInput);
-    if(isNaN(amountNumber)||amountNumber<=0){ alert("Enter a valid amount"); return; }
-    const amountKobo=Math.round(amountNumber*100);
+  document.getElementById("fund-btn").addEventListener("click", async () => {
+    const user = auth.currentUser;
+    if (!user) return alert("Please log in first");
 
-    const handler=PaystackPop.setup({
+    const amount = parseFloat(prompt("Enter amount to fund (NGN):", "1000"));
+    if (isNaN(amount) || amount <= 0) return alert("Invalid amount");
+    const amountKobo = amount * 100;
+
+    const handler = PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
       email: user.email,
       amount: amountKobo,
-      metadata:{userId:user.uid},
-      callback:async function(response){
-        console.log("Paystack response:",response);
-        try{
-          const res=await fetch(PIPEDREAM_ENDPOINT,{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({reference:response.reference,userId:user.uid,amount:amountKobo})
-          });
-          const result=await res.json();
-          console.log("Backend verification:",result);
-          if(result?.message){ alert(result.message); } else if(result?.error){ alert(result.error); }
-          await refreshUserData(user.uid);
-        }catch(err){ console.error("Backend error:",err); alert("Payment verified, but failed to update balance."); }
+      metadata: { userId: user.uid },
+      callback: async function (response) {
+        const res = await fetch(PIPEDREAM_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reference: response.reference, userId: user.uid })
+        });
+        const data = await res.json();
+        alert(data.message || data.error || "Verification done!");
+        refreshData(user.uid);
       },
-      onClose:function(){ console.log("Payment window closed"); }
+      onClose: function () {
+        console.log("Payment window closed");
+      }
     });
     handler.openIframe();
   });
 
-  refreshBtn.addEventListener("click",async()=>{
-    const user=auth.currentUser;
-    if(!user){ alert("Please log in first"); return; }
-    await refreshUserData(user.uid);
+  document.getElementById("refresh-btn").addEventListener("click", async () => {
+    const user = auth.currentUser;
+    if (user) refreshData(user.uid);
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    signOut(auth).then(() => {
+      window.location.href = "login.html";
+    });
   });
 </script>
-  // Test sending to Pipedream
-fetch("https://eojegh3ks8gvl0e.m.pipedream.net", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ message: "hello from site test" })
-});
 </body>
 </html>
