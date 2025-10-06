@@ -1,85 +1,75 @@
 import { auth } from "./firebase.js";
 
-// Select elements
 const fundBtn = document.getElementById("fundBtn");
 const amountInput = document.getElementById("amount");
 const balanceDisplay = document.getElementById("balance");
+const userEmailDisplay = document.getElementById("userEmail");
+const logoutBtn = document.getElementById("logoutBtn");
 
-// Your Paystack public key
-const PAYSTACK_PUBLIC_KEY = "pk_test_xxxxxxxxxxxxxxxxxxxxxx"; // Replace with your Paystack public key
-const WEBHOOK_URL = "https://eojegh3ks8gvl0e.m.pipedream.net"; // Your Pipedream webhook URL
+// ✅ Your real Paystack Live Public Key
+const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
 
-// Function to initialize Paystack payment
-function payWithPaystack(amount, userId) {
+// ⚙️ Your Pipedream webhook URL (for payment verification)
+const WEBHOOK_URL = "https://eojegh3ks8gvl0e.m.pipedream.net";
+
+// --- Fund Wallet ---
+function payWithPaystack(amount, userId, email) {
   const handler = PaystackPop.setup({
     key: PAYSTACK_PUBLIC_KEY,
-    email: "user@example.com", // Replace with user's real email if available
-    amount: amount * 100, // Convert Naira to Kobo
+    email: email,
+    amount: amount * 100, // convert naira to kobo
     currency: "NGN",
     ref: "REF_" + Math.floor(Math.random() * 1000000000),
     onClose: function () {
       alert("Transaction cancelled.");
     },
     callback: function (response) {
-      // When payment completes successfully, call backend to verify and update balance
+      // Notify backend (Pipedream for now)
       fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reference: response.reference,
-          userId: userId,
-        }),
+        body: JSON.stringify({ reference: response.reference, userId }),
       })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log(data);
-          if (data.status === "success") {
-            alert("Wallet funded successfully!");
-            loadBalance(); // Refresh balance
-          } else {
-            alert("Payment verification failed. Please contact support.");
-          }
+        .then(() => {
+          alert("✅ Payment successful! Please wait while we verify...");
+          loadBalance();
         })
-        .catch((err) => {
-          console.error(err);
-          alert("Error connecting to backend");
-        });
+        .catch(() => alert("❌ Error connecting to server"));
     },
   });
   handler.openIframe();
 }
 
-// Listen to Fund button
-fundBtn.addEventListener("click", async () => {
+// --- Fund Button Click ---
+fundBtn.addEventListener("click", () => {
   const user = auth.currentUser;
-  if (!user) {
-    alert("Please log in first.");
-    return;
-  }
+  if (!user) return alert("Please log in first.");
 
   const amount = parseFloat(amountInput.value);
-  if (isNaN(amount) || amount < 100) {
-    alert("Enter a valid amount (minimum ₦100).");
-    return;
-  }
+  if (isNaN(amount) || amount < 100) return alert("Enter a valid amount (min ₦100)");
 
-  payWithPaystack(amount, user.uid);
+  payWithPaystack(amount, user.uid, user.email);
 });
 
-// Load user balance (you’ll connect this to Firestore later)
+// --- Load Balance (mock for now) ---
 function loadBalance() {
-  // Placeholder — later we’ll fetch real balance from Firestore
-  balanceDisplay.textContent = "Fetching balance...";
+  balanceDisplay.textContent = "Loading...";
   setTimeout(() => {
-    balanceDisplay.textContent = "₦10,000"; // Temporary dummy data
-  }, 1000);
+    balanceDisplay.textContent = "₦10,000"; // Replace with Firestore balance later
+  }, 800);
 }
 
-// Auto-load balance when user logs in
+// --- Auth State Listener ---
 auth.onAuthStateChanged((user) => {
   if (user) {
+    userEmailDisplay.textContent = user.email;
     loadBalance();
   } else {
-    balanceDisplay.textContent = "₦0";
+    window.location.href = "login.html";
   }
+});
+
+// --- Logout ---
+logoutBtn.addEventListener("click", () => {
+  auth.signOut().then(() => (window.location.href = "login.html"));
 });
