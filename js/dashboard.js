@@ -1,4 +1,6 @@
-import { auth } from "./firebase.js";
+// dashboard.js
+import { auth, db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 window.onload = function () {
   console.log("✅ Dashboard loaded successfully");
@@ -10,16 +12,34 @@ window.onload = function () {
   const userEmailDisplay = document.getElementById("userEmail");
   const logoutBtn = document.getElementById("logoutBtn");
 
-  // ✅ Use your Paystack LIVE public key
+  // ✅ Paystack LIVE public key
   const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
 
-  // ✅ Pipedream webhook URL (for backend verification)
+  // ✅ Pipedream webhook URL for verification
   const WEBHOOK_URL = "https://eojegh3ks8gvl0e.m.pipedream.net";
+
+  // --- Function to load real balance from Firestore ---
+  async function loadBalance(userId) {
+    balanceDisplay.textContent = "Loading...";
+    try {
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const balance = userSnap.data().balance || 0;
+        balanceDisplay.textContent = `₦${balance.toLocaleString()}`;
+      } else {
+        balanceDisplay.textContent = "₦0";
+      }
+    } catch (err) {
+      console.error("Error loading balance:", err);
+      balanceDisplay.textContent = "Error";
+    }
+  }
 
   // --- Function to handle Paystack payment ---
   function payWithPaystack(amount, userId, email) {
     if (!window.PaystackPop) {
-      alert("Paystack not loaded yet. Please refresh.");
+      alert("Paystack not loaded yet. Refresh the page.");
       return;
     }
 
@@ -35,44 +55,41 @@ window.onload = function () {
       callback: function (response) {
         console.log("✅ Paystack Response:", response);
 
-        // Send reference to backend (for verification)
+        // Send reference to Pipedream for backend verification
         fetch(WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reference: response.reference, userId }),
         })
           .then(() => {
-            alert("✅ Payment successful! We’ll verify shortly.");
-            loadBalance();
+            alert("✅ Payment successful! Balance will update shortly.");
+            loadBalance(userId); // Refresh balance after verification
           })
-          .catch(() => alert("❌ Failed to contact server."));
+          .catch(() => alert("❌ Failed to contact verification server."));
       },
     });
 
     handler.openIframe();
   }
 
-  // --- Function to load wallet balance (dummy for now) ---
-  function loadBalance() {
-    balanceDisplay.textContent = "Loading...";
-    setTimeout(() => {
-      balanceDisplay.textContent = "₦10,000"; // Placeholder
-    }, 1000);
-  }
-
-  // --- Fund Button ---
+  // --- Fund Button click ---
   fundBtn.addEventListener("click", () => {
     const user = auth.currentUser;
-    if (!user) return alert("Please log in first.");
+    if (!user) {
+      alert("Please log in first.");
+      return;
+    }
 
     const amount = parseFloat(amountInput.value);
-    if (isNaN(amount) || amount < 100)
-      return alert("Enter a valid amount (min ₦100).");
+    if (isNaN(amount) || amount < 100) {
+      alert("Enter a valid amount (minimum ₦100).");
+      return;
+    }
 
     payWithPaystack(amount, user.uid, user.email);
   });
 
-  // --- Logout Button ---
+  // --- Logout ---
   logoutBtn.addEventListener("click", () => {
     auth.signOut().then(() => {
       alert("Logged out successfully.");
@@ -80,14 +97,14 @@ window.onload = function () {
     });
   });
 
-  // --- Auth State Monitor ---
+  // --- Monitor Auth State ---
   auth.onAuthStateChanged((user) => {
     if (user) {
       console.log("👤 Logged in as:", user.email);
       userEmailDisplay.textContent = user.email;
-      loadBalance();
+      loadBalance(user.uid); // Load balance
     } else {
-      console.log("⚠️ No user. Redirecting...");
+      console.log("⚠️ No user logged in. Redirecting...");
       window.location.href = "login.html";
     }
   });
