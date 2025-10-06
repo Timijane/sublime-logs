@@ -1,9 +1,11 @@
-// Import Firebase modules
+// firebase.js
+// Firebase initialization for Sublime Logs project
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-// --- Your Firebase Configuration ---
+// --- Your Firebase configuration ---
 const firebaseConfig = {
   apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
   authDomain: "sublime-logs.firebaseapp.com",
@@ -14,12 +16,12 @@ const firebaseConfig = {
   measurementId: "G-8YHHJC1MP7"
 };
 
-// --- Initialize Firebase ---
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// --- Initialize Firebase services ---
+// Initialize Firebase Auth and Firestore
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- Export for use in other JS files ---
+// Export for use in other files
 export { auth, db };
