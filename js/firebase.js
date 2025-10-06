@@ -1,10 +1,10 @@
-// Import Firebase SDKs
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+// firebase.js
 
-// Your Firebase Configuration
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+// ✅ Your Firebase web app config (LIVE)
 const firebaseConfig = {
   apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
   authDomain: "sublime-logs.firebaseapp.com",
@@ -15,13 +15,12 @@ const firebaseConfig = {
   measurementId: "G-8YHHJC1MP7"
 };
 
-// Initialize Firebase
+// ✅ Initialize Firebase core
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
-// Initialize Auth and Firestore
+// ✅ Initialize Authentication and Firestore
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Export for use in other files
-export { app, analytics, auth, db };
+// ✅ Export for dashboard.js and other scripts
+export { auth, db };
