@@ -3,167 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Dashboard | Sublime Logs</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
-    rel="stylesheet"
-  />
+  <title>Sublime Wallet Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
       --primary: #0066ff;
       --bg: #f5f7fa;
-      --text-dark: #1e1e1e;
-      --text-light: #6b6b6b;
       --card-bg: #ffffff;
+      --text-dark: #1e1e1e;
       --radius: 16px;
     }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Poppins", sans-serif;
-    }
-
-    body {
-      background: var(--bg);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 20px;
-    }
-
-    header {
-      width: 100%;
-      max-width: 900px;
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-      padding: 20px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    header h1 {
-      font-size: 1.3rem;
-      color: var(--primary);
-      font-weight: 600;
-    }
-
-    header button {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    header button:hover {
-      opacity: 0.9;
-    }
-
-    main {
-      margin-top: 30px;
-      width: 100%;
-      max-width: 900px;
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-      padding: 30px;
-    }
-
-    .balance-box {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    .balance-box h2 {
-      color: var(--text-dark);
-      font-size: 1rem;
-      font-weight: 500;
-    }
-
-    .balance-box p {
-      font-size: 2rem;
-      color: var(--primary);
-      margin-top: 5px;
-      font-weight: 600;
-    }
-
-    .fund-card {
-      text-align: center;
-      margin-top: 30px;
-    }
-
-    .fund-card input {
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      width: 60%;
-      font-size: 1rem;
-      margin-right: 10px;
-      outline: none;
-      transition: border 0.2s ease;
-    }
-
-    .fund-card input:focus {
-      border-color: var(--primary);
-    }
-
-    .fund-card button {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .fund-card button:hover {
-      opacity: 0.9;
-    }
-
-    .transactions {
-      margin-top: 40px;
-    }
-
-    .transactions h3 {
-      color: var(--text-dark);
-      margin-bottom: 10px;
-    }
-
-    .tx-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid #eee;
-    }
-
-    .tx-item:last-child {
-      border-bottom: none;
-    }
-
-    .tx-item span {
-      font-size: 0.9rem;
-      color: var(--text-light);
-    }
-
-    @media (max-width: 600px) {
-      .fund-card input {
-        width: 100%;
-        margin-bottom: 10px;
-      }
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
+    body { background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    header, main { width: 100%; max-width: 900px; background: var(--card-bg); border-radius: var(--radius); box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 20px 30px; margin-bottom: 20px; }
+    header { display: flex; justify-content: space-between; align-items: center; }
+    h1 { color: var(--primary); font-size: 1.3rem; }
+    button { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+    button:hover { opacity: 0.9; }
+    .balance-box { text-align: center; margin-bottom: 30px; }
+    .balance-box h2 { color: var(--text-dark); font-weight: 500; }
+    .balance-box p { font-size: 2rem; color: var(--primary); margin-top: 8px; font-weight: 600; }
+    .fund-card { text-align: center; }
+    .fund-card input { padding: 10px; width: 60%; border: 1px solid #ccc; border-radius: 8px; margin-right: 10px; }
+    @media (max-width:600px) { .fund-card input { width: 100%; margin-bottom: 10px; } }
   </style>
 </head>
 
@@ -177,29 +39,19 @@
     <section class="balance-box">
       <h2>Available Balance</h2>
       <p id="balance">₦0.00</p>
-      <p id="userEmail" style="color: #6b6b6b; font-size: 0.9rem; margin-top: 5px;"></p>
+      <small id="userEmail" style="color: gray;"></small>
     </section>
 
     <section class="fund-card">
-      <h3>Fund Your Account</h3>
+      <h3>Fund Account</h3>
       <input type="number" id="amount" placeholder="Enter amount (₦)" min="100" />
       <button id="fundBtn">Fund</button>
     </section>
-
-    <section class="transactions">
-      <h3>Recent Transactions</h3>
-      <div id="txList">
-        <div class="tx-item"><span>Fund Account</span><span>₦5000</span></div>
-        <div class="tx-item"><span>Purchase</span><span>-₦1200</span></div>
-      </div>
-    </section>
   </main>
 
-  <!-- ✅ Load Paystack first -->
-  <script src="https://js.paystack.co/v1/inline.js"></script>
-
-  <!-- ✅ Then load Firebase and Dashboard JS -->
+  <!-- External Scripts -->
   <script type="module" src="./firebase.js"></script>
+  <script src="https://js.paystack.co/v1/inline.js"></script>
   <script type="module" src="./dashboard.js"></script>
 </body>
 </html>
