@@ -10,10 +10,10 @@ window.onload = function () {
   const userEmailDisplay = document.getElementById("userEmail");
   const logoutBtn = document.getElementById("logoutBtn");
 
-  // ✅ Use your Paystack test public key for now
-  const PAYSTACK_PUBLIC_KEY = "pk_test_11cfaa047a2ef7b89532fab14542e5cdfb28fc90";
+  // ✅ Use your Paystack LIVE public key
+  const PAYSTACK_PUBLIC_KEY = "pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492";
 
-  // ✅ Pipedream webhook URL (for now)
+  // ✅ Pipedream webhook URL (for backend verification)
   const WEBHOOK_URL = "https://eojegh3ks8gvl0e.m.pipedream.net";
 
   // --- Function to handle Paystack payment ---
