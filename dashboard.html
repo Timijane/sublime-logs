@@ -13,17 +13,24 @@
       --text-dark: #1e1e1e;
       --radius: 16px;
     }
+
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
     body { background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+
     header, main { width: 100%; max-width: 900px; background: var(--card-bg); border-radius: var(--radius); box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 20px 30px; margin-bottom: 20px; }
     header { display: flex; justify-content: space-between; align-items: center; }
-    h1 { color: var(--primary); font-size: 1.3rem; }
+    h1 { color: var(--primary); font-size: 1.5rem; }
+
     button { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
     button:hover { opacity: 0.9; }
+
     .balance-box { text-align: center; margin-bottom: 30px; }
     .balance-box h2 { color: var(--text-dark); font-weight: 500; }
     .balance-box p { font-size: 2rem; color: var(--primary); margin-top: 8px; font-weight: 600; }
+    .balance-box small { color: gray; display: block; margin-top: 5px; }
+
     .fund-card { text-align: center; }
+    .fund-card h3 { margin-bottom: 10px; }
     .fund-card input { padding: 10px; width: 60%; border: 1px solid #ccc; border-radius: 8px; margin-right: 10px; }
     @media (max-width:600px) { .fund-card input { width: 100%; margin-bottom: 10px; } }
   </style>
@@ -39,7 +46,7 @@
     <section class="balance-box">
       <h2>Available Balance</h2>
       <p id="balance">₦0.00</p>
-      <small id="userEmail" style="color: gray;"></small>
+      <small id="userEmail"></small>
     </section>
 
     <section class="fund-card">
