@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>User Dashboard</title>
 
-  <!-- Tailwind for quick styling -->
+  <!-- Tailwind CSS for styling -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Paystack Inline Script -->
@@ -16,34 +16,64 @@
   <!-- Navbar -->
   <nav class="bg-blue-600 text-white p-4">
     <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-bold">My Dashboard</h1>
-      <button id="logoutBtn" class="bg-red-500 px-4 py-2 rounded hover:bg-red-600">
-        Logout
-      </button>
+      <h1 class="text-xl font-bold">Dashboard</h1>
+      <div class="flex space-x-2">
+        <button id="backHomeBtn" class="bg-gray-500 px-3 py-1 rounded hover:bg-gray-600">Home</button>
+        <button id="logoutBtn" class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Logout</button>
+      </div>
     </div>
   </nav>
 
-  <!-- Main Content -->
-  <main class="container mx-auto p-6">
-    <h2 class="text-2xl font-semibold mb-4">Welcome!</h2>
+  <!-- Main content -->
+  <main class="container mx-auto p-6 space-y-6">
 
-    <!-- User Balance -->
-    <div class="bg-white p-4 rounded shadow mb-6">
-      <p class="text-lg">Balance: <span id="balance" class="font-bold">₦0</span></p>
-      <button id="addFundsBtn" 
-              class="mt-3 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-        Add Funds
-      </button>
-    </div>
-
-    <!-- Numbers Available -->
+    <!-- User Info -->
     <div class="bg-white p-4 rounded shadow">
-      <h3 class="text-xl font-semibold mb-3">Available Numbers</h3>
-      <ul id="numbersList" class="space-y-2"></ul>
+      <h2 id="user-name" class="text-xl font-semibold">Welcome</h2>
+      <p id="user-email" class="text-gray-600">email@example.com</p>
     </div>
+
+    <!-- Balance + Fund -->
+    <div class="bg-white p-4 rounded shadow">
+      <p class="text-lg">Balance: ₦<span id="balance">0.00</span></p>
+      <div class="flex space-x-2 mt-3">
+        <input 
+          type="number" 
+          id="amount" 
+          placeholder="Enter amount (NGN)" 
+          class="border p-2 rounded w-40"
+        />
+        <button 
+          id="fundBtn" 
+          class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+          Fund Account
+        </button>
+      </div>
+    </div>
+
+    <!-- Transactions -->
+    <div class="bg-white p-4 rounded shadow">
+      <h3 class="text-lg font-semibold mb-3">Recent Transactions</h3>
+      <table id="transactions-table" class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="border p-2 text-left">Type</th>
+            <th class="border p-2 text-left">Amount</th>
+            <th class="border p-2 text-left">Date</th>
+            <th class="border p-2 text-left">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="4" class="text-center p-2 text-gray-500">Loading...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
   </main>
 
-  <!-- Link to your dashboard.js -->
+  <!-- Link to dashboard.js -->
   <script type="module" src="./dashboard.js"></script>
 </body>
 </html>
