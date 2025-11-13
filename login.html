@@ -129,13 +129,36 @@
   // Login with Email/Password
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('login-email').value;
-    const password = passwordInput.value;
+    const email = document.getElementById('login-email').value.trim();
+    const password = passwordInput.value.trim();
     errorMessage.style.display = 'none';
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      window.location.href = "dashboard.html";
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Get Firebase ID Token
+      const idToken = await user.getIdToken();
+
+      // Send token to backend for verification
+      const response = await fetch('http://localhost:5000/verifyToken', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: idToken })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('✅ Token verified by backend:', data);
+        // Redirect to dashboard if successful
+        window.location.href = "dashboard.html";
+      } else {
+        console.error('❌ Backend verification failed:', data);
+        errorMessage.textContent = "Login failed. Please try again.";
+        errorMessage.style.display = 'block';
+      }
+
     } catch (error) {
       errorMessage.textContent = error.message;
       errorMessage.style.display = 'block';
