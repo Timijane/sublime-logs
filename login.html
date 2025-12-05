@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Sublime Logs - Access</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
 <style>
   :root {
     --primary: #8e44ad;
@@ -13,6 +12,8 @@
     --glass: rgba(255, 255, 255, 0.1);
     --glass-border: rgba(255, 255, 255, 0.2);
   }
+
+  * { box-sizing: border-box; }
 
   body {
     margin: 0;
@@ -29,6 +30,7 @@
   .container {
     background: var(--glass);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
@@ -36,12 +38,27 @@
     width: 100%;
     max-width: 400px;
     position: relative;
+    overflow: hidden;
   }
 
-  .brand { text-align: center; margin-bottom: 30px; }
-  .brand h1 { font-weight: 800; font-size: 2em; margin: 0; }
-  .brand p { opacity: 0.7; }
+  .brand {
+    text-align: center;
+    margin-bottom: 30px;
+  }
 
+  .brand h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 2em;
+    margin: 0;
+    background: linear-gradient(90deg, #fff, #e0e0e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .brand p { margin: 5px 0 0; font-size: 0.9em; opacity: 0.7; }
+
+  /* Tab Slider */
   .toggle-box {
     display: flex;
     background: rgba(0,0,0,0.2);
@@ -49,6 +66,17 @@
     margin-bottom: 25px;
     position: relative;
     padding: 4px;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    z-index: 2;
+    transition: color 0.3s;
   }
 
   .slider {
@@ -59,54 +87,60 @@
     height: calc(100% - 8px);
     background: linear-gradient(90deg, var(--primary), var(--secondary));
     border-radius: 10px;
-    transition: transform 0.3s;
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    z-index: 1;
   }
 
-  .toggle-btn {
-    flex: 1;
-    padding: 10px;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-  }
-
+  /* Forms */
   .form-wrapper { position: relative; min-height: 320px; }
-  form { position: absolute; width: 100%; top: 0; left: 0; opacity: 0; pointer-events: none; transition: 0.3s; }
-  form.active { opacity: 1; pointer-events: auto; }
+
+  form {
+    display: flex; flex-direction: column; gap: 15px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    position: absolute; width: 100%; top: 0; left: 0;
+  }
+
+  form.hidden { opacity: 0; pointer-events: none; transform: translateX(20px); visibility: hidden; }
+  form.active { opacity: 1; pointer-events: all; transform: translateX(0); visibility: visible; }
 
   input {
-    width: 100%; padding: 14px; border-radius: 12px;
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    color: #fff; font-size: 16px;
+    width: 100%; padding: 14px 16px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff; font-size: 16px; outline: none;
+    transition: border-color 0.3s;
   }
+
+  input:focus { border-color: var(--secondary); background: rgba(255, 255, 255, 0.1); }
 
   button {
-    padding: 14px; border-radius: 12px; border: none;
+    width: 100%; padding: 14px; border-radius: 12px; border: none;
+    font-size: 16px; font-weight: 700; color: white; cursor: pointer;
     background: linear-gradient(90deg, var(--primary), var(--secondary));
-    color: #fff; font-weight: 700; cursor: pointer;
+    box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3); margin-top: 10px;
   }
+  button:hover { transform: translateY(-2px); }
 
-  .error-msg { text-align: center; color: #ff6b6b; min-height: 20px; margin-top: 10px; }
+  .error-msg { color: #ff6b6b; font-size: 0.85em; text-align: center; margin-top: 10px; min-height: 20px; }
 
+  /* Loader */
   .loader {
     display: none; position: absolute; top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 10;
     justify-content: center; align-items: center; border-radius: 24px;
   }
-
   .spinner {
-    width: 40px; height: 40px;
-    border: 4px solid #fff; border-top-color: transparent; border-radius: 50%;
+    width: 40px; height: 40px; border: 4px solid #fff;
+    border-top-color: transparent; border-radius: 50%;
     animation: spin 1s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
-
 <body>
 
 <div class="container">
-  <div id="loader" class="loader"><div class="spinner"></div></div>
+  <div class="loader" id="loader"><div class="spinner"></div></div>
 
   <div class="brand">
     <h1>Sublime Logs</h1>
@@ -120,17 +154,14 @@
   </div>
 
   <div class="form-wrapper">
-
-    <!-- LOGIN FORM -->
     <form id="login-form" class="active">
       <input type="email" id="login-email" placeholder="Email Address" required>
       <input type="password" id="login-password" placeholder="Password" required>
       <button type="submit">Log In</button>
-      <div id="login-error" class="error-msg"></div>
+      <div class="error-msg" id="login-error"></div>
     </form>
 
-    <!-- SIGNUP FORM -->
-    <form id="signup-form">
+    <form id="signup-form" class="hidden">
       <div style="display: flex; gap: 10px;">
         <input type="text" id="first-name" placeholder="First Name" required>
         <input type="text" id="surname" placeholder="Surname" required>
@@ -139,33 +170,17 @@
       <input type="password" id="signup-password" placeholder="Create Password" required>
       <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
       <button type="submit">Create Account</button>
-      <div id="signup-error" class="error-msg"></div>
+      <div class="error-msg" id="signup-error"></div>
     </form>
-
   </div>
 </div>
 
-
 <script type="module">
-  /* ------------------ FIREBASE IMPORTS ------------------ */
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import {
-    getAuth,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    updateProfile,
-    onAuthStateChanged,
-    setPersistence,
-    browserLocalPersistence
-  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  import {
-    getFirestore,
-    doc,
-    setDoc
-  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-
-  /* ------------------ YOUR FIREBASE CONFIG ------------------ */
+  // YOUR CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
     authDomain: "sublime-log.firebaseapp.com",
@@ -179,84 +194,99 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-  
-  /* ------------------ PERSIST LOGIN ------------------ */
-  setPersistence(auth, browserLocalPersistence);
 
-  /* ------------------ AUTO REDIRECT ------------------ */
-  onAuthStateChanged(auth, (user) => {
-    if (user) window.location.href = "dashboard1.html";
+  // 1. CRITICAL: Fix for iPhone/Android Loops
+  // This ensures the user stays logged in even if the browser closes
+  setPersistence(auth, browserLocalPersistence).catch((error) => {
+    console.error("Persistence error:", error);
   });
 
-  /* ------------------ SWITCH TABS ------------------ */
-  window.switchTab = (tab) => {
-    const login = document.getElementById('login-form');
-    const sign = document.getElementById('signup-form');
-    document.getElementById('slider').style.transform = tab === 'login' ? 'translateX(0)' : 'translateX(100%)';
-
-    login.classList.toggle('active', tab === 'login');
-    sign.classList.toggle('active', tab !== 'login');
-  };
-
-
-  /* ------------------ LOGIN ------------------ */
-  document.getElementById("login-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const loader = document.getElementById("loader");
-    loader.style.display = "flex";
-
-    const email = login-email.value.trim();
-    const pass = login-password.value;
-
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (err) {
-      loader.style.display = "none";
-      login-error.textContent = "Invalid email or password.";
+  // 2. CRITICAL: Auto-Redirect to dashboard1.html
+  // As soon as Firebase detects a login, it moves to the dashboard
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log("User detected, redirecting...");
+      window.location.href = "dashboard1.html";
     }
   });
 
+  // UI Switching
+  window.switchTab = (tab) => {
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+    const slider = document.getElementById('slider');
+    document.getElementById('login-error').textContent = ''; 
+    document.getElementById('signup-error').textContent = '';
 
-  /* ------------------ SIGNUP ------------------ */
-  document.getElementById("signup-form").addEventListener("submit", async (e) => {
+    if (tab === 'login') {
+      loginForm.className = 'active'; signupForm.className = 'hidden';
+      slider.style.transform = 'translateX(0)';
+    } else {
+      signupForm.className = 'active'; loginForm.className = 'hidden';
+      slider.style.transform = 'translateX(100%)';
+    }
+  };
+
+  // Login Logic
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const loader = document.getElementById('loader');
+    
+    loader.style.display = 'flex';
+    document.getElementById('login-error').textContent = '';
 
-    const fname = first-name.value.trim();
-    const sname = surname.value.trim();
-    const email = signup-email.value.trim();
-    const pass = signup-password.value;
-    const confirm = signup-confirm.value;
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // No need to redirect here manually; onAuthStateChanged handles it
+    } catch (error) {
+      loader.style.display = 'none';
+      document.getElementById('login-error').textContent = getFriendlyError(error.code);
+    }
+  });
+
+  // Signup Logic
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fname = document.getElementById('first-name').value.trim();
+    const sname = document.getElementById('surname').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const pass = document.getElementById('signup-password').value;
+    const confirm = document.getElementById('signup-confirm').value;
+    const loader = document.getElementById('loader');
 
     if (pass !== confirm) {
-      signup-error.textContent = "Passwords do not match.";
+      document.getElementById('signup-error').textContent = "Passwords do not match.";
       return;
     }
 
-    const loader = document.getElementById("loader");
-    loader.style.display = "flex";
+    loader.style.display = 'flex';
+    document.getElementById('signup-error').textContent = '';
 
     try {
       const userCred = await createUserWithEmailAndPassword(auth, email, pass);
       const user = userCred.user;
-
-      /* SAVE DISPLAY NAME */
+      
+      // Save name and create DB record
       await updateProfile(user, { displayName: `${fname} ${sname}` });
-
-      /* SAVE FIRESTORE RECORD */
       await setDoc(doc(db, "users", user.uid), {
-        firstName: fname,
-        surname: sname,
-        fullName: `${fname} ${sname}`,
-        email: email,
-        balance: 0,
-        createdAt: new Date().toISOString()
+        firstName: fname, surname: sname, email: email,
+        balance: 0, createdAt: new Date().toISOString()
       });
-
-    } catch (err) {
-      loader.style.display = "none";
-      signup-error.textContent = "Email already exists or invalid.";
+      // onAuthStateChanged handles redirect
+    } catch (error) {
+      loader.style.display = 'none';
+      document.getElementById('signup-error').textContent = getFriendlyError(error.code);
     }
   });
+
+  function getFriendlyError(code) {
+    if(code.includes('email')) return "Invalid or already used email.";
+    if(code.includes('password')) return "Wrong password or too weak.";
+    if(code.includes('not-found')) return "Account not found.";
+    return "Error: " + code;
+  }
 </script>
 
 </body>
