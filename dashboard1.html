@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Dashboard — Sublime Logs</title>
 <style>
-  :root{ var(--bg:#0b0f13; --card:#0f1720; --muted:#98a0a8; --accent:#6ee7b7; --accent-2:#7c5cff; }
+  :root{ --bg:#0b0f13; --card:#0f1720; --muted:#98a0a8; --accent:#6ee7b7; --accent-2:#7c5cff; }
   *{box-sizing:border-box}
   body{margin:0;font-family:Inter,system-ui,Arial;background:radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.06), transparent 5%),linear-gradient(180deg,#020408 0%, #061018 100%);color:#e6eef6;min-height:100vh;display:flex;}
   
@@ -150,7 +150,6 @@
 <script src="https://js.paystack.co/v1/inline.js"></script>
 
 <script type="module">
-  // NOTE: Paystack key is kept the same as this file's version, which works.
   const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
@@ -194,7 +193,7 @@
       appLoader.style.display = 'none'; 
       mainContent.style.display = 'flex'; // Reveals the dashboard
 
-      // 2. Load User Data (FIXED: Better Name Logic)
+      // 2. Load User Data 
       const formattedName = formatUserName(user);
       document.getElementById('side-user').textContent = formattedName;
       document.getElementById('greeting').textContent = `Welcome, ${formattedName}`;
@@ -214,9 +213,9 @@
     }
   });
 
-  // Logout
+  // Logout (FIXED: Redirect to index.html)
   document.getElementById('btn-logout').addEventListener('click', () => {
-    signOut(auth).then(() => window.location.href = 'login.html');
+    signOut(auth).then(() => window.location.href = 'index.html');
   });
 
   // Modal Handlers
