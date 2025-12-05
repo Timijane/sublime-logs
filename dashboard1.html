@@ -1,404 +1,293 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dashboard — Sublime Logs</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sublime Logs - Access</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0b0f13; --card:#0f1720; --muted:#98a0a8;
-    --accent:#6ee7b7; --accent-2:#7c5cff;
+  :root {
+    --primary: #8e44ad;
+    --secondary: #e91e63;
+    --glass: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
   }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,Arial;background:radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.06), transparent 5%),linear-gradient(180deg,#020408 0%, #061018 100%);color:#e6eef6;min-height:100vh;display:flex;}
-  
-  /* Sidebar */
-  .sidebar{width:260px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-right:1px solid rgba(255,255,255,0.03);padding:28px 20px;display:flex;flex-direction:column;gap:18px}
-  .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;color:#051018;font-size:18px}
-  nav{display:flex;flex-direction:column;gap:10px;margin-top:6px}
-  .nav-link{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer;text-decoration:none;font-size:14px}
-  .nav-link.active, .nav-link:hover{background: linear-gradient(90deg, rgba(124,92,255,0.06), rgba(110,231,183,0.03));color:#e9fef0}
-  
-  /* Main Layout */
-  .main{flex:1;padding:28px;display:flex;flex-direction:column;gap:20px}
-  .top-bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
-  .card-row{display:flex;gap:18px;align-items:stretch}
-  .card{background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:20px;flex:1;box-shadow:0 8px 30px rgba(2,6,12,0.6);min-height:110px}
-  .big-card{flex:1.4}
-  .balance-value{font-size:28px;font-weight:700;color:var(--accent)}
-  .small{font-size:13px;color:var(--muted)}
-  
-  /* Buttons */
-  .actions{display:flex;gap:12px}
-  .btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#051018;font-weight:700; font-size:14px;}
-  .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);box-shadow:none}
-  .btn:disabled {opacity: 0.7; cursor: not-allowed;}
-  .buy-button{display:inline-block;padding:12px 16px;border-radius:12px;background:linear-gradient(90deg,#ff8a65,#ffb74d);color:#051018;font-weight:700;cursor:pointer}
-  
-  /* Modals */
-  .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.8);z-index:999; backdrop-filter: blur(4px);}
-  .modal.open{display:flex}
-  .modal-card{width:640px;max-width:95%;background:#0f1720;padding:24px;border-radius:16px;border:1px solid rgba(255,255,255,0.05); box-shadow: 0 20px 40px rgba(0,0,0,0.5);}
-  .form-row{display:flex;gap:8px;margin-top:12px}
-  input, select{padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.2);color:#e6eef6;outline:none; width:100%; font-family: inherit;}
-  input:focus{border-color: var(--accent); background: rgba(0,0,0,0.4);}
-  
-  /* Transactions */
-  .tx-list{margin-top:12px;max-height:320px;overflow:auto;background:var(--card);padding:12px;border-radius:10px}
-  .tx-item{display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid rgba(255,255,255,0.02)}
-  .tx-item:last-child{border-bottom:none}
-  
-  @media(max-width:920px){.sidebar{display:none}.card-row{flex-direction:column}}
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #8e44ad);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    padding: 20px;
+  }
+
+  .container {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .brand { text-align: center; margin-bottom: 30px; }
+  .brand h1 {
+    font-weight: 800;
+    font-size: 2em;
+    margin: 0;
+    background: linear-gradient(90deg, #fff, #f1f1f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand p { opacity: 0.7; margin-top: 5px; }
+
+  .toggle-box {
+    display: flex;
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 25px;
+    position: relative;
+  }
+  .toggle-btn {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .slider {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    height: calc(100% - 8px);
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 10px;
+    transition: transform 0.3s cubic-bezier(.68,-0.55,.27,1.55);
+  }
+
+  .form-wrapper { position: relative; min-height: 320px; }
+
+  form {
+    position: absolute;
+    width: 100%; top: 0; left: 0;
+    display: flex; flex-direction: column; gap: 15px;
+    transition: 0.3s ease;
+  }
+
+  form.hidden { opacity: 0; pointer-events: none; transform: translateX(20px); }
+  form.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+
+  input {
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    font-size: 16px;
+  }
+  input:focus { border-color: var(--secondary); }
+
+  button {
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    box-shadow: 0 4px 18px rgba(233,30,99,0.3);
+    cursor: pointer;
+  }
+
+  .error-msg { text-align: center; font-size: .85em; color: #ff6b6b; }
+
+  .loader {
+    display: none;
+    position: absolute;
+    top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);
+    justify-content: center;
+    align-items: center;
+    border-radius: 24px;
+    z-index: 10;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 4px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
 </style>
 </head>
 <body>
 
-<aside class="sidebar">
-  <div style="display:flex;align-items:center;gap:12px">
-    <div class="logo">SL</div>
-    <div>
-      <h1 style="margin:0;font-size:16px">Sublime Logs</h1>
-      <p style="margin:0;font-size:12px;color:var(--muted)">Wallet & Numbers</p>
-    </div>
-  </div>
-  <nav>
-    <a href="dashboard1.html" class="nav-link active">Dashboard</a>
-    <a href="wallet.html" class="nav-link">Wallet</a>
-    <a href="transactions.html" class="nav-link">Transactions</a>
-    <a href="profile.html" class="nav-link">Profile</a>
-    <a href="#" class="nav-link" id="btn-logout">Logout</a>
-  </nav>
-  <div style="margin-top:auto;font-size:12px;color:var(--muted)">
-    Signed in as:
-    <div id="side-user" style="margin-top:8px;font-weight:600">Loading...</div>
-  </div>
-</aside>
+<div class="container">
+  <div class="loader" id="loader"><div class="spinner"></div></div>
 
-<main class="main">
-  <div class="top-bar">
-    <div>
-      <h2 id="greeting" style="margin:0; font-size:24px;">Welcome</h2>
-      <p class="small" id="subg" style="margin-top:4px;">Your financial overview</p>
-    </div>
-    <div class="actions">
-      <button class="btn" id="open-wallet">Open Wallet</button>
-      <button class="btn secondary" id="open-add-money">Fund Wallet</button>
-    </div>
+  <div class="brand">
+    <h1>Sublime Logs</h1>
+    <p>Access your dashboard</p>
   </div>
 
-  <div class="card-row">
-    <div class="card">
-      <div class="small">Available Balance</div>
-      <div style="height:8px"></div>
-      <div class="balance-value" id="balance">₦0.00</div>
-    </div>
-    
-    <div class="card big-card">
-      <div style="display:flex;justify-content:space-between;align-items:center; height:100%">
-        <div>
-          <div class="small">Buy Number</div>
-          <div style="height:6px"></div>
-          <div style="font-weight:700;font-size:18px">Purchase a temporary number</div>
-          <div class="small" style="margin-top:6px">WhatsApp, Google, Telegram, Facebook, etc.</div>
-        </div>
-        <div>
-          <div class="buy-button" id="open-buy-modal">Buy Number</div>
-        </div>
+  <div class="toggle-box">
+    <div class="slider" id="slider"></div>
+    <div class="toggle-btn" onclick="switchTab('login')">Login</div>
+    <div class="toggle-btn" onclick="switchTab('signup')">Sign Up</div>
+  </div>
+
+  <div class="form-wrapper">
+    <!-- LOGIN -->
+    <form id="login-form" class="active">
+      <input type="email" id="login-email" placeholder="Email Address" required>
+      <input type="password" id="login-password" placeholder="Password" required>
+      <button type="submit">Log In</button>
+      <div class="error-msg" id="login-error"></div>
+    </form>
+
+    <!-- SIGNUP -->
+    <form id="signup-form" class="hidden">
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="first-name" placeholder="First Name" required>
+        <input type="text" id="surname" placeholder="Surname" required>
       </div>
-    </div>
-  </div>
-
-  <section>
-    <h3 style="margin:20px 0 8px 0">Recent activity</h3>
-    <div class="tx-list" id="tx-list">
-      <div class="tx-item"><div class="small">Loading…</div></div>
-    </div>
-  </section>
-</main>
-
-<div class="modal" id="add-money-modal">
-  <div class="modal-card" style="width:400px">
-    <h3 style="margin:0 0 8px 0">Fund Wallet</h3>
-    <div class="small">Enter amount to deposit via Paystack</div>
-    
-    <div class="form-row">
-      <input type="number" id="pay-amount" placeholder="Amount (e.g. 1000)" min="100" />
-    </div>
-    
-    <div style="height:20px"></div>
-    
-    <div style="display:flex;justify-content:flex-end;gap:8px">
-      <button class="btn secondary" id="close-add-money">Cancel</button>
-      <button class="btn" id="start-paystack">Pay Now</button>
-    </div>
+      <input type="email" id="signup-email" placeholder="Email Address" required>
+      <input type="password" id="signup-password" placeholder="Create Password" required>
+      <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
+      <button type="submit">Create Account</button>
+      <div class="error-msg" id="signup-error"></div>
+    </form>
   </div>
 </div>
-
-<div class="modal" id="buy-modal">
-  <div class="modal-card">
-    <h3 style="margin:0 0 8px 0">Buy Virtual Number</h3>
-    <div class="form-row">
-      <select id="buy-product">
-        <option value="whatsapp">WhatsApp</option>
-        <option value="google">Google</option>
-        <option value="telegram">Telegram</option>
-      </select>
-      <input id="buy-country" placeholder="Country (e.g. nigeria)" />
-    </div>
-    <div style="height:15px"></div>
-    <div style="display:flex;justify-content:flex-end;gap:8px">
-      <button class="btn secondary" id="close-buy">Close</button>
-      <button class="btn" id="confirm-buy">Check Price & Buy</button>
-    </div>
-    <div class="small" style="margin-top:10px" id="buy-status"></div>
-  </div>
-</div>
-
-<script src="https://js.paystack.co/v1/inline.js"></script>
 
 <script type="module">
-  // --- CONFIGURATION ---
-  // Replace this with your actual Paystack Public Key
-  const PAYSTACK_PUBLIC_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
-  
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, onSnapshot, collection, addDoc, query, orderBy, limit, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+/* --- FIREBASE --- */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { 
+  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  updateProfile, browserLocalPersistence, setPersistence
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-    authDomain: "sublime-logs.firebaseapp.com",
-    projectId: "sublime-logs",
-    storageBucket: "sublime-logs.firebasestorage.app",
-    messagingSenderId: "381847722551",
-    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-    measurementId: "G-8YHHJC1MP7"
-  };
+/* CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
+  authDomain: "sublime-log.firebaseapp.com",
+  projectId: "sublime-log",
+  storageBucket: "sublime-log.firebasestorage.app",
+  messagingSenderId: "644554254089",
+  appId: "1:644554254089:web:dd3374c9468046a5a015d8",
+  measurementId: "G-YMPGVWCK16"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  // --- UI ELEMENTS ---
-  const balanceEl = document.getElementById('balance');
-  const sideUser = document.getElementById('side-user');
-  const greeting = document.getElementById('greeting');
-  const txList = document.getElementById('tx-list');
-  
-  // Navigation Buttons
-  const openWalletBtn = document.getElementById('open-wallet');
-  const openAddMoneyBtn = document.getElementById('open-add-money');
-  
-  // Payment Modal Elements
-  const addMoneyModal = document.getElementById('add-money-modal');
-  const closeAddMoneyBtn = document.getElementById('close-add-money');
-  const startPayBtn = document.getElementById('start-paystack');
-  const payAmountInput = document.getElementById('pay-amount');
-  
-  // Buy Modal Elements
-  const openBuyBtn = document.getElementById('open-buy-modal');
-  const buyModal = document.getElementById('buy-modal');
-  const closeBuyBtn = document.getElementById('close-buy');
-  
-  let currentUser = null;
+/* PERSIST LOGIN */
+setPersistence(auth, browserLocalPersistence);
 
-  // ---------------------------------------------
-  // 1. AUTHENTICATION & DATA LOADING
-  // ---------------------------------------------
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      window.location.href = 'login.html';
-      return;
-    }
-    currentUser = user;
+/* TAB SWITCH */
+window.switchTab = (tab) => {
+  const slider = document.getElementById("slider");
+  document.getElementById("login-error").textContent = '';
+  document.getElementById("signup-error").textContent = '';
 
-    // --- FIX FOR NAME DISPLAY ---
-    // We listen to the database for the name. 
-    // If "name" exists in DB, use it. If not, use Email.
-    onSnapshot(doc(db, "users", user.uid), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        
-        // 1. Balance
-        const bal = data.balance || 0;
-        balanceEl.textContent = formatCurrency(bal);
+  if (tab === "login") {
+    document.getElementById("login-form").className = "active";
+    document.getElementById("signup-form").className = "hidden";
+    slider.style.transform = "translateX(0)";
+  } else {
+    document.getElementById("signup-form").className = "active";
+    document.getElementById("login-form").className = "hidden";
+    slider.style.transform = "translateX(100%)";
+  }
+};
 
-        // 2. Name Logic
-        // Checks: Database Name -> Auth Display Name -> Email
-        let displayName = data.name; 
-        if(!displayName) displayName = user.displayName;
-        if(!displayName) displayName = user.email.split('@')[0];
+/* LOGIN */
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const loader = document.getElementById("loader");
+  loader.style.display = "flex";
 
-        // Update UI
-        sideUser.textContent = displayName;
-        greeting.textContent = `Welcome, ${displayName}`;
-      } else {
-        // Fallback for new users with no DB record yet
-        balanceEl.textContent = '₦0.00';
-        sideUser.textContent = user.email.split('@')[0];
-        greeting.textContent = `Welcome, ${user.email.split('@')[0]}`;
-      }
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    window.location.href = "dashboard1.html";
+  } catch (err) {
+    loader.style.display = "none";
+    document.getElementById("login-error").textContent = friendly(err.code);
+  }
+});
+
+/* SIGNUP */
+document.getElementById("signup-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const loader = document.getElementById("loader");
+  loader.style.display = "flex";
+
+  const fname = document.getElementById("first-name").value.trim();
+  const sname = document.getElementById("surname").value.trim();
+  const email = document.getElementById("signup-email").value.trim();
+  const pass  = document.getElementById("signup-password").value;
+  const confirm = document.getElementById("signup-confirm").value;
+
+  if (pass !== confirm) {
+    loader.style.display = "none";
+    document.getElementById("signup-error").textContent = "Passwords do not match.";
+    return;
+  }
+
+  try {
+    const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+    const user = userCred.user;
+
+    const fullName = `${fname} ${sname}`;
+    await updateProfile(user, { displayName: fullName });
+
+    await setDoc(doc(db, "users", user.uid), {
+      fullName: fullName,
+      firstName: fname,
+      surname: sname,
+      email: email,
+      balance: 0,
+      createdAt: new Date().toISOString()
     });
 
-    // Load Transactions
-    loadTransactions(user.uid);
-  });
+    window.location.href = "dashboard1.html";
 
-  // ---------------------------------------------
-  // 2. NAVIGATION & MODALS
-  // ---------------------------------------------
-  
-  // "Open Wallet" -> Goes to wallet.html
-  openWalletBtn.addEventListener('click', () => {
-    window.location.href = 'wallet.html';
-  });
-
-  // "Fund Wallet" -> Opens the Custom Modal
-  openAddMoneyBtn.addEventListener('click', () => {
-    addMoneyModal.classList.add('open');
-  });
-  closeAddMoneyBtn.addEventListener('click', () => {
-    addMoneyModal.classList.remove('open');
-  });
-
-  // "Buy Number" Modal
-  openBuyBtn.addEventListener('click', () => {
-    buyModal.classList.add('open');
-  });
-  closeBuyBtn.addEventListener('click', () => {
-    buyModal.classList.remove('open');
-  });
-
-  // Logout
-  document.getElementById('btn-logout').addEventListener('click', () => {
-    signOut(auth).then(() => window.location.href = 'login.html');
-  });
-
-  // ---------------------------------------------
-  // 3. PAYMENT LOGIC (PAYSTACK)
-  // ---------------------------------------------
-  startPayBtn.addEventListener('click', () => {
-    const amount = Number(payAmountInput.value);
-    
-    // Validation
-    if (!amount || amount < 100) {
-      alert("Minimum deposit is ₦100");
-      return;
-    }
-
-    // UX: Change button text
-    const originalText = startPayBtn.textContent;
-    startPayBtn.textContent = "Processing...";
-    startPayBtn.disabled = true;
-
-    // Call Paystack
-    const handler = PaystackPop.setup({
-      key: PAYSTACK_PUBLIC_KEY,
-      email: currentUser.email,
-      amount: amount * 100, // Paystack expects Kobo
-      currency: 'NGN',
-      ref: 'SL-' + Math.floor((Math.random() * 1000000000) + 1), // Unique Reference
-      
-      // On Success
-      callback: function(response) {
-        startPayBtn.textContent = "Verifying...";
-        processDeposit(amount, response.reference);
-      },
-      
-      // On Close
-      onClose: function() {
-        startPayBtn.textContent = originalText;
-        startPayBtn.disabled = false;
-      }
-    });
-    
-    handler.openIframe();
-  });
-
-  async function processDeposit(amount, ref) {
-    try {
-      const userRef = doc(db, "users", currentUser.uid);
-      
-      // A. Create Transaction Record
-      await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
-        type: 'deposit',
-        amount: amount,
-        date: new Date().toISOString(),
-        reference: ref,
-        note: 'Wallet Funded'
-      });
-      
-      // B. Update Balance Atomically
-      await runTransaction(db, async (transaction) => {
-        const sfDoc = await transaction.get(userRef);
-        if (!sfDoc.exists()) {
-           transaction.set(userRef, { balance: amount, email: currentUser.email });
-        } else {
-           const newBal = (sfDoc.data().balance || 0) + amount;
-           transaction.update(userRef, { balance: newBal });
-        }
-      });
-
-      // C. Reset UI
-      addMoneyModal.classList.remove('open');
-      payAmountInput.value = '';
-      startPayBtn.textContent = "Pay Now";
-      startPayBtn.disabled = false;
-      alert("Success! ₦" + amount + " has been added.");
-
-    } catch (e) {
-      console.error("Error:", e);
-      startPayBtn.textContent = "Pay Now";
-      startPayBtn.disabled = false;
-      alert("Payment verified, but network error updating balance. Ref: " + ref);
-    }
+  } catch (err) {
+    loader.style.display = "none";
+    document.getElementById("signup-error").textContent = friendly(err.code);
   }
+});
 
-  // ---------------------------------------------
-  // 4. LOAD TRANSACTIONS
-  // ---------------------------------------------
-  async function loadTransactions(uid) {
-    txList.innerHTML = '<div class="tx-item"><div class="small">Loading...</div></div>';
-    
-    // Query: Last 10 items
-    const q = query(collection(db, "users", uid, "transactions"), orderBy("date", "desc"), limit(10));
-    
-    try {
-      const querySnapshot = await getDocs(q);
-      txList.innerHTML = '';
-      
-      if(querySnapshot.empty) {
-        txList.innerHTML = '<div class="tx-item"><div class="small">No transactions yet</div></div>';
-        return;
-      }
+/* FRIENDLY ERRORS */
+function friendly(code) {
+  if (code.includes("email")) return "Invalid or already used email.";
+  if (code.includes("password")) return "Incorrect or weak password.";
+  if (code.includes("not-found")) return "Account not found.";
+  return "Error: " + code;
+}
 
-      querySnapshot.forEach((doc) => {
-        const tx = doc.data();
-        const isCredit = tx.type === 'deposit' || tx.type === 'credit';
-        const amountClean = isNaN(tx.amount) ? 0 : tx.amount;
-
-        const item = document.createElement('div');
-        item.className = 'tx-item';
-        item.innerHTML = `
-          <div>
-            <div style="font-weight:700">${isCredit ? '+' : '-'} ${formatCurrency(amountClean)}</div>
-            <div class="small">${new Date(tx.date).toLocaleDateString()} • ${tx.note || tx.type}</div>
-          </div>
-          <div style="font-weight:700; color: ${isCredit ? 'var(--accent)' : '#ff8a8a'}">
-            ${(tx.type || 'TX').toUpperCase()}
-          </div>
-        `;
-        txList.appendChild(item);
-      });
-    } catch (e) {
-      console.log(e);
-      txList.innerHTML = '<div class="tx-item"><div class="small">No activity found.</div></div>';
-    }
-  }
-
-  function formatCurrency(val) {
-    return '₦' + Number(val).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-  }
 </script>
+
 </body>
 </html>
