@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dashboard — Sublime Logs</title>
+
+<style>
+  :root{
+    --bg:#0b0f13;
+    --card:#0f1720;
+    --muted:#98a0a8;
+    --accent:#6ee7b7; /* teal-ish accent */
+    --accent-2:#7c5cff; /* purple accent */
+    --glass: rgba(255,255,255,0.03);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.06), transparent 5%),
+                linear-gradient(180deg, #020408 0%, #061018 100%);
+    color:#e6eef6;
+    min-height:100vh;
+    display:flex;
+  }
+
+  /* Sidebar */
+  .sidebar{
+    width:260px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-right:1px solid rgba(255,255,255,0.03);
+    padding:28px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:6px;
+  }
+  .logo{
+    width:44px;
+    height:44px;
+    border-radius:10px;
+    background:linear-gradient(135deg,var(--accent-2),var(--accent));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:#051018;
+    font-size:18px;
+    box-shadow: 0 6px 24px rgba(124,92,255,0.12);
+  }
+  .brand h1{font-size:16px;margin:0}
+  .brand p{margin:0;font-size:12px;color:var(--muted)}
+
+  nav{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
+  .nav-link{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    padding:10px 12px;
+    border-radius:10px;
+    color:var(--muted);
+    cursor:pointer;
+    text-decoration:none;
+    font-size:14px;
+  }
+  .nav-link.active, .nav-link:hover{
+    background: linear-gradient(90deg, rgba(124,92,255,0.06), rgba(110,231,183,0.03));
+    color: #e9fef0;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  }
+
+  /* Main content */
+  .main{
+    flex:1;
+    padding:28px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+
+  .top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .welcome{
+    display:flex;
+    flex-direction:column;
+  }
+  .welcome h2{margin:0;font-size:18px}
+  .welcome p{margin:0;color:var(--muted);font-size:13px}
+
+  .card-row{
+    display:flex;
+    gap:18px;
+    align-items:stretch;
+  }
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:20px;
+    flex:1;
+    box-shadow: 0 8px 30px rgba(2,6,12,0.6);
+    min-height:110px;
+  }
+  .balance-value{
+    font-size:28px;
+    font-weight:700;
+    color:var(--accent);
+    letter-spacing:0.4px;
+  }
+  .small{font-size:13px;color:var(--muted)}
+
+  /* Transactions preview */
+  .transactions {
+    margin-top:4px;
+    background: var(--card);
+    border-radius:12px;
+    padding:16px;
+    overflow:auto;
+  }
+  .tx-item{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 6px;
+    border-bottom:1px solid rgba(255,255,255,0.02);
+    align-items:center;
+  }
+  .tx-item:last-child{border-bottom:none}
+  .tx-left{display:flex;flex-direction:column}
+  .tx-amount{font-weight:700}
+  .tx-meta{font-size:12px;color:var(--muted)}
+
+  /* Quick actions */
+  .actions{
+    display:flex;
+    gap:12px;
+  }
+  .btn{
+    padding:10px 14px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    background:linear-gradient(90deg,var(--accent-2),var(--accent));
+    color:#051018;
+    font-weight:600;
+    box-shadow: 0 10px 30px rgba(124,92,255,0.10);
+  }
+  .btn.secondary{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.04);
+    color:var(--muted);
+    box-shadow:none;
+  }
+
+  /* Responsive */
+  @media(max-width:920px){
+    .sidebar{display:none}
+    body{flex-direction:column}
+    .main{padding:18px}
+    .card-row{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">SL</div>
+      <div>
+        <h1>Sublime Logs</h1>
+        <p>Wallet & Activity</p>
+      </div>
+    </div>
+
+    <nav>
+      <a href="dashboard1.html" class="nav-link active" id="nav-dashboard">Dashboard</a>
+      <a href="wallet.html" class="nav-link" id="nav-wallet">Wallet</a>
+      <a href="transactions.html" class="nav-link" id="nav-tx">Transactions</a>
+      <a href="profile.html" class="nav-link" id="nav-profile">Profile</a>
+      <a href="#" class="nav-link" id="btn-logout">Logout</a>
+    </nav>
+
+    <div style="margin-top:auto;font-size:12px;color:var(--muted)">
+      Signed in as:
+      <div id="side-user" style="margin-top:8px;font-weight:600"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="top-bar">
+      <div class="welcome">
+        <h2 id="greeting">Welcome</h2>
+        <p id="subg">Here's your account summary</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="open-wallet">Open Wallet</button>
+        <button class="btn secondary" id="refresh">Refresh</button>
+      </div>
+    </div>
+
+    <div class="card-row">
+      <div class="card">
+        <div class="small">Available Balance</div>
+        <div style="height:8px"></div>
+        <div class="balance-value" id="balance">₦0.00</div>
+        <div class="small" style="margin-top:8px">Live balance (updates automatically)</div>
+      </div>
+
+      <div class="card">
+        <div class="small">Account</div>
+        <div style="height:8px"></div>
+        <div style="font-weight:700;font-size:16px" id="fullname">-</div>
+        <div class="small" id="email">-</div>
+        <div style="height:10px"></div>
+        <div class="small">Member since <span id="memberSince">-</span></div>
+      </div>
+    </div>
+
+    <section style="margin-top:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 style="margin:0;font-size:16px">Recent activity</h3>
+        <a href="wallet.html" style="font-size:13px;color:var(--muted);text-decoration:none">View wallet →</a>
+      </div>
+
+      <div class="transactions" id="tx-list">
+        <!-- transactions will be injected here -->
+        <div class="tx-item"><div class="tx-left"><div class="tx-amount">Loading…</div><div class="tx-meta">Please wait</div></div></div>
+      </div>
+    </section>
+  </main>
+
+<script type="module">
+  import { auth, db, logout, getRecentTransactions } from './js/firebase.js';
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  // UI refs
+  const fullnameEl = document.getElementById('fullname');
+  const emailEl = document.getElementById('email');
+  const balanceEl = document.getElementById('balance');
+  const greetingEl = document.getElementById('greeting');
+  const sideUser = document.getElementById('side-user');
+  const memberSince = document.getElementById('memberSince');
+  const txList = document.getElementById('tx-list');
+  const openWalletBtn = document.getElementById('open-wallet');
+  const refreshBtn = document.getElementById('refresh');
+  const logoutBtn = document.getElementById('btn-logout');
+
+  let unsubscribeUserDoc = null;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      // not signed in -> redirect to login
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // show basic info
+    const displayName = user.displayName || 'User';
+    fullnameEl.textContent = displayName;
+    sideUser.textContent = displayName;
+    emailEl.textContent = user.email || '-';
+    greetingEl.textContent = `Welcome back, ${displayName.split(' ')[0] || displayName}`;
+
+    // member since (use createdAt if available in user doc)
+    // subscribe to user's Firestore doc for live balance updates
+    const userRef = doc(db, 'users', user.uid);
+
+    // unsubscribe previous if any
+    if (unsubscribeUserDoc) unsubscribeUserDoc();
+
+    unsubscribeUserDoc = onSnapshot(userRef, (snap) => {
+      if (!snap.exists()) {
+        balanceEl.textContent = '₦0.00';
+        memberSince.textContent = '-';
+        return;
+      }
+      const data = snap.data();
+      const bal = Number(data.balance || 0);
+      balanceEl.textContent = formatCurrency(bal);
+      // attempt to show joined date
+      if (data.createdAt) {
+        const d = new Date(data.createdAt);
+        memberSince.textContent = d.toLocaleDateString();
+      } else if (user.metadata && user.metadata.creationTime) {
+        memberSince.textContent = new Date(user.metadata.creationTime).toLocaleDateString();
+      } else {
+        memberSince.textContent = '-';
+      }
+    });
+
+    // load recent transactions preview
+    loadRecentTransactions(user.uid);
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    logout();
+  });
+
+  openWalletBtn.addEventListener('click', () => {
+    window.location.href = 'wallet.html';
+  });
+
+  refreshBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    loadRecentTransactions(user.uid);
+  });
+
+  async function loadRecentTransactions(uid) {
+    txList.innerHTML = '<div class="tx-item"><div class="tx-left"><div class="tx-amount">Loading…</div><div class="tx-meta">Please wait</div></div></div>';
+    try {
+      const items = await getRecentTransactions(uid);
+      if (!items || items.length === 0) {
+        txList.innerHTML = '<div class="tx-item"><div class="tx-left"><div class="tx-amount">No activity yet</div><div class="tx-meta">Start by adding funds</div></div></div>';
+        return;
+      }
+      txList.innerHTML = '';
+      items.forEach(tx => {
+        const el = document.createElement('div');
+        el.className = 'tx-item';
+        const amount = Number(tx.amount || 0);
+        const type = tx.type || (amount >=0 ? 'credit':'debit');
+        el.innerHTML = `
+          <div class="tx-left">
+            <div class="tx-amount">${type === 'credit' ? '+' : '-'} ${formatCurrency(Math.abs(amount))}</div>
+            <div class="tx-meta">${tx.note || type} • ${new Date(tx.date).toLocaleString()}</div>
+          </div>
+          <div style="font-weight:700;color:${type==='credit' ? 'var(--accent)' : '#ff8a8a'}">${type==='credit' ? 'Credit' : 'Debit'}</div>
+        `;
+        txList.appendChild(el);
+      });
+    } catch (err) {
+      txList.innerHTML = '<div class="tx-item"><div class="tx-left"><div class="tx-amount">Failed to load</div><div class="tx-meta">'+err.message+'</div></div></div>';
+      console.error(err);
+    }
+  }
+
+  function formatCurrency(num){
+    // Nigerian Naira style simple formatting
+    return '₦' + Number(num).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+</script>
+</body>
+        </html>
