@@ -25,11 +25,52 @@
   /* Hide main content initially */
   #main-content { display: none; width: 100%; }
 
-  .sidebar{width:260px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-right:1px solid rgba(255,255,255,0.03);padding:28px 20px;display:flex;flex-direction:column;gap:18px}
+  .sidebar{
+    width:260px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-right:1px solid rgba(255,255,255,0.03);
+    padding:28px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    /* Mobile-specific properties */
+    position: fixed; /* Fix sidebar position on mobile */
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 100;
+    transform: translateX(-100%); /* Start hidden off-screen */
+    transition: transform 0.3s ease;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+  }
+  .sidebar.open {
+    transform: translateX(0); /* Slide in when open */
+  }
+
+  /* Hamburger Menu Button */
+  #menu-toggle {
+    display: none; /* Hidden by default on desktop */
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    z-index: 101; /* Above sidebar backdrop */
+    font-size: 24px;
+    line-height: 40px;
+    text-align: center;
+  }
+
   .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;color:#051018;font-size:18px}
   nav{display:flex;flex-direction:column;gap:10px;margin-top:6px}
   .nav-link{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer;text-decoration:none;font-size:14px}
   .nav-link.active, .nav-link:hover{background: linear-gradient(90deg, rgba(124,92,255,0.06), rgba(110,231,183,0.03));color:#e9fef0}
+  
   .main{flex:1;padding:28px;display:flex;flex-direction:column;gap:20px}
   .top-bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
   .card-row{display:flex;gap:18px;align-items:stretch}
@@ -51,7 +92,32 @@
   .tx-list{margin-top:12px;max-height:320px;overflow:auto;background:var(--card);padding:12px;border-radius:10px}
   .tx-item{display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid rgba(255,255,255,0.02)}
   
-  @media(max-width:920px){.sidebar{display:none}.card-row{flex-direction:column}}
+  /* MEDIA QUERY FOR MOBILE DEVICES */
+  @media(max-width:920px){
+    /* Show menu toggle button */
+    #menu-toggle { display: block; }
+    
+    /* On mobile, remove flex from body and rely on padding */
+    body { display: block; }
+    
+    /* Make the main content take up full width and push it over for the button */
+    .main { 
+        padding-top: 70px; /* Make space for the fixed menu button */
+        margin-left: 0;
+    }
+    
+    /* Sidebar is hidden by default, position is fixed */
+    .sidebar {
+        transform: translateX(-100%);
+        box-shadow: 0 0 0 transparent; /* Reset desktop shadow */
+    }
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+    }
+    
+    .card-row{flex-direction:column}
+  }
 </style>
 </head>
 <body>
@@ -59,7 +125,9 @@
 <div id="app-loader"><div class="spinner"></div></div>
 
 <div id="main-content">
-  <aside class="sidebar">
+  <button id="menu-toggle" aria-label="Toggle Menu">☰</button>
+
+  <aside class="sidebar" id="sidebar">
     <div style="display:flex;align-items:center;gap:12px">
       <div class="logo">SL</div>
       <div>
@@ -177,6 +245,8 @@
   let currentUser = null;
   const appLoader = document.getElementById('app-loader');
   const mainContent = document.getElementById('main-content');
+  const sidebar = document.getElementById('sidebar');
+  const menuToggle = document.getElementById('menu-toggle');
   
   // Helper to format name: uses displayName, or email prefix
   const formatUserName = (user) => {
@@ -185,35 +255,43 @@
       return user.email ? user.email.split('@')[0] : 'User';
   }
 
+  // --- Mobile Menu Toggle Logic ---
+  menuToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+  });
+  // Close menu when a link is clicked (mobile UX)
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+        if (window.innerWidth <= 920) {
+            sidebar.classList.remove('open');
+        }
+    });
+  });
+
   // --- CRITICAL: THE FIREBASE GUARD ---
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // 1. User Found: Save user, Hide Loader, Show Content
       currentUser = user;
       appLoader.style.display = 'none'; 
-      mainContent.style.display = 'flex'; // Reveals the dashboard
+      mainContent.style.display = 'flex'; 
 
-      // 2. Load User Data 
       const formattedName = formatUserName(user);
       document.getElementById('side-user').textContent = formattedName;
       document.getElementById('greeting').textContent = `Welcome, ${formattedName}`;
       document.getElementById('pay-email-hidden').value = user.email;
 
-      // 3. Realtime Balance
       onSnapshot(doc(db, "users", user.uid), (doc) => {
         if(doc.exists()) document.getElementById('balance').textContent = '₦' + (doc.data().balance || 0).toLocaleString(undefined, {minimumFractionDigits:2});
       });
 
-      // 4. Load Transactions
       loadTransactions(user.uid);
 
     } else {
-      // 1. No User Found: Redirect to Login immediately
       window.location.href = 'login.html';
     }
   });
 
-  // Logout (FIXED: Redirect to index.html)
+  // Logout (Redirect to index.html)
   document.getElementById('btn-logout').addEventListener('click', () => {
     signOut(auth).then(() => window.location.href = 'index.html');
   });
@@ -252,11 +330,9 @@
     document.getElementById('start-paystack').textContent = "Pay Now";
     try {
         const userRef = doc(db, "users", currentUser.uid);
-        // Add transaction record
         await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
             type: 'deposit', amount: Number(amount), date: new Date().toISOString(), reference: ref
         });
-        // Update user balance atomically
         await runTransaction(db, async (t) => {
             const sfDoc = await t.get(userRef);
             const newBal = (sfDoc.data().balance || 0) + Number(amount);
