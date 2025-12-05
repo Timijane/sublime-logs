@@ -101,21 +101,23 @@
 <script src="https://js.paystack.co/v1/inline.js"></script>
 
 <script type="module">
-  // --- CONFIG ---
+  // --- CORRECTED CONFIG & PAYSTACK KEY ---
+  // Using the key from dashboard1.html which opens the payment modal
   const PAYSTACK_PUBLIC_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
   import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
+  // CORRECTED CONFIG: Using the 'sublime-log' project
   const firebaseConfig = {
-    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-    authDomain: "sublime-logs.firebaseapp.com",
-    projectId: "sublime-logs",
-    storageBucket: "sublime-logs.firebasestorage.app",
-    messagingSenderId: "381847722551",
-    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-    measurementId: "G-8YHHJC1MP7"
+    apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
+    authDomain: "sublime-log.firebaseapp.com",
+    projectId: "sublime-log",
+    storageBucket: "sublime-log.firebasestorage.app",
+    messagingSenderId: "644554254089",
+    appId: "1:644554254089:web:dd3374c9468046a5a015d8",
+    measurementId: "G-YMPGVWCK16"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -134,12 +136,19 @@
 
   let currentUser = null;
 
+  // Helper to format name: uses displayName, or email prefix
+  const formatUserName = (user) => {
+      const name = user.displayName;
+      if (name && name.trim().length > 0) return name;
+      return user.email ? user.email.split('@')[0] : 'User';
+  }
+
   onAuthStateChanged(auth, (user)=>{
     if (!user) { window.location.href='login.html'; return; }
     currentUser = user;
     
-    // Set User Name
-    sideUser.textContent = user.displayName || user.email.split('@')[0];
+    // Set User Name (FIXED: Better Name Logic)
+    sideUser.textContent = formatUserName(user);
 
     // Live Balance Listener
     const userRef = doc(db, 'users', user.uid);
@@ -151,18 +160,25 @@
     loadTxs();
   });
 
-  // Pay Button Logic
+  // Pay Button Logic (FIXED: Uses the correct Paystack Public Key)
   addBtn.addEventListener('click', async ()=>{
     const amt = Number(addAmountInput.value);
     if (!amt || amt < 50) return alert('Enter an amount >= 50');
     if (!currentUser) return alert('Sign in first');
+    
+    // Disable button to prevent double-click
+    addBtn.textContent = 'Processing...';
+    addBtn.disabled = true;
 
     const handler = PaystackPop.setup({
-      key: PAYSTACK_PUBLIC_KEY,
+      key: PAYSTACK_PUBLIC_KEY, // Corrected Key
       email: currentUser.email || '',
       amount: Math.round(amt * 100),
       ref: 'SL-'+Math.floor((Math.random()*1000000000)+1),
-      onClose: function(){},
+      onClose: function(){
+          addBtn.textContent = 'Pay Now';
+          addBtn.disabled = false;
+      },
       callback: async function(response){
         try {
           // Add funds to Wallet (Firestore Transaction)
@@ -170,11 +186,13 @@
           
           alert('Payment successful! Wallet updated.');
           addAmountInput.value = '';
-          // Reload Txs
-          loadTxs();
+          loadTxs(); // Reload Txs
         } catch(e){ 
           console.error(e); 
           alert('Payment confirmed, but error updating balance. Ref: ' + response.reference); 
+        } finally {
+            addBtn.textContent = 'Pay Now';
+            addBtn.disabled = false;
         }
       }
     });
@@ -212,6 +230,7 @@
   async function loadTxs(){
     txList.innerHTML = '<div class="tx-item"><div class="small">Loading…</div></div>';
     try{
+      if (!currentUser) return;
       const q = query(collection(db, "users", currentUser.uid, "transactions"), orderBy("date", "desc"), limit(20));
       const items = await getDocs(q);
       
