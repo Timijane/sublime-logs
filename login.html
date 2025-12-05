@@ -7,177 +7,161 @@
 <link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
 <style>
   body {
-    font-family: 'David', sans-serif;
     margin: 0;
-    background: #fefefe;
+    font-family: 'David', sans-serif;
+    background: linear-gradient(135deg, #8e44ad, #e91e63);
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
   }
-  .login-container {
-    background: #fff;
-    padding: 40px;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    width: 350px;
+
+  .container {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    padding: 40px 35px;
+    width: 360px;
+    color: #fff;
     text-align: center;
   }
-  .login-container h1 {
+
+  .container h1 {
     font-family: 'Lobster', cursive;
-    font-size: 2.5em;
-    color: #9b59b6;
-    margin-bottom: 10px;
+    font-size: 2.2em;
+    margin-bottom: 8px;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
   }
-  .login-container p {
-    font-style: italic;
-    color: #666;
+
+  .container h2 {
+    font-size: 1.1em;
+    font-weight: normal;
+    color: #f1f1f1;
     margin-bottom: 30px;
   }
-  input[type="email"], input[type="password"] {
+
+  input {
     width: 100%;
-    padding: 12px 15px;
-    margin: 10px 0;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    padding: 12px 40px 12px 15px;
+    border-radius: 10px;
+    border: none;
     outline: none;
-    font-size: 1em;
+    margin-bottom: 15px;
+    font-size: 0.95em;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
   }
-  .password-wrapper {
+
+  .password-container {
     position: relative;
   }
-  #toggle-password {
+
+  .toggle-eye {
     position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 12px;
+    top: 11px;
     cursor: pointer;
-    font-weight: bold;
-    color: #9b59b6;
-    user-select: none;
+    color: #8e44ad;
+    font-size: 1.1em;
   }
+
   button {
     width: 100%;
     padding: 12px;
-    margin-top: 15px;
+    border-radius: 10px;
     border: none;
-    border-radius: 8px;
-    background: linear-gradient(90deg, #9b59b6, #e91e63);
-    color: #fff;
-    font-size: 1.1em;
+    font-size: 1em;
+    color: white;
     cursor: pointer;
-    transition: 0.3s;
+    background: linear-gradient(90deg, #8e44ad, #e91e63);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
   }
+
   button:hover {
-    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(233,30,99,0.4);
   }
-  .error-message {
-    background: #ffdddd;
-    color: #d8000c;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 8px;
-    display: none;
-  }
+
   a {
     display: block;
-    margin-top: 10px;
-    color: #9b59b6;
+    margin-top: 15px;
+    color: #fff;
     text-decoration: none;
-    font-weight: bold;
+    font-size: 0.9em;
+    opacity: 0.9;
   }
+
   a:hover {
+    opacity: 1;
     text-decoration: underline;
   }
+
 </style>
 </head>
 <body>
 
-<div class="login-container">
+<div class="container">
   <h1>Sublime Logs</h1>
-  <p>Sign in to your account</p>
-
-  <div id="error-message" class="error-message"></div>
+  <h2>Welcome Back</h2>
 
   <form id="login-form">
     <input type="email" id="login-email" placeholder="Email" required>
-    <div class="password-wrapper">
+
+    <div class="password-container">
       <input type="password" id="login-password" placeholder="Password" required>
-      <span id="toggle-password">👁️</span>
+      <span class="toggle-eye" onclick="togglePassword('login-password', this)">👁</span>
     </div>
+
     <button type="submit">Login</button>
   </form>
 
-  <a href="#" id="forgot-password">Forgot password?</a>
-  <a href="register.html">Create an account</a>
+  <a href="signup.html">Don’t have an account? Sign up</a>
 </div>
 
 <script type="module">
-  import { auth } from './js/firebase.js';
-  import { signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
-  const loginForm = document.getElementById('login-form');
-  const errorMessage = document.getElementById('error-message');
-  const togglePassword = document.getElementById('toggle-password');
-  const passwordInput = document.getElementById('login-password');
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
+    authDomain: "sublime-log.firebaseapp.com",
+    projectId: "sublime-log",
+    storageBucket: "sublime-log.firebasestorage.app",
+    messagingSenderId: "644554254089",
+    appId: "1:644554254089:web:dd3374c9468046a5a015d8",
+    measurementId: "G-YMPGVWCK16"
+  };
 
-  // Show/Hide password
-  togglePassword.addEventListener('click', () => {
-    passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
-  });
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-  // Login with Email/Password
-  loginForm.addEventListener('submit', async (e) => {
+  document.getElementById("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = document.getElementById('login-email').value.trim();
-    const password = passwordInput.value.trim();
-    errorMessage.style.display = 'none';
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Get Firebase ID Token
-      const idToken = await user.getIdToken();
-
-      // Send token to backend for verification
-      const response = await fetch('http://localhost:5000/verifyToken', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: idToken })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log('✅ Token verified by backend:', data);
-        // Redirect to dashboard if successful
-        window.location.href = "dashboard.html";
-      } else {
-        console.error('❌ Backend verification failed:', data);
-        errorMessage.textContent = "Login failed. Please try again.";
-        errorMessage.style.display = 'block';
-      }
-
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("Login successful!");
+      window.location.href = "dashboard1.html";
     } catch (error) {
-      errorMessage.textContent = error.message;
-      errorMessage.style.display = 'block';
+      alert(error.message);
     }
   });
 
-  // Forgot Password
-  const forgotPassword = document.getElementById('forgot-password');
-  forgotPassword.addEventListener('click', async () => {
-    const email = prompt("Enter your email to reset password:");
-    if (email) {
-      try {
-        await sendPasswordResetEmail(auth, email);
-        alert("Password reset email sent!");
-      } catch (error) {
-        alert(error.message);
-      }
+  window.togglePassword = (id, icon) => {
+    const input = document.getElementById(id);
+    if (input.type === "password") {
+      input.type = "text";
+      icon.textContent = "🙈";
+    } else {
+      input.type = "password";
+      icon.textContent = "👁";
     }
-  });
+  };
 </script>
 
 </body>
