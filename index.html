@@ -3,347 +3,237 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sublime Logs</title>
-
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Lobster&family=David+Libre&display=swap" rel="stylesheet">
-
+<title>Sublime Logs - Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* Reset */
-  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --primary: #8e44ad; /* Purple */
+    --secondary: #e91e63; /* Pink */
+    --text-light: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --bg-dark: #1a1a2e;
+    --bg-medium: #16213e;
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+  }
 
-  /* Body */
+  * { box-sizing: border-box; }
+
   body {
-    font-family: 'Arial', sans-serif;
-    background-color: #fdf6e3; /* creamy white */
-    color: #000;
-  }
-
-  /* Navbar */
-  nav {
-    position: sticky;
-    top: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 2rem;
-    background: linear-gradient(90deg, #8e2de2, #ff0080);
-    z-index: 1000;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-  }
-  nav .logo {
-    display: flex; align-items: center;
-  }
-  nav .logo img {
-    width:40px; height:40px; border-radius:50%; margin-right:10px;
-  }
-  nav .logo span {
-    font-weight:bold; font-size:1.5rem; color:#fff;
-  }
-  nav ul {
-    list-style:none; display:flex; align-items:center;
-  }
-  nav ul li {
-    margin-left:1.5rem;
-  }
-  nav ul li a {
-    color:#fff; text-decoration:none; font-weight:600; transition:0.3s;
-  }
-  nav ul li a:hover {
-    color:#ffd700; text-shadow:0 0 8px #ffd700;
-  }
-
-  /* Hamburger for mobile */
-  .hamburger {
-    display:none; cursor:pointer; flex-direction: column; gap:5px;
-  }
-  .hamburger div {
-    width:25px; height:3px; background:white; transition:0.3s;
-  }
-  @media(max-width:768px){
-    nav ul { 
-      display:flex; flex-direction:column; 
-      position:fixed; top:0; left:-40%; 
-      height:100%; width:40%; 
-      background:#2c003e; padding:2rem; 
-      transition: left 0.3s ease; z-index:999; 
-    }
-    nav ul.show { left:0; }
-    .hamburger { display:flex; }
-  }
-
-  /* Hero Section */
-  .hero {
-    position: relative;
-    height:60vh; /* reduced height */
-    display: flex;
-    flex-direction: column; /* stack logo + text vertically */
-    justify-content: center; /* center content vertically */
-    align-items: center; /* center horizontally */
-    text-align: center;
-    overflow:hidden;
-    background-color:#0f0c29; /* fallback */
-  }
-  .hero img.bg-slide {
-    position:absolute;
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    top:0; left:0;
-    opacity:0;
-    transition: opacity 1s ease-in-out;
-  }
-  .hero img.bg-slide.active { opacity:1; }
-  .hero .hero-content {
-    position: relative;
-    z-index:2;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, var(--bg-dark), var(--bg-medium), #10182b);
+    min-height: 100vh;
+    color: var(--text-light);
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* --- Navigation Bar --- */
+  .header {
+    width: 100%;
+    padding: 20px 40px;
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+    position: fixed;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+  }
+
+  .logo h1 {
+    font-weight: 800;
+    font-size: 1.5em;
+    margin: 0;
+    background: linear-gradient(90deg, #fff, var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .nav-menu {
+    display: flex;
+    gap: 30px;
+  }
+
+  .nav-link {
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95em;
+    padding: 5px 0;
+    transition: color 0.3s, border-bottom 0.3s;
+    position: relative;
+  }
+
+  .nav-link:hover {
+    color: var(--secondary);
+  }
+
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--secondary);
+    border-radius: 2px;
+  }
+
+  /* --- Hero Section --- */
+  .hero {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
     justify-content: center;
-  }
-  .hero .hero-logo {
-    width: 120px; 
-    height: 120px; 
-    border-radius: 50%; 
-    margin-bottom: 1rem;
-    border: 3px solid #ffd700;
-  }
-  .hero .welcome {
-    font-size: 1.5rem; 
-    margin-bottom: 0.5rem;
-    font-family: 'David Libre', serif;
-    background: rgba(255,255,255,0.3);
-    display: inline-block;
-    padding: 0 0.5rem;
-    border-radius: 6px;
-  }
-  .hero h1 {
-    font-family: 'Lobster', cursive;
-    font-size: 4rem;
-    margin-bottom: 0.5rem;
-    background: rgba(255,255,255,0.3);
-    display: inline-block;
-    padding: 0 0.5rem;
-    border-radius: 8px;
-  }
-  .hero .ticker {
-    display: block; 
-    width: 100%; 
-    overflow: hidden;
-    white-space: nowrap; 
+    align-items: center;
     text-align: center;
-    font-family: 'David Libre', serif;
-    font-size: 1.25rem;
-    animation: ticker 15s linear infinite;
-    color: #ffd700;
-    font-weight: bold;
-    background: rgba(0,0,0,0.4);
-    padding: 0.25rem;
-    border-radius: 6px;
-  }
-  @keyframes ticker {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
+    padding: 150px 20px 80px; /* Space for fixed header */
   }
 
-  /* Floating Card Section */
-  .card-section {
-    padding:4rem 1rem;
-    display:flex; justify-content:center;
-    background:#fdf6e3; /* creamy white */
-  }
-  .card {
-    background:#f7f7f7; /* light card background */
-    color:#000; padding:2rem; border-radius:12px; max-width:800px; width:100%;
-    box-shadow:0 8px 20px rgba(0,0,0,0.2); text-align:center;
-  }
-  .card h2 { margin-bottom:1rem; color:#8e2de2; font-size:2rem; }
-  .card p { margin-bottom:2rem; font-size:1.1rem; line-height:1.6; }
-  .card button {
-    padding:0.75rem 2rem;
-    border:none; border-radius:8px;
-    background:linear-gradient(90deg, #ff0080, #8e2de2);
-    color:#fff; font-weight:bold; font-size:1.1rem;
-    cursor:pointer; transition:0.3s;
-  }
-  .card button:hover {
-    transform:scale(1.05);
-    box-shadow:0 0 15px #ff0080;
+  .hero-content h2 {
+    font-size: 4em;
+    font-weight: 800;
+    margin: 0 0 15px;
+    line-height: 1.1;
   }
 
+  .gradient-text {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-content p {
+    font-size: 1.25em;
+    font-weight: 400;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 35px;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 15px 30px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1.1em;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    text-decoration: none;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    box-shadow: 0 8px 20px rgba(233, 30, 99, 0.4);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(233, 30, 99, 0.5);
+  }
+
+  /* --- Optional Feature Section (Added for "Artistic Work") --- */
+  .features {
+    padding: 60px 20px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .feature-grid {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    max-width: 1000px;
+    margin: 30px auto 0;
+  }
+
+  .feature-card {
+    flex: 1;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 30px;
+    text-align: left;
+  }
+
+  .feature-card h3 {
+    color: var(--secondary);
+    font-weight: 700;
+    margin-top: 0;
+  }
+
+  .feature-card p {
+    font-size: 0.95em;
+    color: var(--text-muted);
+  }
+
+  /* --- Footer --- */
+  .footer {
+    padding: 20px;
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--text-muted);
+    border-top: 1px solid var(--glass-border);
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .header { padding: 15px 20px; }
+    .nav-menu { gap: 15px; }
+    .hero { padding-top: 120px; }
+    .hero-content h2 { font-size: 2.5em; }
+    .hero-content p { font-size: 1em; }
+    .feature-grid { flex-direction: column; }
+    .feature-card { text-align: center; }
+  }
 </style>
 </head>
 <body>
 
-<!-- Navbar -->
-<nav>
+<header class="header">
   <div class="logo">
-    <img src="logo1.jpg" alt="Logo">
-    <span>Sublime Logs</span>
-  </div>
-  <ul>
-    <li><a href="#">Home</a></li>
-    <li><a href="#about-section">About</a></li>
-    <li><a href="login.html" target="_blank">Login</a></li>
-  </ul>
-  <div class="hamburger" id="hamburger">
-    <div></div><div></div><div></div>
-  </div>
-</nav>
-
-<!-- Hero Section -->
-<section class="hero">
-  <!-- Background Slides -->
-  <img src="log1.jpeg" class="bg-slide active">
-  <img src="log2.jpeg" class="bg-slide">
-  <img src="log3.jpeg" class="bg-slide">
-  <img src="log4.jpeg" class="bg-slide">
-  <img src="log5.jpeg" class="bg-slide">
-  <img src="log6.jpeg" class="bg-slide">
-
-  <!-- Hero Content -->
-  <div class="hero-content">
-    <img src="logo1.jpg" class="hero-logo" alt="Logo">
-    <div class="welcome">Welcome to …</div>
     <h1>Sublime Logs</h1>
-    <div class="ticker">Connecting the world for better communication</div>
+  </div>
+  <nav class="nav-menu">
+    <a href="index.html" class="nav-link active">Home</a>
+    <a href="about.html" class="nav-link">About</a>
+    <a href="login.html" class="nav-link">Login</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <h2>Secure Your <span class="gradient-text">Digital Access</span> with Ease.</h2>
+    <p>Get instant access to virtual numbers for all your global verification needs—WhatsApp, Google, Telegram, and more. Simple, fast, and reliable.</p>
+    <a href="login.html" class="cta-button">Get Started</a>
   </div>
 </section>
 
-<!-- Floating Card Section -->
-<section class="card-section">
-  <div class="card">
-    <h2>Reliable SMS Numbers & International Gift Sending</h2>
-    <p>Buy high-quality, non-VoIP phone numbers for SMS verification worldwide. Sublime Logs ensures compatibility with multiple services, providing a secure, hassle-free way to receive verification codes instantly. We also make it easy to send gift items internationally to anyone, anywhere.</p>
-    <button onclick="window.open('login.html','_blank')">Get Started</button>
+<section class="features">
+  <h3 style="font-size: 2em; margin-bottom: 40px;">Why Choose Sublime Logs?</h3>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h3>Instant Provisioning</h3>
+      <p>Receive your temporary virtual number within seconds. No waiting, just immediate verification for any platform.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Global Coverage</h3>
+      <p>Access numbers from a wide range of countries to bypass regional restrictions and complete your setup globally.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Paystack Integrated</h3>
+      <p>Fund your wallet easily and securely using our integrated Paystack payment system. Quick deposits, seamless experience.</p>
+    </div>
   </div>
 </section>
 
-<script>
-  // Hamburger toggle
-  const hamburger = document.getElementById('hamburger');
-  const navLinks = document.querySelector('nav ul');
-  hamburger.addEventListener('click', () => {
-    navLinks.classList.toggle('show');
-  });
+<footer class="footer">
+  &copy; 2025 Sublime Logs. All Rights Reserved. | <a href="about.html" class="nav-link" style="padding:0; display:inline-block; font-weight:400; color:var(--text-muted);">Privacy Policy</a>
+</footer>
 
-  // Hero image slider
-  const slides = document.querySelectorAll('.bg-slide');
-  let currentSlide = 0;
-  setInterval(() => {
-    slides[currentSlide].classList.remove('active');
-    currentSlide = (currentSlide+1) % slides.length;
-    slides[currentSlide].classList.add('active');
-  }, 4000); // every 4 seconds
-</script>
-<!-- About Section -->
-<section id="about-section" style="padding:4rem 1rem; background:#fdf6e3;">
-  <div class="about-container" style="max-width:1200px; margin:0 auto; text-align:center;">
-
-    <!-- Headline -->
-    <h2 style="color:#8e2de2; font-size:2.5rem; margin-bottom:2rem;">Reliable SMS Provider</h2>
-
-    <!-- About Us Card -->
-    <div class="card" style="background:#fff; padding:2rem; border-radius:12px; margin-bottom:3rem; box-shadow:0 8px 20px rgba(0,0,0,0.15);">
-      <h3 style="font-size:1.8rem; margin-bottom:1rem;">About Sublime Logs</h3>
-      <p style="font-size:1.1rem; line-height:1.8; color:#333;">
-        Sublime Logs is your trusted partner for SMS verification and international gift sending. 
-        We provide high-quality, non-VoIP phone numbers for instant verification codes anywhere in the world. 
-        With our platform, sending gifts internationally has never been easier, connecting people and businesses globally.
-      </p>
-    </div>
-
-    <!-- Why Choose Sublime Logs -->
-    <h3 style="color:#8e2de2; font-size:2rem; margin-bottom:2rem;">Why Choose Sublime Logs?</h3>
-
-    <div class="services-container" style="display:flex; flex-wrap:wrap; justify-content:center; gap:2rem; margin-bottom:3rem;">
-
-      <!-- Service Card Template -->
-      <div class="service-card" style="background:#fff; padding:2rem; border-radius:12px; width:250px; box-shadow:0 8px 20px rgba(0,0,0,0.15); text-align:center;">
-        <div style="font-size:3rem; margin-bottom:1rem;">📱</div>
-        <h4>Reliable Numbers</h4>
-        <p>High-quality, non-VoIP numbers for instant SMS verification.</p>
-      </div>
-
-      <div class="service-card" style="background:#fff; padding:2rem; border-radius:12px; width:250px; box-shadow:0 8px 20px rgba(0,0,0,0.15); text-align:center;">
-        <div style="font-size:3rem; margin-bottom:1rem;">🌍</div>
-        <h4>Global Coverage</h4>
-        <p>Numbers available in multiple countries for worldwide use.</p>
-      </div>
-
-      <div class="service-card" style="background:#fff; padding:2rem; border-radius:12px; width:250px; box-shadow:0 8px 20px rgba(0,0,0,0.15); text-align:center;">
-        <div style="font-size:3rem; margin-bottom:1rem;">🔒</div>
-        <h4>Secure & Private</h4>
-        <p>Your privacy is our priority with fully secure numbers.</p>
-      </div>
-
-      <div class="service-card" style="background:#fff; padding:2rem; border-radius:12px; width:250px; box-shadow:0 8px 20px rgba(0,0,0,0.15); text-align:center;">
-        <div style="font-size:3rem; margin-bottom:1rem;">⚡</div>
-        <h4>Fast Delivery</h4>
-        <p>Receive SMS codes in real-time without delays.</p>
-      </div>
-
-      <div class="service-card" style="background:#fff; padding:2rem; border-radius:12px; width:250px; box-shadow:0 8px 20px rgba(0,0,0,0.15); text-align:center;">
-        <div style="font-size:3rem; margin-bottom:1rem;">🔗</div>
-        <h4>Easy Integration</h4>
-        <p>Our numbers work seamlessly across all platforms.</p>
-      </div>
-
-      <div class="service-card" style="background:#fff; padding:2rem; border-radius:12px; width:250px; box-shadow:0 8px 20px rgba(0,0,0,0.15); text-align:center;">
-        <div style="font-size:3rem; margin-bottom:1rem;">🎁</div>
-        <h4>Gift Sending</h4>
-        <p>Send gifts internationally with ease.</p>
-      </div>
-
-      <div class="service-card" style="background:#fff; padding:2rem; border-radius:12px; width:250px; box-shadow:0 8px 20px rgba(0,0,0,0.15); text-align:center;">
-        <div style="font-size:3rem; margin-bottom:1rem;">🕒</div>
-        <h4>24/7 Support</h4>
-        <p>Our team is always available to assist you.</p>
-      </div>
-
-    </div>
-
-    <!-- Testimonials Slider -->
-    <div class="card" style="background:#fff; padding:2rem; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.15); margin-bottom:3rem;">
-      <h3 style="font-size:1.8rem; margin-bottom:2rem;">What Our Clients Say</h3>
-      <div class="testimonial-slider" style="position:relative; overflow:hidden; max-width:700px; margin:0 auto;">
-        <div class="testimonial-track" style="display:flex; transition: transform 0.5s ease;">
-          <div class="testimonial" style="min-width:100%; text-align:center; padding:1rem;">
-            <p>"Sublime Logs made SMS verification seamless and fast for our team. Truly professional!"</p>
-            <strong>- Fola Logs</strong>
-          </div>
-          <div class="testimonial" style="min-width:100%; text-align:center; padding:1rem;">
-            <p>"Reliable numbers and amazing customer support. I trust Sublime Logs for all my verification needs."</p>
-            <strong>- OMN TV</strong>
-          </div>
-          <div class="testimonial" style="min-width:100%; text-align:center; padding:1rem;">
-            <p>"Gift sending internationally has never been easier. Sublime Logs is simply the best!"</p>
-            <strong>- Kenny Konnect TV</strong>
-          </div>
-          <div class="testimonial" style="min-width:100%; text-align:center; padding:1rem;">
-            <p>"Fast, secure, and easy to use. Sublime Logs is my go-to for SMS verification."</p>
-            <strong>- Jane A., Tech Entrepreneur</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- Testimonials Slider Script -->
-<script>
-const track = document.querySelector('.testimonial-track');
-const slides = document.querySelectorAll('.testimonial');
-let currentIndex = 0;
-
-function nextSlide() {
-  currentIndex = (currentIndex + 1) % slides.length;
-  track.style.transform = `translateX(-${currentIndex * 100}%)`;
-}
-
-setInterval(nextSlide, 4000); // change slide every 4 seconds
-</script>
 </body>
-  </html>
+</html>
