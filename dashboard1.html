@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Dashboard — Sublime Logs</title>
 <style>
-  :root{ --bg:#0b0f13; --card:#0f1720; --muted:#98a0a8; --accent:#6ee7b7; --accent-2:#7c5cff; }
+  :root{ var(--bg:#0b0f13; --card:#0f1720; --muted:#98a0a8; --accent:#6ee7b7; --accent-2:#7c5cff; }
   *{box-sizing:border-box}
   body{margin:0;font-family:Inter,system-ui,Arial;background:radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.06), transparent 5%),linear-gradient(180deg,#020408 0%, #061018 100%);color:#e6eef6;min-height:100vh;display:flex;}
   
@@ -150,20 +150,22 @@
 <script src="https://js.paystack.co/v1/inline.js"></script>
 
 <script type="module">
+  // NOTE: Paystack key is kept the same as this file's version, which works.
   const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
   import { getFirestore, doc, onSnapshot, collection, addDoc, query, orderBy, limit, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
+  // CORRECTED CONFIG: Using the 'sublime-log' project
   const firebaseConfig = {
-    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
-    authDomain: "sublime-logs.firebaseapp.com",
-    projectId: "sublime-logs",
-    storageBucket: "sublime-logs.firebasestorage.app",
-    messagingSenderId: "381847722551",
-    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
-    measurementId: "G-8YHHJC1MP7"
+    apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
+    authDomain: "sublime-log.firebaseapp.com",
+    projectId: "sublime-log",
+    storageBucket: "sublime-log.firebasestorage.app",
+    messagingSenderId: "644554254089",
+    appId: "1:644554254089:web:dd3374c9468046a5a015d8",
+    measurementId: "G-YMPGVWCK16"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -176,9 +178,15 @@
   let currentUser = null;
   const appLoader = document.getElementById('app-loader');
   const mainContent = document.getElementById('main-content');
+  
+  // Helper to format name: uses displayName, or email prefix
+  const formatUserName = (user) => {
+      const name = user.displayName;
+      if (name && name.trim().length > 0) return name;
+      return user.email ? user.email.split('@')[0] : 'User';
+  }
 
   // --- CRITICAL: THE FIREBASE GUARD ---
-  // This listener determines if we show content OR redirect.
   onAuthStateChanged(auth, (user) => {
     if (user) {
       // 1. User Found: Save user, Hide Loader, Show Content
@@ -186,15 +194,15 @@
       appLoader.style.display = 'none'; 
       mainContent.style.display = 'flex'; // Reveals the dashboard
 
-      // 2. Load User Data
-      const name = user.displayName || 'User';
-      document.getElementById('side-user').textContent = name;
-      document.getElementById('greeting').textContent = `Welcome, ${name}`;
+      // 2. Load User Data (FIXED: Better Name Logic)
+      const formattedName = formatUserName(user);
+      document.getElementById('side-user').textContent = formattedName;
+      document.getElementById('greeting').textContent = `Welcome, ${formattedName}`;
       document.getElementById('pay-email-hidden').value = user.email;
 
       // 3. Realtime Balance
       onSnapshot(doc(db, "users", user.uid), (doc) => {
-        if(doc.exists()) document.getElementById('balance').textContent = '₦' + (doc.data().balance || 0).toLocaleString();
+        if(doc.exists()) document.getElementById('balance').textContent = '₦' + (doc.data().balance || 0).toLocaleString(undefined, {minimumFractionDigits:2});
       });
 
       // 4. Load Transactions
@@ -202,7 +210,6 @@
 
     } else {
       // 1. No User Found: Redirect to Login immediately
-      // The loader is still covering the screen, so the user sees nothing.
       window.location.href = 'login.html';
     }
   });
@@ -246,9 +253,11 @@
     document.getElementById('start-paystack').textContent = "Pay Now";
     try {
         const userRef = doc(db, "users", currentUser.uid);
+        // Add transaction record
         await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
             type: 'deposit', amount: Number(amount), date: new Date().toISOString(), reference: ref
         });
+        // Update user balance atomically
         await runTransaction(db, async (t) => {
             const sfDoc = await t.get(userRef);
             const newBal = (sfDoc.data().balance || 0) + Number(amount);
@@ -267,9 +276,10 @@
     snap.forEach(d => {
         const data = d.data();
         const isDep = data.type === 'deposit';
+        const formattedAmount = Number(data.amount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         list.innerHTML += `
         <div class="tx-item">
-            <div><div style="font-weight:700">${isDep?'+':'-'} ₦${data.amount}</div><div class="small">${new Date(data.date).toLocaleDateString()}</div></div>
+            <div><div style="font-weight:700">${isDep?'+':'-'} ₦${formattedAmount}</div><div class="small">${new Date(data.date).toLocaleDateString()}</div></div>
             <div style="font-weight:700;color:${isDep?'var(--accent)':'#ff8a8a'}">${data.type.toUpperCase()}</div>
         </div>`;
     });
