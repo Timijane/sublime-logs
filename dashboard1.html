@@ -144,8 +144,8 @@
 <script src="https://js.paystack.co/v1/inline.js"></script>
 
 <script type="module">
+  <script type="module">
   // --- CONFIG ---
-  // IMPORTANT: Ensure this API key is correct for your account.
   const PAYSTACK_PUBLIC_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
@@ -171,14 +171,14 @@
   const sideUser = document.getElementById('side-user');
   const greeting = document.getElementById('greeting');
   const txList = document.getElementById('tx-list');
+  
+  // Buttons & Modals
+  const openWalletBtn = document.getElementById('open-wallet');
   const openAddMoneyBtn = document.getElementById('open-add-money');
   const addMoneyModal = document.getElementById('add-money-modal');
   const closeAddMoneyBtn = document.getElementById('close-add-money');
-  // New references for custom form
-  const depositForm = document.getElementById('deposit-form');
+  const startPayBtn = document.getElementById('start-paystack');
   const payAmountInput = document.getElementById('pay-amount');
-  const payEmailHidden = document.getElementById('pay-email-hidden');
-  const payNameHidden = document.getElementById('pay-name-hidden');
   
   // Buy Number Refs
   const openBuyBtn = document.getElementById('open-buy-modal');
@@ -194,125 +194,164 @@
       return;
     }
     currentUser = user;
-    
-    // FIX 1: User Name Personalization
-    const displayName = user.displayName || user.email.split('@')[0];
-    sideUser.textContent = displayName;
-    // Removed hardcoded greeting and inserted the actual user's name
-    greeting.textContent = `Welcome, ${displayName}`;
-    
-    // Set hidden fields for Paystack
-    payEmailHidden.value = user.email;
-    payNameHidden.value = displayName;
 
-
-    // 2. Real-time Balance
-    onSnapshot(doc(db, "users", user.uid), (doc) => {
-      if (doc.exists()) {
-        const bal = doc.data().balance || 0;
+    // A. Real-time User Data (Balance AND Name)
+    // We listen to the database to get the real name, not just the Auth name.
+    onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        
+        // 1. Update Balance
+        const bal = data.balance || 0;
         balanceEl.textContent = formatCurrency(bal);
+
+        // 2. Update Name (Fix for "Ayo Ay" issue)
+        // Priority: Name in Database -> Name in Auth -> Email Address
+        const dbName = data.name; 
+        const authName = user.displayName;
+        const emailName = user.email.split('@')[0];
+        
+        const finalName = dbName || authName || emailName;
+
+        sideUser.textContent = finalName;
+        greeting.textContent = `Welcome, ${finalName}`;
+        
       } else {
+        // New user doc might not exist yet
         balanceEl.textContent = '₦0.00';
+        sideUser.textContent = user.email.split('@')[0];
       }
     });
 
-    // 3. Load Transactions
+    // B. Load Transactions
     loadTransactions(user.uid);
   });
 
   // --- NAVIGATION & MODALS ---
   
-  // Fund Wallet Modal
-  openAddMoneyBtn.addEventListener('click', () => {
-    addMoneyModal.classList.add('open');
-  });
-  closeAddMoneyBtn.addEventListener('click', () => {
-    addMoneyModal.classList.remove('open');
-  });
+  if(openWalletBtn) {
+      openWalletBtn.addEventListener('click', () => {
+        window.location.href = 'wallet.html';
+      });
+  }
 
-  // Buy Number Modal
-  openBuyBtn.addEventListener('click', () => {
-    buyModal.classList.add('open');
-  });
-  closeBuyBtn.addEventListener('click', () => {
-    buyModal.classList.remove('open');
-  });
+  // Fund Wallet Modal Open/Close
+  if(openAddMoneyBtn) {
+      openAddMoneyBtn.addEventListener('click', () => {
+        addMoneyModal.classList.add('open');
+      });
+  }
+  
+  if(closeAddMoneyBtn) {
+      closeAddMoneyBtn.addEventListener('click', () => {
+        addMoneyModal.classList.remove('open');
+      });
+  }
+
+  // Buy Number Modal Open/Close
+  if(openBuyBtn) {
+      openBuyBtn.addEventListener('click', () => {
+        buyModal.classList.add('open');
+      });
+  }
+  if(closeBuyBtn) {
+      closeBuyBtn.addEventListener('click', () => {
+        buyModal.classList.remove('open');
+      });
+  }
 
   // Logout
   document.getElementById('btn-logout').addEventListener('click', () => {
     signOut(auth).then(() => window.location.href = 'login.html');
   });
 
-  // --- FUNCTIONALITY ---
+  // --- PAYMENT LOGIC (Background Paystack) ---
 
-  // FIX 3: Custom Paystack Payment Form Logic
-  depositForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+  startPayBtn.addEventListener('click', () => {
     const amount = Number(payAmountInput.value);
-    const email = payEmailHidden.value;
     
+    // Validation
     if (!amount || amount < 50) {
       alert("Minimum deposit is ₦50");
       return;
     }
-    
-    // Disable button and show loading state if you want
-    // document.getElementById('start-paystack').disabled = true;
 
-    PaystackPop.setup({
+    // UX: Change button to show processing
+    const originalText = startPayBtn.textContent;
+    startPayBtn.textContent = "Loading Paystack...";
+    startPayBtn.disabled = true;
+
+    // Trigger Paystack
+    const handler = PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
-      email: email,
-      amount: amount * 100, // in kobo
+      email: currentUser.email,
+      amount: amount * 100, // Amount in kobo
       currency: 'NGN',
-      ref: 'SL-' + Math.floor((Math.random() * 1000000000) + 1), // Generate unique reference
+      ref: 'SL-' + Math.floor((Math.random() * 1000000000) + 1), // Unique Ref
+      
+      // On Success
       callback: function(response) {
-        // Payment success: Update Firestore
+        startPayBtn.textContent = "Verifying...";
         processDeposit(amount, response.reference);
       },
+      
+      // On Close (User closed the popup)
       onClose: function() {
-        // Re-enable button
-        // document.getElementById('start-paystack').disabled = false;
+        startPayBtn.textContent = originalText;
+        startPayBtn.disabled = false;
+        // alert('Transaction cancelled.');
       }
-    }).openIframe();
+    });
+    
+    handler.openIframe();
   });
 
-
   async function processDeposit(amount, ref) {
-    addMoneyModal.classList.remove('open');
-    payAmountInput.value = '';
-    
     try {
       const userRef = doc(db, "users", currentUser.uid);
       
-      // 1. Record the Transaction
+      // 1. Create Transaction Record
       await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
         type: 'deposit',
         amount: amount,
         date: new Date().toISOString(),
         reference: ref,
-        note: 'Wallet Funding (Paystack)'
+        note: 'Wallet Funding via Paystack'
       });
       
-      // 2. Update the Balance using runTransaction for safety
+      // 2. Safely Increment Balance
       await runTransaction(db, async (transaction) => {
         const sfDoc = await transaction.get(userRef);
         if (!sfDoc.exists()) {
-           // Should not happen if signup worked, but for safety:
-           transaction.set(userRef, { balance: amount });
+           transaction.set(userRef, { balance: amount, email: currentUser.email });
         } else {
            const newBal = (sfDoc.data().balance || 0) + amount;
            transaction.update(userRef, { balance: newBal });
         }
       });
 
-      alert("Deposit Successful! Wallet credited.");
+      // 3. Reset UI
+      addMoneyModal.classList.remove('open');
+      payAmountInput.value = '';
+      startPayBtn.textContent = "Pay Now";
+      startPayBtn.disabled = false;
+      
+      alert("Success! ₦" + amount + " added to your wallet.");
+
     } catch (e) {
       console.error("Error updating balance:", e);
+      startPayBtn.textContent = "Pay Now";
+      startPayBtn.disabled = false;
       alert("Payment successful but network error updating balance. Contact support with Ref: " + ref);
     }
   }
 
+  // --- TRANSACTION HISTORY ---
+
   async function loadTransactions(uid) {
+    // Only run if the element exists (prevents errors on other pages)
+    if(!txList) return;
+
     txList.innerHTML = '<div class="tx-item"><div class="small">Loading...</div></div>';
     const q = query(collection(db, "users", uid, "transactions"), orderBy("date", "desc"), limit(10));
     
@@ -326,20 +365,24 @@
       querySnapshot.forEach((doc) => {
         const tx = doc.data();
         const isCredit = tx.type === 'deposit' || tx.type === 'credit';
+        // Check for NaN or invalid amounts
+        const amountDisplay = isNaN(tx.amount) ? '0.00' : tx.amount;
+
         const item = document.createElement('div');
         item.className = 'tx-item';
         item.innerHTML = `
           <div>
-            <div style="font-weight:700">${isCredit ? '+' : '-'} ${formatCurrency(tx.amount)}</div>
+            <div style="font-weight:700">${isCredit ? '+' : '-'} ${formatCurrency(amountDisplay)}</div>
             <div class="small">${new Date(tx.date).toLocaleDateString()} • ${tx.note || tx.type}</div>
           </div>
           <div style="font-weight:700; color: ${isCredit ? 'var(--accent)' : '#ff8a8a'}">
-            ${tx.type.toUpperCase()}
+            ${(tx.type || 'TX').toUpperCase()}
           </div>
         `;
         txList.appendChild(item);
       });
     } catch (e) {
+      console.log(e);
       txList.innerHTML = '<div class="tx-item"><div class="small">No activity found.</div></div>';
     }
   }
