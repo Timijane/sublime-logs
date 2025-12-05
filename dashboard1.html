@@ -29,7 +29,7 @@
   .buy-button{display:inline-block;padding:12px 16px;border-radius:12px;background:linear-gradient(90deg,#ff8a65,#ffb74d);color:#051018;font-weight:700;cursor:pointer}
   .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.6);z-index:999}
   .modal.open{display:flex}
-  .modal-card{width:640px;max-width:95%;background:#071018;padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+  .modal-card{width:400px;max-width:95%;background:#071018;padding:24px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
   .form-row{display:flex;gap:8px;margin-top:12px}
   input, select{padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.03);color:#e6eef6;outline:none; width:100%}
   .tx-list{margin-top:12px;max-height:320px;overflow:auto;background:var(--card);padding:12px;border-radius:10px}
@@ -67,7 +67,7 @@
       <p class="small" id="subg">Your dashboard</p>
     </div>
     <div class="actions">
-      <button class="btn" id="open-wallet">Open Wallet</button>
+      <a href="wallet.html" class="btn" id="open-wallet" style="text-decoration:none;">Open Wallet</a>
       <button class="btn secondary" id="open-add-money">Fund Wallet</button>
     </div>
   </div>
@@ -102,17 +102,22 @@
 </main>
 
 <div class="modal" id="add-money-modal">
-  <div class="modal-card" style="width:400px">
+  <div class="modal-card">
     <h3 style="margin:0 0 8px 0">Fund Wallet</h3>
-    <div class="small">Secure payment via Paystack</div>
-    <div class="form-row">
-      <input type="number" id="pay-amount" placeholder="Amount (e.g. 1000)" min="50" />
-    </div>
-    <div style="height:15px"></div>
-    <div style="display:flex;justify-content:flex-end;gap:8px">
-      <button class="btn secondary" id="close-add-money">Cancel</button>
-      <button class="btn" id="start-paystack">Pay Now</button>
-    </div>
+    <form id="deposit-form">
+      <div class="small">Enter amount to fund your wallet securely.</div>
+      <div style="height:10px"></div>
+      <input type="number" id="pay-amount" placeholder="Amount in Naira (e.g. 1000)" min="50" required />
+      <div style="height:15px"></div>
+      
+      <input type="email" id="pay-email-hidden" placeholder="Your Email" style="display:none;" required/>
+      <input type="text" id="pay-name-hidden" placeholder="Your Name" style="display:none;" />
+
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button type="button" class="btn secondary" id="close-add-money">Cancel</button>
+        <button type="submit" class="btn" id="start-paystack">Pay Now (₦)</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -140,11 +145,12 @@
 
 <script type="module">
   // --- CONFIG ---
+  // IMPORTANT: Ensure this API key is correct for your account.
   const PAYSTACK_PUBLIC_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, onSnapshot, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, doc, onSnapshot, updateDoc, collection, addDoc, query, orderBy, limit, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
@@ -165,12 +171,14 @@
   const sideUser = document.getElementById('side-user');
   const greeting = document.getElementById('greeting');
   const txList = document.getElementById('tx-list');
-  const openWalletBtn = document.getElementById('open-wallet');
   const openAddMoneyBtn = document.getElementById('open-add-money');
   const addMoneyModal = document.getElementById('add-money-modal');
   const closeAddMoneyBtn = document.getElementById('close-add-money');
-  const startPayBtn = document.getElementById('start-paystack');
+  // New references for custom form
+  const depositForm = document.getElementById('deposit-form');
   const payAmountInput = document.getElementById('pay-amount');
+  const payEmailHidden = document.getElementById('pay-email-hidden');
+  const payNameHidden = document.getElementById('pay-name-hidden');
   
   // Buy Number Refs
   const openBuyBtn = document.getElementById('open-buy-modal');
@@ -186,10 +194,17 @@
       return;
     }
     currentUser = user;
-    // Set Name (or Email if name missing)
+    
+    // FIX 1: User Name Personalization
     const displayName = user.displayName || user.email.split('@')[0];
     sideUser.textContent = displayName;
+    // Removed hardcoded greeting and inserted the actual user's name
     greeting.textContent = `Welcome, ${displayName}`;
+    
+    // Set hidden fields for Paystack
+    payEmailHidden.value = user.email;
+    payNameHidden.value = displayName;
+
 
     // 2. Real-time Balance
     onSnapshot(doc(db, "users", user.uid), (doc) => {
@@ -207,11 +222,6 @@
 
   // --- NAVIGATION & MODALS ---
   
-  // Open Wallet Page
-  openWalletBtn.addEventListener('click', () => {
-    window.location.href = 'wallet.html';
-  });
-
   // Fund Wallet Modal
   openAddMoneyBtn.addEventListener('click', () => {
     addMoneyModal.classList.add('open');
@@ -235,30 +245,37 @@
 
   // --- FUNCTIONALITY ---
 
-  // Paystack Payment
-  startPayBtn.addEventListener('click', () => {
+  // FIX 3: Custom Paystack Payment Form Logic
+  depositForm.addEventListener('submit', (e) => {
+    e.preventDefault();
     const amount = Number(payAmountInput.value);
+    const email = payEmailHidden.value;
+    
     if (!amount || amount < 50) {
       alert("Minimum deposit is ₦50");
       return;
     }
+    
+    // Disable button and show loading state if you want
+    // document.getElementById('start-paystack').disabled = true;
 
-    const handler = PaystackPop.setup({
+    PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
-      email: currentUser.email,
+      email: email,
       amount: amount * 100, // in kobo
       currency: 'NGN',
-      ref: '' + Math.floor((Math.random() * 1000000000) + 1),
+      ref: 'SL-' + Math.floor((Math.random() * 1000000000) + 1), // Generate unique reference
       callback: function(response) {
         // Payment success: Update Firestore
         processDeposit(amount, response.reference);
       },
       onClose: function() {
-        // alert('Window closed.');
+        // Re-enable button
+        // document.getElementById('start-paystack').disabled = false;
       }
-    });
-    handler.openIframe();
+    }).openIframe();
   });
+
 
   async function processDeposit(amount, ref) {
     addMoneyModal.classList.remove('open');
@@ -266,32 +283,21 @@
     
     try {
       const userRef = doc(db, "users", currentUser.uid);
-      // Auto-create transactions collection if missing
+      
+      // 1. Record the Transaction
       await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
         type: 'deposit',
         amount: amount,
         date: new Date().toISOString(),
         reference: ref,
-        note: 'Wallet Funding'
+        note: 'Wallet Funding (Paystack)'
       });
       
-      // We also need to get current balance to update it safely
-      // (For production, use runTransaction, but this works for basic needs)
-      // Note: Since we are using onSnapshot, the UI updates automatically after this write.
-      // Ideally, use a Cloud Function to listen to the transaction, but we will do client-side update:
-      // We assume the user document exists.
-      // We will rely on a separate read to update the balance increment.
-      
-      // Simple increment logic for client-side fix:
-      // Note: This requires the current balance first.
-      // Since onSnapshot has it, we can't grab it easily here without a fetch.
-      // Let's do a quick runTransaction to be safe and professional.
-      
-      const { runTransaction } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
-      
+      // 2. Update the Balance using runTransaction for safety
       await runTransaction(db, async (transaction) => {
         const sfDoc = await transaction.get(userRef);
         if (!sfDoc.exists()) {
+           // Should not happen if signup worked, but for safety:
            transaction.set(userRef, { balance: amount });
         } else {
            const newBal = (sfDoc.data().balance || 0) + amount;
