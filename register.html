@@ -1,323 +1,192 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Sublime Logs - Sign Up</title><link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet"><style>
-  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sublime Logs - Sign Up</title>
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
+<style>
   body {
-  
-    font-family: 'David', sans-serif;
-  
     margin: 0;
-  
-    background: #fefefe;
-  
-    display: flex;
-  
-    justify-content: center;
-  
-    align-items: center;
-  
+    font-family: 'David', sans-serif;
+    background: linear-gradient(135deg, #8e44ad, #e91e63);
     height: 100vh;
-  
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
-  
-  .signup-container {
-  
-    background: #fff;
-  
-    padding: 40px;
-  
-    border-radius: 15px;
-  
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-  
-    width: 350px;
-  
-    text-align: center;
-  
-  }
-  
-  .signup-container h1 {
-  
-    font-family: 'Lobster', cursive;
-  
-    font-size: 2.5em;
-  
-    color: #9b59b6;
-  
-    margin-bottom: 10px;
-  
-  }
-  
-  .signup-container p {
-  
-    font-style: italic;
-  
-    color: #666;
-  
-    margin-bottom: 30px;
-  
-  }
-  
-  input[type="text"], input[type="email"], input[type="password"] {
-  
-    width: 100%;
-  
-    padding: 12px 15px;
-  
-    margin: 10px 0;
-  
-    border-radius: 8px;
-  
-    border: 1px solid #ccc;
-  
-    outline: none;
-  
-    font-size: 1em;
-  
-  }
-  
-  .password-wrapper {
-  
-    position: relative;
-  
-  }
-  
-  #toggle-password, #toggle-confirm-password {
-  
-    position: absolute;
-  
-    right: 15px;
-  
-    top: 50%;
-  
-    transform: translateY(-50%);
-  
-    cursor: pointer;
-  
-    font-weight: bold;
-  
-    color: #9b59b6;
-  
-    user-select: none;
-  
-  }
-  
-  button {
-  
-    width: 100%;
-  
-    padding: 12px;
-  
-    margin-top: 15px;
-  
-    border: none;
-  
-    border-radius: 8px;
-  
-    background: linear-gradient(90deg, #9b59b6, #e91e63);
-  
+
+  .container {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    padding: 40px 35px;
+    width: 360px;
     color: #fff;
-  
+    text-align: center;
+  }
+
+  .container h1 {
+    font-family: 'Lobster', cursive;
+    font-size: 2.2em;
+    margin-bottom: 8px;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+  }
+
+  .container h2 {
     font-size: 1.1em;
-  
+    font-weight: normal;
+    color: #f1f1f1;
+    margin-bottom: 30px;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    margin-bottom: 15px;
+    font-size: 0.95em;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+  }
+
+  .password-container {
+    position: relative;
+  }
+
+  .toggle-eye {
+    position: absolute;
+    right: 12px;
+    top: 11px;
     cursor: pointer;
-  
-    transition: 0.3s;
-  
+    color: #8e44ad;
+    font-size: 1.1em;
   }
-  
+
+  button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1em;
+    color: white;
+    cursor: pointer;
+    background: linear-gradient(90deg, #8e44ad, #e91e63);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+  }
+
   button:hover {
-  
-    opacity: 0.9;
-  
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(233,30,99,0.4);
   }
-  
+
   a {
-  
     display: block;
-  
-    margin-top: 10px;
-  
-    color: #9b59b6;
-  
+    margin-top: 15px;
+    color: #fff;
     text-decoration: none;
-  
-    font-weight: bold;
-  
+    font-size: 0.9em;
+    opacity: 0.9;
   }
-  
+
   a:hover {
-  
+    opacity: 1;
     text-decoration: underline;
-  
   }
-  
-</style></head><body><div class="signup-container">  <h1>Sublime Logs</h1>  <p>Create your account</p>  <form id="signup-form"><input type="text" id="first-name" placeholder="First Name" required>
 
-<input type="text" id="surname" placeholder="Surname" required>
+</style>
+</head>
+<body>
 
-<input type="email" id="signup-email" placeholder="Email" required>
+<div class="container">
+  <h1>Sublime Logs</h1>
+  <h2>Create Your Account</h2>
 
+  <form id="signup-form">
+    <input type="text" id="first-name" placeholder="First Name" required>
+    <input type="text" id="surname" placeholder="Surname" required>
+    <input type="email" id="signup-email" placeholder="Email" required>
 
+    <div class="password-container">
+      <input type="password" id="signup-password" placeholder="Password" required>
+      <span class="toggle-eye" onclick="togglePassword('signup-password', this)">👁</span>
+    </div>
 
-<div class="password-wrapper">
+    <div class="password-container">
+      <input type="password" id="signup-confirm-password" placeholder="Confirm Password" required>
+      <span class="toggle-eye" onclick="togglePassword('signup-confirm-password', this)">👁</span>
+    </div>
 
-  <input type="password" id="signup-password" placeholder="Password" required>
-
-  <span id="toggle-password">👁️</span>
-
+    <button type="submit">Sign Up</button>
+  </form>
+  <a href="login.html">Already have an account? Login</a>
 </div>
 
-
-
-<div class="password-wrapper">
-
-  <input type="password" id="signup-confirm-password" placeholder="Confirm Password" required>
-
-  <span id="toggle-confirm-password">👁️</span>
-
-</div>
-
-
-
-<button type="submit">Sign Up</button>
-
-  </form><a href="login.html">Already have an account? Login</a>
-
-</div><script type="module">
-  
-  import { auth } from './js/firebase.js';
-  
-  import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
   import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-  
 
-  
-  const db = getFirestore();
-  
+  const firebaseConfig = {
+    apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
+    authDomain: "sublime-log.firebaseapp.com",
+    projectId: "sublime-log",
+    storageBucket: "sublime-log.firebasestorage.app",
+    messagingSenderId: "644554254089",
+    appId: "1:644554254089:web:dd3374c9468046a5a015d8",
+    measurementId: "G-YMPGVWCK16"
+  };
 
-  
-  // Show/Hide Passwords
-  
-  const togglePassword = document.getElementById('toggle-password');
-  
-  const toggleConfirm = document.getElementById('toggle-confirm-password');
-  
-  const passwordInput = document.getElementById('signup-password');
-  
-  const confirmInput = document.getElementById('signup-confirm-password');
-  
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-  
-  togglePassword.addEventListener('click', () => {
-  
-    passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
-  
-  });
-  
-  toggleConfirm.addEventListener('click', () => {
-  
-    confirmInput.type = confirmInput.type === 'password' ? 'text' : 'password';
-  
-  });
-  
-
-  
-  // Email/Password Sign Up
-  
-  const signupForm = document.getElementById('signup-form');
-  
-  signupForm.addEventListener('submit', async (e) => {
-  
+  document.getElementById("signup-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-  
-    const firstName = document.getElementById('first-name').value.trim();
-  
-    const surname = document.getElementById('surname').value.trim();
-  
-    const email = document.getElementById('signup-email').value.trim();
-  
-    const password = passwordInput.value;
-  
-    const confirm = confirmInput.value;
-  
+    const firstName = document.getElementById("first-name").value.trim();
+    const surname = document.getElementById("surname").value.trim();
+    const email = document.getElementById("signup-email").value.trim();
+    const password = document.getElementById("signup-password").value;
+    const confirm = document.getElementById("signup-confirm-password").value;
 
-  
     if (password !== confirm) {
-  
       alert("Passwords do not match!");
-  
       return;
-  
     }
-  
 
-  
     try {
-  
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  
-      const user = userCredential.user;
-  
-
-  
-      // Update display name
-  
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCred.user;
       await updateProfile(user, { displayName: `${firstName} ${surname}` });
-  
-
-  
-      // Create Firestore document
-  
-      await setDoc(doc(db, 'users', user.uid), {
-  
+      await setDoc(doc(db, "users", user.uid), {
         firstName,
-  
         surname,
-  
         email,
-  
         balance: 0
-  
       });
-  
-
-  
-      alert(`Account created successfully! Welcome ${firstName}`);
-  
-
-  
-      // Get ID token and send to backend for verification
-  
-      const idToken = await user.getIdToken();
-  
-      const response = await fetch('http://localhost:5000/verifyToken', {
-  
-        method: 'POST',
-  
-        headers: { 'Content-Type': 'application/json' },
-  
-        body: JSON.stringify({ token: idToken })
-  
-      });
-  
-      const data = await response.json();
-  
-      console.log('Server verification:', data);
-  
-
-  
-      // Redirect to dashboard
-  
-      window.location.href = "dashboard.html";
-  
-    } catch (error) {
-  
-      console.error(error);
-  
-      alert(error.message);
-  
+      alert("Account created successfully!");
+      window.location.href = "dashboard1.html";
+    } catch (err) {
+      alert(err.message);
     }
-  
   });
-  
-</script></body></html>
+
+  window.togglePassword = (id, icon) => {
+    const input = document.getElementById(id);
+    if (input.type === "password") {
+      input.type = "text";
+      icon.textContent = "🙈";
+    } else {
+      input.type = "password";
+      icon.textContent = "👁";
+    }
+  };
+</script>
+
+</body>
+</html>
