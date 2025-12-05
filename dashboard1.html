@@ -11,11 +11,15 @@
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:Inter,system-ui,Arial;background:radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.06), transparent 5%),linear-gradient(180deg,#020408 0%, #061018 100%);color:#e6eef6;min-height:100vh;display:flex;}
+  
+  /* Sidebar */
   .sidebar{width:260px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-right:1px solid rgba(255,255,255,0.03);padding:28px 20px;display:flex;flex-direction:column;gap:18px}
   .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;color:#051018;font-size:18px}
   nav{display:flex;flex-direction:column;gap:10px;margin-top:6px}
   .nav-link{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer;text-decoration:none;font-size:14px}
   .nav-link.active, .nav-link:hover{background: linear-gradient(90deg, rgba(124,92,255,0.06), rgba(110,231,183,0.03));color:#e9fef0}
+  
+  /* Main Layout */
   .main{flex:1;padding:28px;display:flex;flex-direction:column;gap:20px}
   .top-bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
   .card-row{display:flex;gap:18px;align-items:stretch}
@@ -23,22 +27,32 @@
   .big-card{flex:1.4}
   .balance-value{font-size:28px;font-weight:700;color:var(--accent)}
   .small{font-size:13px;color:var(--muted)}
+  
+  /* Buttons */
   .actions{display:flex;gap:12px}
-  .btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#051018;font-weight:700}
+  .btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#051018;font-weight:700; font-size:14px;}
   .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);box-shadow:none}
+  .btn:disabled {opacity: 0.7; cursor: not-allowed;}
   .buy-button{display:inline-block;padding:12px 16px;border-radius:12px;background:linear-gradient(90deg,#ff8a65,#ffb74d);color:#051018;font-weight:700;cursor:pointer}
-  .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.6);z-index:999}
+  
+  /* Modals */
+  .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.8);z-index:999; backdrop-filter: blur(4px);}
   .modal.open{display:flex}
-  .modal-card{width:400px;max-width:95%;background:#071018;padding:24px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+  .modal-card{width:640px;max-width:95%;background:#0f1720;padding:24px;border-radius:16px;border:1px solid rgba(255,255,255,0.05); box-shadow: 0 20px 40px rgba(0,0,0,0.5);}
   .form-row{display:flex;gap:8px;margin-top:12px}
-  input, select{padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.03);color:#e6eef6;outline:none; width:100%}
+  input, select{padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.2);color:#e6eef6;outline:none; width:100%; font-family: inherit;}
+  input:focus{border-color: var(--accent); background: rgba(0,0,0,0.4);}
+  
+  /* Transactions */
   .tx-list{margin-top:12px;max-height:320px;overflow:auto;background:var(--card);padding:12px;border-radius:10px}
-  .tx-item{display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid rgba(255,255,255,0.02)}
+  .tx-item{display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid rgba(255,255,255,0.02)}
   .tx-item:last-child{border-bottom:none}
+  
   @media(max-width:920px){.sidebar{display:none}.card-row{flex-direction:column}}
 </style>
 </head>
 <body>
+
 <aside class="sidebar">
   <div style="display:flex;align-items:center;gap:12px">
     <div class="logo">SL</div>
@@ -63,11 +77,11 @@
 <main class="main">
   <div class="top-bar">
     <div>
-      <h2 id="greeting">Welcome</h2>
-      <p class="small" id="subg">Your dashboard</p>
+      <h2 id="greeting" style="margin:0; font-size:24px;">Welcome</h2>
+      <p class="small" id="subg" style="margin-top:4px;">Your financial overview</p>
     </div>
     <div class="actions">
-      <a href="wallet.html" class="btn" id="open-wallet" style="text-decoration:none;">Open Wallet</a>
+      <button class="btn" id="open-wallet">Open Wallet</button>
       <button class="btn secondary" id="open-add-money">Fund Wallet</button>
     </div>
   </div>
@@ -78,8 +92,9 @@
       <div style="height:8px"></div>
       <div class="balance-value" id="balance">₦0.00</div>
     </div>
+    
     <div class="card big-card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;justify-content:space-between;align-items:center; height:100%">
         <div>
           <div class="small">Buy Number</div>
           <div style="height:6px"></div>
@@ -102,22 +117,20 @@
 </main>
 
 <div class="modal" id="add-money-modal">
-  <div class="modal-card">
+  <div class="modal-card" style="width:400px">
     <h3 style="margin:0 0 8px 0">Fund Wallet</h3>
-    <form id="deposit-form">
-      <div class="small">Enter amount to fund your wallet securely.</div>
-      <div style="height:10px"></div>
-      <input type="number" id="pay-amount" placeholder="Amount in Naira (e.g. 1000)" min="50" required />
-      <div style="height:15px"></div>
-      
-      <input type="email" id="pay-email-hidden" placeholder="Your Email" style="display:none;" required/>
-      <input type="text" id="pay-name-hidden" placeholder="Your Name" style="display:none;" />
-
-      <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button type="button" class="btn secondary" id="close-add-money">Cancel</button>
-        <button type="submit" class="btn" id="start-paystack">Pay Now (₦)</button>
-      </div>
-    </form>
+    <div class="small">Enter amount to deposit via Paystack</div>
+    
+    <div class="form-row">
+      <input type="number" id="pay-amount" placeholder="Amount (e.g. 1000)" min="100" />
+    </div>
+    
+    <div style="height:20px"></div>
+    
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button class="btn secondary" id="close-add-money">Cancel</button>
+      <button class="btn" id="start-paystack">Pay Now</button>
+    </div>
   </div>
 </div>
 
@@ -144,13 +157,13 @@
 <script src="https://js.paystack.co/v1/inline.js"></script>
 
 <script type="module">
-  // --- CONFIG ---
-  // IMPORTANT: Ensure this API key is correct for your account.
+  // --- CONFIGURATION ---
+  // Replace this with your actual Paystack Public Key
   const PAYSTACK_PUBLIC_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, onSnapshot, updateDoc, collection, addDoc, query, orderBy, limit, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, doc, onSnapshot, collection, addDoc, query, orderBy, limit, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
@@ -166,63 +179,81 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // UI References
+  // --- UI ELEMENTS ---
   const balanceEl = document.getElementById('balance');
   const sideUser = document.getElementById('side-user');
   const greeting = document.getElementById('greeting');
   const txList = document.getElementById('tx-list');
+  
+  // Navigation Buttons
+  const openWalletBtn = document.getElementById('open-wallet');
   const openAddMoneyBtn = document.getElementById('open-add-money');
+  
+  // Payment Modal Elements
   const addMoneyModal = document.getElementById('add-money-modal');
   const closeAddMoneyBtn = document.getElementById('close-add-money');
-  // New references for custom form
-  const depositForm = document.getElementById('deposit-form');
+  const startPayBtn = document.getElementById('start-paystack');
   const payAmountInput = document.getElementById('pay-amount');
-  const payEmailHidden = document.getElementById('pay-email-hidden');
-  const payNameHidden = document.getElementById('pay-name-hidden');
   
-  // Buy Number Refs
+  // Buy Modal Elements
   const openBuyBtn = document.getElementById('open-buy-modal');
   const buyModal = document.getElementById('buy-modal');
   const closeBuyBtn = document.getElementById('close-buy');
   
   let currentUser = null;
 
-  // 1. Auth Listener
+  // ---------------------------------------------
+  // 1. AUTHENTICATION & DATA LOADING
+  // ---------------------------------------------
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       window.location.href = 'login.html';
       return;
     }
     currentUser = user;
-    
-    // FIX 1: User Name Personalization
-    const displayName = user.displayName || user.email.split('@')[0];
-    sideUser.textContent = displayName;
-    // Removed hardcoded greeting and inserted the actual user's name
-    greeting.textContent = `Welcome, ${displayName}`;
-    
-    // Set hidden fields for Paystack
-    payEmailHidden.value = user.email;
-    payNameHidden.value = displayName;
 
-
-    // 2. Real-time Balance
-    onSnapshot(doc(db, "users", user.uid), (doc) => {
-      if (doc.exists()) {
-        const bal = doc.data().balance || 0;
+    // --- FIX FOR NAME DISPLAY ---
+    // We listen to the database for the name. 
+    // If "name" exists in DB, use it. If not, use Email.
+    onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        
+        // 1. Balance
+        const bal = data.balance || 0;
         balanceEl.textContent = formatCurrency(bal);
+
+        // 2. Name Logic
+        // Checks: Database Name -> Auth Display Name -> Email
+        let displayName = data.name; 
+        if(!displayName) displayName = user.displayName;
+        if(!displayName) displayName = user.email.split('@')[0];
+
+        // Update UI
+        sideUser.textContent = displayName;
+        greeting.textContent = `Welcome, ${displayName}`;
       } else {
+        // Fallback for new users with no DB record yet
         balanceEl.textContent = '₦0.00';
+        sideUser.textContent = user.email.split('@')[0];
+        greeting.textContent = `Welcome, ${user.email.split('@')[0]}`;
       }
     });
 
-    // 3. Load Transactions
+    // Load Transactions
     loadTransactions(user.uid);
   });
 
-  // --- NAVIGATION & MODALS ---
+  // ---------------------------------------------
+  // 2. NAVIGATION & MODALS
+  // ---------------------------------------------
   
-  // Fund Wallet Modal
+  // "Open Wallet" -> Goes to wallet.html
+  openWalletBtn.addEventListener('click', () => {
+    window.location.href = 'wallet.html';
+  });
+
+  // "Fund Wallet" -> Opens the Custom Modal
   openAddMoneyBtn.addEventListener('click', () => {
     addMoneyModal.classList.add('open');
   });
@@ -230,7 +261,7 @@
     addMoneyModal.classList.remove('open');
   });
 
-  // Buy Number Modal
+  // "Buy Number" Modal
   openBuyBtn.addEventListener('click', () => {
     buyModal.classList.add('open');
   });
@@ -243,103 +274,124 @@
     signOut(auth).then(() => window.location.href = 'login.html');
   });
 
-  // --- FUNCTIONALITY ---
-
-  // FIX 3: Custom Paystack Payment Form Logic
-  depositForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+  // ---------------------------------------------
+  // 3. PAYMENT LOGIC (PAYSTACK)
+  // ---------------------------------------------
+  startPayBtn.addEventListener('click', () => {
     const amount = Number(payAmountInput.value);
-    const email = payEmailHidden.value;
     
-    if (!amount || amount < 50) {
-      alert("Minimum deposit is ₦50");
+    // Validation
+    if (!amount || amount < 100) {
+      alert("Minimum deposit is ₦100");
       return;
     }
-    
-    // Disable button and show loading state if you want
-    // document.getElementById('start-paystack').disabled = true;
 
-    PaystackPop.setup({
+    // UX: Change button text
+    const originalText = startPayBtn.textContent;
+    startPayBtn.textContent = "Processing...";
+    startPayBtn.disabled = true;
+
+    // Call Paystack
+    const handler = PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
-      email: email,
-      amount: amount * 100, // in kobo
+      email: currentUser.email,
+      amount: amount * 100, // Paystack expects Kobo
       currency: 'NGN',
-      ref: 'SL-' + Math.floor((Math.random() * 1000000000) + 1), // Generate unique reference
+      ref: 'SL-' + Math.floor((Math.random() * 1000000000) + 1), // Unique Reference
+      
+      // On Success
       callback: function(response) {
-        // Payment success: Update Firestore
+        startPayBtn.textContent = "Verifying...";
         processDeposit(amount, response.reference);
       },
+      
+      // On Close
       onClose: function() {
-        // Re-enable button
-        // document.getElementById('start-paystack').disabled = false;
+        startPayBtn.textContent = originalText;
+        startPayBtn.disabled = false;
       }
-    }).openIframe();
+    });
+    
+    handler.openIframe();
   });
 
-
   async function processDeposit(amount, ref) {
-    addMoneyModal.classList.remove('open');
-    payAmountInput.value = '';
-    
     try {
       const userRef = doc(db, "users", currentUser.uid);
       
-      // 1. Record the Transaction
+      // A. Create Transaction Record
       await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
         type: 'deposit',
         amount: amount,
         date: new Date().toISOString(),
         reference: ref,
-        note: 'Wallet Funding (Paystack)'
+        note: 'Wallet Funded'
       });
       
-      // 2. Update the Balance using runTransaction for safety
+      // B. Update Balance Atomically
       await runTransaction(db, async (transaction) => {
         const sfDoc = await transaction.get(userRef);
         if (!sfDoc.exists()) {
-           // Should not happen if signup worked, but for safety:
-           transaction.set(userRef, { balance: amount });
+           transaction.set(userRef, { balance: amount, email: currentUser.email });
         } else {
            const newBal = (sfDoc.data().balance || 0) + amount;
            transaction.update(userRef, { balance: newBal });
         }
       });
 
-      alert("Deposit Successful! Wallet credited.");
+      // C. Reset UI
+      addMoneyModal.classList.remove('open');
+      payAmountInput.value = '';
+      startPayBtn.textContent = "Pay Now";
+      startPayBtn.disabled = false;
+      alert("Success! ₦" + amount + " has been added.");
+
     } catch (e) {
-      console.error("Error updating balance:", e);
-      alert("Payment successful but network error updating balance. Contact support with Ref: " + ref);
+      console.error("Error:", e);
+      startPayBtn.textContent = "Pay Now";
+      startPayBtn.disabled = false;
+      alert("Payment verified, but network error updating balance. Ref: " + ref);
     }
   }
 
+  // ---------------------------------------------
+  // 4. LOAD TRANSACTIONS
+  // ---------------------------------------------
   async function loadTransactions(uid) {
     txList.innerHTML = '<div class="tx-item"><div class="small">Loading...</div></div>';
+    
+    // Query: Last 10 items
     const q = query(collection(db, "users", uid, "transactions"), orderBy("date", "desc"), limit(10));
     
     try {
       const querySnapshot = await getDocs(q);
       txList.innerHTML = '';
+      
       if(querySnapshot.empty) {
         txList.innerHTML = '<div class="tx-item"><div class="small">No transactions yet</div></div>';
         return;
       }
+
       querySnapshot.forEach((doc) => {
         const tx = doc.data();
         const isCredit = tx.type === 'deposit' || tx.type === 'credit';
+        const amountClean = isNaN(tx.amount) ? 0 : tx.amount;
+
         const item = document.createElement('div');
         item.className = 'tx-item';
         item.innerHTML = `
           <div>
-            <div style="font-weight:700">${isCredit ? '+' : '-'} ${formatCurrency(tx.amount)}</div>
+            <div style="font-weight:700">${isCredit ? '+' : '-'} ${formatCurrency(amountClean)}</div>
             <div class="small">${new Date(tx.date).toLocaleDateString()} • ${tx.note || tx.type}</div>
           </div>
           <div style="font-weight:700; color: ${isCredit ? 'var(--accent)' : '#ff8a8a'}">
-            ${tx.type.toUpperCase()}
+            ${(tx.type || 'TX').toUpperCase()}
           </div>
         `;
         txList.appendChild(item);
       });
     } catch (e) {
+      console.log(e);
       txList.innerHTML = '<div class="tx-item"><div class="small">No activity found.</div></div>';
     }
   }
