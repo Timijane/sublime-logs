@@ -102,7 +102,7 @@
   /* Forms */
   .form-wrapper { 
     position: relative; 
-    min-height: 350px;
+    min-height: 420px; /* Increased height to accommodate stacked names */
   }
 
   form {
@@ -166,10 +166,11 @@
     transform: translateY(-2px); 
   }
 
-  /* Name fields - FIXED for mobile */
+  /* --- FIXED: Name fields are now stacked vertically --- */
   .name-fields {
     display: flex;
-    gap: 10px;
+    flex-direction: column; /* This makes them stack */
+    gap: 15px;
     width: 100%;
   }
 
@@ -244,27 +245,8 @@
       margin: 10px;
     }
     
-    .name-fields {
-      flex-direction: column;
-      gap: 15px;
-    }
-    
-    .name-fields input {
-      width: 100% !important;
-    }
-    
     input {
       font-size: 16px; /* Prevents zoom on iOS */
-    }
-  }
-
-  @media (max-width: 350px) {
-    .container {
-      padding: 20px 15px;
-    }
-    
-    .brand h1 {
-      font-size: 1.7em;
     }
   }
 
@@ -325,7 +307,6 @@
 </head>
 <body>
 
-<!-- Forgot Password Modal -->
 <div class="forgot-modal" id="forgotModal">
   <div class="forgot-modal-content">
     <h3>Reset Password</h3>
@@ -374,8 +355,8 @@
 
     <form id="signup-form" class="hidden">
       <div class="name-fields">
-        <input type="text" id="first-name" placeholder="First Name" required style="flex: 1;">
-        <input type="text" id="surname" placeholder="Surname" required style="flex: 1;">
+        <input type="text" id="first-name" placeholder="First Name" required>
+        <input type="text" id="surname" placeholder="Surname" required>
       </div>
       <input type="email" id="signup-email" placeholder="Email Address" required>
       <input type="password" id="signup-password" placeholder="Create Password" required minlength="6">
@@ -422,7 +403,7 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Set persistence for user session
+  // Set persistence
   setPersistence(auth, browserLocalPersistence).catch((error) => {
     console.error("Persistence error:", error);
   });
@@ -436,27 +417,25 @@
   const resetError = document.getElementById('reset-error');
   const resetSuccess = document.getElementById('reset-success');
 
-  // Check if user is already logged in - FIXED REDIRECTION
+  // --- LOGIN CHECK ON PAGE LOAD ---
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      console.log("User detected, checking registration status...");
-      
-      // Check if user is registered in Firestore
+      console.log("Session detected, verifying...");
+      // Check if user is in DB before redirecting
       const userDocRef = doc(db, "users", user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      
-      // Only redirect if user is properly registered
-      if (userDocSnap.exists()) {
-        window.location.href = "dashboard1.html";
-      } else {
-        // If user exists in auth but not in Firestore, log them out
-        console.log("User not registered in database, logging out...");
-        auth.signOut();
+      try {
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+           // Redirect found
+           window.location.href = "dashboard1.html";
+        }
+      } catch (e) {
+        console.error("Error verifying user", e);
       }
     }
   });
 
-  // Tab Switching Function
+  // Tab Switching
   window.switchTab = (tab) => {
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
@@ -475,7 +454,7 @@
     }
   };
 
-  // Forgot Password Functionality
+  // Forgot Password
   forgotPasswordLink.addEventListener('click', (e) => {
     e.preventDefault();
     resetError.textContent = '';
@@ -490,20 +469,15 @@
 
   sendResetBtn.addEventListener('click', async () => {
     const email = resetEmailInput.value.trim();
-    
     if (!email) {
       resetError.textContent = 'Please enter your email address';
       return;
     }
-
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       resetError.textContent = 'Please enter a valid email address';
       return;
     }
-
-    // Show loading state
     sendResetBtn.textContent = 'Sending...';
     sendResetBtn.disabled = true;
     resetError.textContent = '';
@@ -511,48 +485,28 @@
 
     try {
       await sendPasswordResetEmail(auth, email);
-      
       resetSuccess.textContent = 'Password reset email sent! Check your inbox.';
       resetEmailInput.value = '';
-      
-      // Hide modal after 3 seconds
       setTimeout(() => {
         forgotModal.style.display = 'none';
         sendResetBtn.textContent = 'Send Reset Link';
         sendResetBtn.disabled = false;
       }, 3000);
-      
     } catch (error) {
-      console.error("Password reset error:", error);
-      
-      // User-friendly error messages
-      switch(error.code) {
-        case 'auth/user-not-found':
-          resetError.textContent = 'No account found with this email';
-          break;
-        case 'auth/invalid-email':
-          resetError.textContent = 'Invalid email address';
-          break;
-        case 'auth/too-many-requests':
-          resetError.textContent = 'Too many attempts. Please try again later';
-          break;
-        default:
-          resetError.textContent = 'Error sending reset email. Please try again';
-      }
-      
+      console.error("Reset error:", error);
+      resetError.textContent = getFriendlyError(error.code);
       sendResetBtn.textContent = 'Send Reset Link';
       sendResetBtn.disabled = false;
     }
   });
 
-  // Close modal when clicking outside
   window.addEventListener('click', (e) => {
     if (e.target === forgotModal) {
       forgotModal.style.display = 'none';
     }
   });
 
-  // Login Logic - FIXED: Only redirect registered users
+  // --- LOGIN LOGIC ---
   document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('login-email').value.trim();
@@ -564,18 +518,19 @@
     loginError.textContent = '';
 
     try {
+      // 1. Authenticate
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Check if user exists in Firestore
+      // 2. Verify in Database
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
       
       if (userDocSnap.exists()) {
-        // User is registered, redirect will happen via onAuthStateChanged
-        console.log("User logged in successfully, redirecting...");
+        console.log("Login success. Redirecting...");
+        // 3. FORCE REDIRECT HERE - Do not wait for listener
+        window.location.href = "dashboard1.html";
       } else {
-        // User doesn't exist in Firestore, sign them out
         await auth.signOut();
         throw new Error('User not registered. Please sign up first.');
       }
@@ -585,7 +540,7 @@
     }
   });
 
-  // Signup Logic - FIXED: Properly store user data
+  // --- SIGNUP LOGIC ---
   document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fname = document.getElementById('first-name').value.trim();
@@ -596,17 +551,14 @@
     const loader = document.getElementById('loader');
     const signupError = document.getElementById('signup-error');
 
-    // Validation
     if (!fname || !sname) {
       signupError.textContent = "Please enter both first name and surname";
       return;
     }
-
     if (pass.length < 6) {
       signupError.textContent = "Password must be at least 6 characters";
       return;
     }
-
     if (pass !== confirm) {
       signupError.textContent = "Passwords do not match.";
       return;
@@ -616,27 +568,27 @@
     signupError.textContent = '';
 
     try {
-      // Create user in Firebase Auth
+      // 1. Create Auth User
       const userCred = await createUserWithEmailAndPassword(auth, email, pass);
       const user = userCred.user;
       
-      // Update Firebase Auth profile
       const fullName = `${fname} ${sname}`;
       await updateProfile(user, { displayName: fullName });
       
-      // Create user document in Firestore with all necessary fields
+      // 2. Save to Firestore
       await setDoc(doc(db, "users", user.uid), {
         firstName: fname,
         surname: sname,
-        fullName: fullName,
+        name: fullName, // Added 'name' field for dashboard compatibility
         email: email,
         balance: 0,
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString()
       });
 
-      console.log("User created successfully, redirecting...");
-      // Redirect will happen via onAuthStateChanged
+      console.log("Account created. Redirecting...");
+      // 3. FORCE REDIRECT
+      window.location.href = "dashboard1.html";
       
     } catch (error) {
       loader.style.display = 'none';
@@ -644,7 +596,6 @@
     }
   });
 
-  // Helper function for user-friendly error messages
   function getFriendlyError(code) {
     const errors = {
       'auth/invalid-email': 'Invalid email address',
@@ -652,29 +603,13 @@
       'auth/user-not-found': 'No account found with this email',
       'auth/wrong-password': 'Incorrect password',
       'auth/email-already-in-use': 'Email already registered',
-      'auth/operation-not-allowed': 'Operation not allowed',
       'auth/weak-password': 'Password is too weak',
       'auth/too-many-requests': 'Too many attempts. Try again later',
       'User not registered. Please sign up first.': 'User not registered. Please sign up first.',
     };
-    
     return errors[code] || `Error: ${code}`;
   }
-
-  // Fix for mobile view - prevent zoom on input focus
-  document.addEventListener('DOMContentLoaded', () => {
-    const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
-    
-    inputs.forEach(input => {
-      input.addEventListener('focus', () => {
-        if (window.innerWidth <= 768) {
-          // Prevent zoom on iOS
-          input.style.fontSize = '16px';
-        }
-      });
-    });
-  });
 </script>
 
 </body>
-      </html>
+</html>
