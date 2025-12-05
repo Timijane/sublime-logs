@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,7 +31,7 @@
   .container {
     background: var(--glass);
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px); /* Safari Fix */
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
@@ -56,13 +57,9 @@
     -webkit-text-fill-color: transparent;
   }
 
-  .brand p {
-    margin: 5px 0 0;
-    font-size: 0.9em;
-    opacity: 0.7;
-  }
+  .brand p { margin: 5px 0 0; font-size: 0.9em; opacity: 0.7; }
 
-  /* Form Toggle Slider */
+  /* Tab Slider */
   .toggle-box {
     display: flex;
     background: rgba(0,0,0,0.2);
@@ -96,106 +93,49 @@
   }
 
   /* Forms */
-  .form-wrapper {
-    position: relative;
-    min-height: 320px; /* Pre-allocate space */
-  }
+  .form-wrapper { position: relative; min-height: 320px; }
 
   form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    display: flex; flex-direction: column; gap: 15px;
     transition: opacity 0.3s ease, transform 0.3s ease;
-    position: absolute;
-    width: 100%;
-    top: 0;
-    left: 0;
+    position: absolute; width: 100%; top: 0; left: 0;
   }
 
-  form.hidden {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(20px);
-    visibility: hidden;
-  }
-
-  form.active {
-    opacity: 1;
-    pointer-events: all;
-    transform: translateX(0);
-    visibility: visible;
-  }
+  form.hidden { opacity: 0; pointer-events: none; transform: translateX(20px); visibility: hidden; }
+  form.active { opacity: 1; pointer-events: all; transform: translateX(0); visibility: visible; }
 
   input {
-    width: 100%;
-    padding: 14px 16px;
-    border-radius: 12px;
+    width: 100%; padding: 14px 16px; border-radius: 12px;
     border: 1px solid rgba(255,255,255,0.1);
     background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-    font-size: 16px; /* Prevents zoom on iPhone */
-    outline: none;
+    color: #fff; font-size: 16px; outline: none;
     transition: border-color 0.3s;
   }
 
-  input:focus {
-    border-color: var(--secondary);
-    background: rgba(255, 255, 255, 0.1);
-  }
+  input:focus { border-color: var(--secondary); background: rgba(255, 255, 255, 0.1); }
 
   button {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    border: none;
-    font-size: 16px;
-    font-weight: 700;
-    color: white;
-    cursor: pointer;
+    width: 100%; padding: 14px; border-radius: 12px; border: none;
+    font-size: 16px; font-weight: 700; color: white; cursor: pointer;
     background: linear-gradient(90deg, var(--primary), var(--secondary));
-    box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
-    margin-top: 10px;
-    transition: transform 0.2s;
+    box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3); margin-top: 10px;
   }
+  button:hover { transform: translateY(-2px); }
 
-  button:active {
-    transform: scale(0.98);
-  }
+  .error-msg { color: #ff6b6b; font-size: 0.85em; text-align: center; margin-top: 10px; min-height: 20px; }
 
-  button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-
-  .error-msg {
-    color: #ff6b6b;
-    font-size: 0.85em;
-    text-align: center;
-    margin-top: 10px;
-    min-height: 20px;
-  }
-
-  /* Loading Overlay */
+  /* Loader */
   .loader {
-    display: none;
-    position: absolute;
-    top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(5px);
-    z-index: 10;
-    justify-content: center;
-    align-items: center;
-    border-radius: 24px;
+    display: none; position: absolute; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 10;
+    justify-content: center; align-items: center; border-radius: 24px;
   }
   .spinner {
-    width: 40px; height: 40px;
-    border: 4px solid #fff;
-    border-top-color: transparent;
-    border-radius: 50%;
+    width: 40px; height: 40px; border: 4px solid #fff;
+    border-top-color: transparent; border-radius: 50%;
     animation: spin 1s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-
 </style>
 </head>
 <body>
@@ -205,7 +145,7 @@
 
   <div class="brand">
     <h1>Sublime Logs</h1>
-    <p>Welcome back</p>
+    <p>Access your dashboard</p>
   </div>
 
   <div class="toggle-box">
@@ -241,6 +181,7 @@
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
   import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
+  // YOUR CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
     authDomain: "sublime-log.firebaseapp.com",
@@ -255,68 +196,58 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // 1. Force Local Persistence (Fixes iPhone/Safari issues)
+  // 1. CRITICAL: Fix for iPhone/Android Loops
+  // This ensures the user stays logged in even if the browser closes
   setPersistence(auth, browserLocalPersistence).catch((error) => {
     console.error("Persistence error:", error);
   });
 
-  // 2. Global State Listener (The core fix for redirection)
-  // If user is already logged in, move them to dashboard automatically
+  // 2. CRITICAL: Auto-Redirect to dashboard1.html
+  // As soon as Firebase detects a login, it moves to the dashboard
   onAuthStateChanged(auth, (user) => {
     if (user) {
+      console.log("User detected, redirecting...");
       window.location.href = "dashboard1.html";
     }
   });
 
-  // UI Switching Logic
+  // UI Switching
   window.switchTab = (tab) => {
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
     const slider = document.getElementById('slider');
-    const loginErr = document.getElementById('login-error');
-    const signupErr = document.getElementById('signup-error');
-
-    // Clear errors
-    loginErr.textContent = ''; 
-    signupErr.textContent = '';
+    document.getElementById('login-error').textContent = ''; 
+    document.getElementById('signup-error').textContent = '';
 
     if (tab === 'login') {
-      loginForm.classList.add('active');
-      loginForm.classList.remove('hidden');
-      signupForm.classList.remove('active');
-      signupForm.classList.add('hidden');
+      loginForm.className = 'active'; signupForm.className = 'hidden';
       slider.style.transform = 'translateX(0)';
     } else {
-      signupForm.classList.add('active');
-      signupForm.classList.remove('hidden');
-      loginForm.classList.remove('active');
-      loginForm.classList.add('hidden');
+      signupForm.className = 'active'; loginForm.className = 'hidden';
       slider.style.transform = 'translateX(100%)';
     }
   };
 
-  // Login Handler
+  // Login Logic
   document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
-    const errorDisplay = document.getElementById('login-error');
     const loader = document.getElementById('loader');
-
+    
     loader.style.display = 'flex';
-    errorDisplay.textContent = '';
+    document.getElementById('login-error').textContent = '';
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Note: We don't manually redirect here. 
-      // The onAuthStateChanged listener above handles it reliably.
+      // No need to redirect here manually; onAuthStateChanged handles it
     } catch (error) {
       loader.style.display = 'none';
-      errorDisplay.textContent = getFriendlyError(error.code);
+      document.getElementById('login-error').textContent = getFriendlyError(error.code);
     }
   });
 
-  // Signup Handler
+  // Signup Logic
   document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fname = document.getElementById('first-name').value.trim();
@@ -324,51 +255,38 @@
     const email = document.getElementById('signup-email').value.trim();
     const pass = document.getElementById('signup-password').value;
     const confirm = document.getElementById('signup-confirm').value;
-    const errorDisplay = document.getElementById('signup-error');
     const loader = document.getElementById('loader');
 
     if (pass !== confirm) {
-      errorDisplay.textContent = "Passwords do not match.";
+      document.getElementById('signup-error').textContent = "Passwords do not match.";
       return;
     }
 
     loader.style.display = 'flex';
-    errorDisplay.textContent = '';
+    document.getElementById('signup-error').textContent = '';
 
     try {
-      // Create Auth User
       const userCred = await createUserWithEmailAndPassword(auth, email, pass);
       const user = userCred.user;
-
-      // Update Display Name
+      
+      // Save name and create DB record
       await updateProfile(user, { displayName: `${fname} ${sname}` });
-
-      // Create Database Record
       await setDoc(doc(db, "users", user.uid), {
-        firstName: fname,
-        surname: sname,
-        email: email,
-        balance: 0,
-        createdAt: new Date().toISOString()
+        firstName: fname, surname: sname, email: email,
+        balance: 0, createdAt: new Date().toISOString()
       });
-
-      // Redirect happens automatically via onAuthStateChanged
+      // onAuthStateChanged handles redirect
     } catch (error) {
       loader.style.display = 'none';
-      errorDisplay.textContent = getFriendlyError(error.code);
+      document.getElementById('signup-error').textContent = getFriendlyError(error.code);
     }
   });
 
   function getFriendlyError(code) {
-    switch (code) {
-      case 'auth/invalid-email': return "Invalid email address.";
-      case 'auth/user-disabled': return "This account has been disabled.";
-      case 'auth/user-not-found': return "No account found with this email.";
-      case 'auth/wrong-password': return "Incorrect password.";
-      case 'auth/email-already-in-use': return "Email is already registered.";
-      case 'auth/weak-password': return "Password should be at least 6 chars.";
-      default: return "An error occurred. Please try again.";
-    }
+    if(code.includes('email')) return "Invalid or already used email.";
+    if(code.includes('password')) return "Wrong password or too weak.";
+    if(code.includes('not-found')) return "Account not found.";
+    return "Error: " + code;
   }
 </script>
 
