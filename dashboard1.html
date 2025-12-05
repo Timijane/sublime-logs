@@ -1,260 +1,81 @@
+<!-- dashboard1.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sublime Logs - Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Lobster&family=David:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  body {
-    margin: 0;
-    font-family: 'David', sans-serif;
-    background: linear-gradient(135deg, #8e44ad, #e91e63);
-    min-height: 100vh;
-    display: flex;
-  }
-
-  /* Sidebar */
-  .sidebar {
-    width: 250px;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(12px);
-    padding: 30px 20px;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .sidebar h2 {
-    font-family: 'Lobster', cursive;
-    margin-bottom: 30px;
-    font-size: 2em;
-    color: #fff;
-  }
-
-  .sidebar button {
-    background: none;
-    border: none;
-    color: #fff;
-    padding: 12px 0;
-    text-align: left;
-    font-size: 1em;
-    cursor: pointer;
-    margin-bottom: 10px;
-    transition: all 0.2s;
-  }
-
-  .sidebar button:hover {
-    color: #ffdd59;
-  }
-
-  /* Main Content */
-  .main {
-    flex: 1;
-    padding: 40px;
-    color: #fff;
-  }
-
-  .welcome {
-    font-size: 1.4em;
-    margin-bottom: 30px;
-  }
-
-  .balance-card {
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(12px);
-    padding: 25px 20px;
-    border-radius: 15px;
-    width: 300px;
-    margin-bottom: 30px;
-  }
-
-  .balance-card h3 {
-    margin: 0 0 10px 0;
-    font-size: 1em;
-    font-weight: normal;
-    color: #f1f1f1;
-  }
-
-  .balance-card p {
-    font-size: 1.8em;
-    margin: 0;
-    font-weight: bold;
-  }
-
-  .btn {
-    padding: 12px 20px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    font-size: 1em;
-    margin-right: 10px;
-    color: #fff;
-    background: linear-gradient(90deg, #8e44ad, #e91e63);
-    transition: all 0.3s ease;
-  }
-
-  .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(233,30,99,0.4);
-  }
-
-  .number-output {
-    margin-top: 20px;
-    padding: 15px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 12px;
-    width: 350px;
-    color: #fff;
-  }
-</style>
+<title>Dashboard</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+<h1>Welcome to your Dashboard</h1>
+<p>Your balance: <span id="balance">Loading...</span></p>
+<button id="addFundsBtn">Add $100</button>
+<button id="logoutBtn">Logout</button>
 
-<div class="sidebar">
-  <h2>Sublime Logs</h2>
-  <button id="wallet-btn">Wallet</button>
-  <button id="buy-number-btn">Buy Number</button>
-  <button id="logout-btn">Logout</button>
-</div>
-
-<div class="main">
-  <div class="welcome" id="welcome-msg">Welcome, User</div>
-
-  <div class="balance-card">
-    <h3>Your Wallet Balance</h3>
-    <p id="wallet-balance">₦0</p>
-    <button class="btn" id="fund-wallet-btn">Fund Wallet</button>
-  </div>
-
-  <div class="number-output" id="number-output" style="display:none;"></div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
-  authDomain: "sublime-log.firebaseapp.com",
-  projectId: "sublime-log",
-  storageBucket: "sublime-log.appspot.com",
-  messagingSenderId: "644554254089",
-  appId: "1:644554254089:web:dd3374c9468046a5a015d8",
-  measurementId: "G-YMPGVWCK16"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// Elements
-const welcomeMsg = document.getElementById("welcome-msg");
-const walletBalance = document.getElementById("wallet-balance");
-const fundWalletBtn = document.getElementById("fund-wallet-btn");
-const buyNumberBtn = document.getElementById("buy-number-btn");
-const logoutBtn = document.getElementById("logout-btn");
-const numberOutput = document.getElementById("number-output");
-
-// Helper: Get user balance
-async function getUserBalance(uid) {
-  const userRef = doc(db, "users", uid);
-  const userSnap = await getDoc(userRef);
-  return userSnap.exists() ? Number(userSnap.data().balance || 0) : 0;
-}
-
-// Helper: Update user balance
-async function updateUserBalance(uid, amount) {
-  const userRef = doc(db, "users", uid);
-  const currentBalance = await getUserBalance(uid);
-  await updateDoc(userRef, { balance: currentBalance + amount });
-
-  // Record transaction
-  const txRef = collection(db, "users", uid, "transactions");
-  await addDoc(txRef, {
-    amount,
-    type: amount > 0 ? "credit" : "debit",
-    date: new Date().toISOString()
-  });
-}
-
-// Show balance in UI
-async function refreshBalance(uid) {
-  const balance = await getUserBalance(uid);
-  walletBalance.textContent = `₦${balance.toLocaleString()}`;
-}
-
-// Paystack Fund Wallet
-function fundWallet(user) {
-  const handler = window.PaystackPop.setup({
-    key: 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492',
-    email: user.email,
-    amount: 5000 * 100, // Example ₦5000 default funding
-    currency: 'NGN',
-    ref: '' + Math.floor(Math.random() * 1000000000 + 1),
-    onClose: function(){
-      alert('Payment cancelled');
-    },
-    callback: async function(response){
-      // On successful payment, add amount to balance
-      await updateUserBalance(user.uid, 5000); // Add ₦5000
-      alert('Wallet funded successfully!');
-      refreshBalance(user.uid);
-    }
-  });
-  handler.openIframe();
-}
-
-// Buy Number (5sim placeholder)
-async function buyNumber(user) {
-  const price = 1500; // Example number cost
-  const balance = await getUserBalance(user.uid);
-
-  if(balance < price) {
-    alert('Insufficient funds! Please fund wallet.');
-    return;
-  }
-
-  // Deduct price
-  await updateUserBalance(user.uid, -price);
-
-  // Simulate 5sim API response
-  const numberData = {
-    number: '+2348012345678',
-    otp: '123456'
+<script>
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDVu5IQ3Y5bvgAfSKym8kXPpZZWKqMELTM",
+    authDomain: "sublime-logs.firebaseapp.com",
+    projectId: "sublime-logs",
+    storageBucket: "sublime-logs.firebasestorage.app",
+    messagingSenderId: "381847722551",
+    appId: "1:381847722551:web:8ec68f018291d3927f3db2",
+    measurementId: "G-8YHHJC1MP7"
   };
 
-  numberOutput.style.display = 'block';
-  numberOutput.innerHTML = `<strong>Number:</strong> ${numberData.number} <br> <strong>OTP:</strong> ${numberData.otp}`;
-  refreshBalance(user.uid);
-}
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-// Logout
-logoutBtn.addEventListener('click', () => {
-  signOut(auth).then(() => window.location.href = "login.html");
-});
+  // Ensure user is logged in
+  auth.onAuthStateChanged(async user => {
+    if (!user) {
+      window.location = 'login.html'; // redirect if not logged in
+      return;
+    }
 
-// Event listeners
-fundWalletBtn.addEventListener('click', () => fundWallet(currentUser));
-buyNumberBtn.addEventListener('click', () => buyNumber(currentUser));
+    const uid = user.uid;
 
-let currentUser = null;
+    // Auto-create wallet document if not exists
+    const walletRef = db.collection('wallets').doc(uid);
+    const walletDoc = await walletRef.get();
+    if (!walletDoc.exists) {
+      await walletRef.set({ balance: 0 });
+      console.log("Wallet created automatically!");
+    }
 
-// Check auth state
-onAuthStateChanged(auth, async user => {
-  if(user) {
-    currentUser = user;
-    welcomeMsg.textContent = `Welcome, ${user.displayName || user.email}`;
-    refreshBalance(user.uid);
-  } else {
-    window.location.href = 'login.html';
-  }
-});
+    // Show current balance
+    const snapshot = await walletRef.get();
+    document.getElementById('balance').innerText = snapshot.data().balance;
+
+    // Add funds button
+    document.getElementById('addFundsBtn').addEventListener('click', async () => {
+      const current = (await walletRef.get()).data().balance;
+      const newBalance = current + 100;
+      await walletRef.update({ balance: newBalance });
+
+      // Log transaction automatically
+      await db.collection('transactions').add({
+        uid: uid,
+        amount: 100,
+        type: 'Deposit',
+        date: firebase.firestore.Timestamp.now()
+      });
+
+      document.getElementById('balance').innerText = newBalance;
+      alert("Added $100 successfully!");
+    });
+
+    // Logout button
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.signOut().then(() => window.location = 'login.html');
+    });
+  });
 </script>
-
-<!-- Paystack JS -->
-<script src="https://js.paystack.co/v1/inline.js"></script>
 </body>
 </html>
