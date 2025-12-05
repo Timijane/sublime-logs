@@ -1,38 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Wallet — Sublime Logs</title>
-
 <style>
-  :root{
-    --bg:#0b0f13;
-    --card:#0f1720;
-    --muted:#98a0a8;
-    --accent:#6ee7b7;
-    --accent-2:#7c5cff;
-  }
+  :root{--bg:#0b0f13;--card:#0f1720;--muted:#98a0a8;--accent:#6ee7b7;--accent-2:#7c5cff}
   *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.04), transparent 5%), linear-gradient(180deg,#020408 0%, #061018 100%);
-    color:#e6eef6;
-    min-height:100vh;
-    display:flex;
-  }
-  .sidebar{
-    width:260px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-right:1px solid rgba(255,255,255,0.03);
-    padding:28px 20px;
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-  }
+  body{margin:0;font-family:Inter,system-ui,Arial;background:radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.04), transparent 5%),linear-gradient(180deg,#020408 0%, #061018 100%);color:#e6eef6;min-height:100vh;display:flex}
+  .sidebar{width:260px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-right:1px solid rgba(255,255,255,0.03);padding:28px 20px;display:flex;flex-direction:column;gap:18px}
   .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;color:#051018;font-size:18px}
-  nav{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
+  nav{display:flex;flex-direction:column;gap:10px;margin-top:6px}
   .nav-link{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer;text-decoration:none;font-size:14px}
   .nav-link.active, .nav-link:hover{background: linear-gradient(90deg, rgba(124,92,255,0.06), rgba(110,231,183,0.03));color:#e9fef0}
   .main{flex:1;padding:28px;display:flex;flex-direction:column;gap:20px}
@@ -53,260 +31,159 @@
 </head>
 <body>
 
-  <aside class="sidebar">
-    <div style="display:flex;align-items:center;gap:12px">
-      <div class="logo">SL</div>
-      <div>
-        <h1 style="margin:0;font-size:16px">Sublime Logs</h1>
-        <p style="margin:0;font-size:12px;color:var(--muted)">Wallet</p>
-      </div>
+<aside class="sidebar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">SL</div>
+    <div>
+      <h1 style="margin:0;font-size:16px">Sublime Logs</h1>
+      <p style="margin:0;font-size:12px;color:var(--muted)">Wallet</p>
+    </div>
+  </div>
+
+  <nav>
+    <a href="dashboard1.html" class="nav-link">Dashboard</a>
+    <a href="wallet.html" class="nav-link active">Wallet</a>
+    <a href="transactions.html" class="nav-link">Transactions</a>
+    <a href="profile.html" class="nav-link">Profile</a>
+    <a href="#" class="nav-link" id="btn-logout">Logout</a>
+  </nav>
+
+  <div style="margin-top:auto;font-size:12px;color:var(--muted)">
+    Signed in as:
+    <div id="side-user" style="margin-top:8px;font-weight:600"></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="top-bar">
+    <div>
+      <h2 style="margin:0">Wallet</h2>
+      <p class="small" id="emailSub">Manage your funds</p>
     </div>
 
-    <nav>
-      <a href="dashboard1.html" class="nav-link" id="nav-dashboard">Dashboard</a>
-      <a href="wallet.html" class="nav-link active" id="nav-wallet">Wallet</a>
-      <a href="transactions.html" class="nav-link" id="nav-tx">Transactions</a>
-      <a href="profile.html" class="nav-link" id="nav-profile">Profile</a>
-      <a href="#" class="nav-link" id="btn-logout">Logout</a>
-    </nav>
-
-    <div style="margin-top:auto;font-size:12px;color:var(--muted)">
-      Signed in as:
-      <div id="side-user" style="margin-top:8px;font-weight:600"></div>
+    <div style="display:flex;gap:8px">
+      <button id="btn-refresh">Refresh</button>
     </div>
-  </aside>
+  </div>
 
-  <main class="main">
-    <div class="top-bar">
-      <div>
-        <h2 style="margin:0">Wallet</h2>
-        <p class="small" id="emailSub">Manage your funds</p>
-      </div>
+  <div class="card-row">
+    <div class="card wide">
+      <div class="small">Available Balance</div>
+      <div style="height:8px"></div>
+      <div class="balance-value" id="balance">₦0.00</div>
+      <div class="small" style="margin-top:8px">This value updates in real time</div>
 
-      <div style="display:flex;gap:8px">
-        <button id="btn-refresh">Refresh</button>
+      <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)"/>
+      <div style="font-weight:700">Add Money (Paystack)</div>
+      <div class="form-row">
+        <input type="number" id="add-amount" placeholder="Amount (e.g. 1000)" min="50" />
+        <button id="btn-add">Pay</button>
       </div>
+      <div class="small" style="margin-top:8px">Payments use Paystack.</div>
+
     </div>
 
-    <div class="card-row">
-      <div class="card wide">
-        <div class="small">Available Balance</div>
+    <div style="width:360px">
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-weight:700">Quick Actions</div>
         <div style="height:8px"></div>
-        <div class="balance-value" id="balance">₦0.00</div>
-        <div class="small" style="margin-top:8px">This value updates in real time</div>
-
-        <!-- Add Money -->
-        <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)"/>
-        <div style="font-weight:700">Add Money</div>
-        <div class="form-row">
-          <input type="number" id="add-amount" placeholder="Amount (e.g. 1000)" min="1" />
-          <button id="btn-add">Add</button>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button id="goto-dashboard" style="width:100%">Go to Dashboard</button>
+          <a href="dashboard1.html" class="small" style="text-align:center">Buy Number</a>
         </div>
-        <div class="small" style="margin-top:8px">Note: This is a manual add function for now. Integrate payments later.</div>
-
-        <!-- Transfer -->
-        <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)"/>
-        <div style="font-weight:700">Transfer Funds</div>
-        <div class="form-row">
-          <input type="email" id="transfer-email" placeholder="Recipient email" />
-          <input type="number" id="transfer-amount" placeholder="Amount" min="1" />
-          <button id="btn-transfer">Send</button>
-        </div>
-        <div class="small" style="margin-top:6px">Transfers are instant and atomic (Firestore transaction)</div>
       </div>
 
-      <div style="width:360px">
-        <div class="card" style="margin-bottom:12px">
-          <div style="font-weight:700">Quick Actions</div>
-          <div style="height:8px"></div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button id="goto-dashboard" style="width:100%">Go to Dashboard</button>
-            <button id="goto-transactions" class="small" style="width:100%">View All Transactions</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div style="font-weight:700">Recent Transactions</div>
-          <div class="tx-list" id="tx-list">
-            <div class="tx-item"><div class="small">Loading…</div></div>
-          </div>
+      <div class="card">
+        <div style="font-weight:700">Recent Transactions</div>
+        <div class="tx-list" id="tx-list">
+          <div class="tx-item"><div class="small">Loading…</div></div>
         </div>
       </div>
     </div>
-  </main>
+  </div>
+</main>
 
 <script type="module">
-  import { auth, db, getUserBalance, updateUserBalance, getRecentTransactions, logout } from './js/firebase.js';
+  const PAYSTACK_PUBLIC_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
+  import { auth, db, logout, getRecentTransactions, updateUserBalance } from './js/firebase.js';
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { doc, onSnapshot, runTransaction, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { doc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const balanceEl = document.getElementById('balance');
-  const emailSub = document.getElementById('emailSub');
   const sideUser = document.getElementById('side-user');
-
   const addAmountInput = document.getElementById('add-amount');
   const addBtn = document.getElementById('btn-add');
-  const transferEmail = document.getElementById('transfer-email');
-  const transferAmount = document.getElementById('transfer-amount');
-  const transferBtn = document.getElementById('btn-transfer');
-
   const txList = document.getElementById('tx-list');
-
   const btnLogout = document.getElementById('btn-logout');
   const btnRefresh = document.getElementById('btn-refresh');
   const gotoDashboard = document.getElementById('goto-dashboard');
 
-  let unsubscribeUserDoc = null;
-
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = 'login.html';
-      return;
-    }
-    emailSub.textContent = user.email || '';
+  let currentUser = null;
+  onAuthStateChanged(auth, (user)=>{
+    if (!user) { window.location.href='login.html'; return; }
+    currentUser = user;
     sideUser.textContent = user.displayName || user.email || 'User';
-
     const userRef = doc(db, 'users', user.uid);
-    if (unsubscribeUserDoc) unsubscribeUserDoc();
-
-    unsubscribeUserDoc = onSnapshot(userRef, (snap) => {
-      if (!snap.exists()) {
-        balanceEl.textContent = '₦0.00';
-        return;
-      }
-      const data = snap.data();
-      const bal = Number(data.balance || 0);
-      balanceEl.textContent = formatCurrency(bal);
+    onSnapshot(userRef, snap=>{
+      if (!snap.exists()){ balanceEl.textContent='₦0.00'; return; }
+      balanceEl.textContent = formatCurrency(Number(snap.data().balance || 0));
     });
-
-    // load transactions
-    loadTx(user.uid);
+    loadTxs();
   });
 
-  btnLogout.addEventListener('click', () => logout());
-  btnRefresh.addEventListener('click', async () => {
-    const user = auth.currentUser;
-    if (user) loadTx(user.uid);
-  });
-  gotoDashboard.addEventListener('click', () => window.location.href = 'dashboard1.html');
-
-  addBtn.addEventListener('click', async () => {
+  addBtn.addEventListener('click', async ()=>{
     const amt = Number(addAmountInput.value);
-    if (!amt || amt <= 0) return alert('Enter a valid amount');
-    const user = auth.currentUser;
-    if (!user) return alert('Not signed in');
+    if (!amt || amt < 50) return alert('Enter an amount >= 50');
+    if (!currentUser) return alert('Sign in first');
 
-    try {
-      // use the exported helper to update balance (it records a transaction too)
-      await updateUserBalance(user.uid, amt);
-      addAmountInput.value = '';
-      alert('Added ' + formatCurrency(amt) + ' to your wallet');
-    } catch (err) {
-      console.error(err);
-      alert('Failed: ' + err.message);
-    }
-  });
-
-  transferBtn.addEventListener('click', async () => {
-    const amt = Number(transferAmount.value);
-    const recipientEmail = transferEmail.value && transferEmail.value.trim().toLowerCase();
-    if (!recipientEmail || !amt || amt <= 0) return alert('Enter recipient email and valid amount');
-
-    const sender = auth.currentUser;
-    if (!sender) return alert('Not signed in');
-
-    if (sender.email === recipientEmail) return alert('Cannot transfer to yourself');
-
-    try {
-      // find recipient user doc by email
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('email', '==', recipientEmail));
-      const snapshot = await getDocs(q);
-      if (snapshot.empty) return alert('Recipient not found');
-
-      const recipientDoc = snapshot.docs[0];
-      const recipientRef = recipientDoc.ref;
-      const senderRef = doc(db, 'users', sender.uid);
-
-      // run transaction to update balances atomically
-      await runTransaction(db, async (tx) => {
-        const sSnap = await tx.get(senderRef);
-        const rSnap = await tx.get(recipientRef);
-
-        if (!sSnap.exists()) throw new Error('Sender account not found');
-        if (!rSnap.exists()) throw new Error('Recipient account not found');
-
-        const sBal = Number(sSnap.data().balance || 0);
-        const rBal = Number(rSnap.data().balance || 0);
-
-        if (sBal < amt) throw new Error('Insufficient funds');
-
-        // update balances
-        tx.update(senderRef, { balance: sBal - amt });
-        tx.update(recipientRef, { balance: rBal + amt });
-
-        // record transactions in subcollections
-        const sTxRef = collection(senderRef, 'transactions');
-        const rTxRef = collection(recipientRef, 'transactions');
-
-        // Use addDoc via tx (can't add new doc with tx easily), instead use doc() with random id and set
-        const sNewRef = doc(sTxRef);
-        const rNewRef = doc(rTxRef);
-
-        tx.set(sNewRef, {
-          amount: -amt,
-          type: 'debit',
-          date: new Date().toISOString(),
-          note: `Transfer to ${recipientEmail}`
-        });
-        tx.set(rNewRef, {
-          amount: amt,
-          type: 'credit',
-          date: new Date().toISOString(),
-          note: `Transfer from ${sender.email}`
-        });
-      });
-
-      transferAmount.value = '';
-      transferEmail.value = '';
-      alert('Transfer successful');
-    } catch (err) {
-      console.error(err);
-      alert('Transfer failed: ' + err.message);
-    }
-  });
-
-  async function loadTx(uid){
-    txList.innerHTML = '<div class="tx-item"><div class="small">Loading…</div></div>';
-    try {
-      const items = await getRecentTransactions(uid);
-      if (!items || items.length === 0) {
-        txList.innerHTML = '<div class="tx-item"><div class="small">No transactions yet</div></div>';
-        return;
+    const handler = window.PaystackPop && window.PaystackPop.setup ? window.PaystackPop.setup({
+      key: PAYSTACK_PUBLIC_KEY,
+      email: currentUser.email || '',
+      amount: Math.round(amt * 100),
+      ref: 'SL-'+Math.floor((Math.random()*1000000000)+1),
+      onClose: function(){},
+      callback: async function(response){
+        try {
+          await updateUserBalance(currentUser.uid, amt);
+          await addDoc(collection(db, 'users', currentUser.uid, 'transactions'), {
+            amount: amt,
+            type: 'deposit',
+            date: new Date().toISOString(),
+            reference: response.reference
+          });
+          alert('Payment successful and wallet updated');
+          addAmountInput.value = '';
+        } catch(e){ console.error(e); alert('Error recording deposit: '+e.message); }
       }
+    }) : null;
+
+    if (!handler) { alert('Paystack not loaded'); return; }
+    handler.openIframe();
+  });
+
+  btnLogout.addEventListener('click', ()=> logout());
+  btnRefresh.addEventListener('click', ()=> loadTxs());
+  gotoDashboard.addEventListener('click', ()=> window.location.href='dashboard1.html');
+
+  async function loadTxs(){
+    txList.innerHTML = '<div class="tx-item"><div class="small">Loading…</div></div>';
+    try{
+      const items = await getRecentTransactions(currentUser.uid);
       txList.innerHTML = '';
-      items.forEach(tx => {
-        const div = document.createElement('div');
-        div.className = 'tx-item';
-        div.innerHTML = `
-          <div>
-            <div style="font-weight:700">${tx.type === 'credit' ? '+' : '-'} ${formatCurrency(Math.abs(Number(tx.amount || 0)))}</div>
-            <div class="small">${tx.note || tx.type} • ${new Date(tx.date).toLocaleString()}</div>
-          </div>
-          <div style="font-weight:700;color:${tx.type==='credit' ? 'var(--accent)' : '#ff8a8a'}">${tx.type}</div>
-        `;
+      if (!items || items.length===0) txList.innerHTML = '<div class="tx-item"><div class="small">No transactions yet</div></div>';
+      else items.forEach(tx=>{
+        const div=document.createElement('div'); div.className='tx-item';
+        div.innerHTML = `<div><div style="font-weight:700">${tx.type==='credit'||tx.type==='deposit' ? '+' : '-'} ${formatCurrency(Math.abs(Number(tx.amount||0)))}</div><div class="small">${tx.note||tx.type} • ${new Date(tx.date).toLocaleString()}</div></div><div style="font-weight:700;color:${(tx.type==='credit'||tx.type==='deposit')?'var(--accent)':'#ff8a8a'}">${tx.type}</div>`;
         txList.appendChild(div);
       });
-    } catch (err) {
-      txList.innerHTML = '<div class="tx-item"><div class="small">Failed to load: '+err.message+'</div></div>';
-      console.error(err);
-    }
+    }catch(e){ console.error(e); txList.innerHTML = '<div class="tx-item"><div class="small">Failed to load</div></div>'; }
   }
 
-  function formatCurrency(num){
-    return '₦' + Number(num).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-  }
+  function formatCurrency(num){ return '₦' + Number(num).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+  // add paystack script
+  (function addPaystack(){ const s=document.createElement('script'); s.src='https://js.paystack.co/v1/inline.js'; s.defer=true; document.head.appendChild(s); })();
 
 </script>
 </body>
-</html>
+  </html>
