@@ -180,7 +180,7 @@
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
   import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  // YOUR CONFIG
+  // CORRECTED CONFIG: Using the 'sublime-log' project
   const firebaseConfig = {
     apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
     authDomain: "sublime-log.firebaseapp.com",
@@ -195,17 +195,14 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // 1. CRITICAL: Fix for iPhone/Android Loops
-  // This ensures the user stays logged in even if the browser closes
+  // Persistence
   setPersistence(auth, browserLocalPersistence).catch((error) => {
     console.error("Persistence error:", error);
   });
 
-  // 2. CRITICAL: Auto-Redirect to dashboard1.html
-  // As soon as Firebase detects a login, it moves to the dashboard
+  // Auto-Redirect to dashboard1.html
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      console.log("User detected, redirecting...");
       window.location.href = "dashboard1.html";
     }
   });
@@ -239,7 +236,6 @@
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // No need to redirect here manually; onAuthStateChanged handles it
     } catch (error) {
       loader.style.display = 'none';
       document.getElementById('login-error').textContent = getFriendlyError(error.code);
@@ -268,13 +264,14 @@
       const userCred = await createUserWithEmailAndPassword(auth, email, pass);
       const user = userCred.user;
       
-      // Save name and create DB record
+      // CRITICAL: Save full name to Firebase Auth profile
       await updateProfile(user, { displayName: `${fname} ${sname}` });
+      
+      // Create initial DB record
       await setDoc(doc(db, "users", user.uid), {
         firstName: fname, surname: sname, email: email,
         balance: 0, createdAt: new Date().toISOString()
       });
-      // onAuthStateChanged handles redirect
     } catch (error) {
       loader.style.display = 'none';
       document.getElementById('signup-error').textContent = getFriendlyError(error.code);
