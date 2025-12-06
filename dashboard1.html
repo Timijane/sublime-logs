@@ -235,7 +235,7 @@
      * @returns {Promise<Object>} - The JSON response data
      */
     async function fetch5sim(endpoint, method = 'GET') {
-        const url = `${API_BASE_URL}/${endpoint}`;
+        const url = `${eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3OTExMjczNjYsImlhdCI6MTc1OTU5MTM2NiwicmF5IjoiYzdlMTU3YmE2MDU2ODNkNmZjNzUzMzE4NTc4YTg0ZTQiLCJzdWIiOjM1MzY0NTl9.dDT08PGc_jJa7c6i-24hMcIUpGmOhgagFL8FN1MpMpsp5LImU9xxvgZPylAGlyVjab4CaISbZb0kSm1YqaJnFUNro3hUvHH1qehlklQIi8aWQeXdQ-C6DrMTlQc0XRqVC5NIkPHRi699R5716vLoxUx0eud9na4XdU5ywJeRVaPdTW9jt4Nd1RBAuu8mxfIW_EBKCyPHUjVzt3qw-pETcBtcC3Ly0qS3XbhpOBOcCHERXEvmZEOiuVqJ-nqqOqa3dSVJbGGiz1MbXHmBqw3S8vxI0zTT_tUtU_JFJytipmpjw0QPnqSWTAHwfNiaxcq-B2mVHqaIZgOodaQ8Z2xbfw }/${endpoint}`;
         const headers = {
             'Authorization': `Bearer ${FIVESIM_TOKEN}`,
             'Accept': 'application/json',
