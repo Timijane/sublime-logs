@@ -3,20 +3,18 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Dashboard — Sublime Logs</title>
+<title>Buy Number — Sublime Logs</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
   :root{ --bg:#0b0f13; --card:#161b22; --input-bg:#0d1117; --muted:#8b949e; --text:#c9d1d9; --accent:#2ea043; --accent-hover:#3fb950; --border:rgba(240,246,252,0.1); --danger:#f85149; --warning:#d29922; --header-height: 60px; }
   
-  /* Reset & Base */
   *{box-sizing:border-box}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
   
-  /* Layout Structures */
   .app-container { display: flex; min-height: 100vh; }
   
-  /* Mobile Header / Hamburger */
+  /* Mobile Header */
   .mobile-header {
       display: none; position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
       background: var(--card); border-bottom: 1px solid var(--border); z-index: 1000;
@@ -34,14 +32,11 @@
   
   .main{ margin-left:250px; flex:1; padding:30px; max-width:100%; width: 100%; padding-top: 30px;}
 
-  /* Typography */
+  /* UI Elements */
   h1,h2,h3{margin:0;color:#fff}
   .label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;}
-  
-  /* Cards */
   .card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:20px;margin-bottom:20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
   
-  /* Inputs & Search */
   .search-wrapper { position: relative; margin-bottom: 10px; }
   .search-wrapper i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12px;}
   .search-input { padding-left: 30px !important; }
@@ -49,7 +44,7 @@
   select, input{width:100%;padding:12px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;color:#fff;font-size:14px;outline:none;}
   select:focus, input:focus{border-color:var(--accent);}
   
-  /* Buttons */
+  /* Button Styles */
   .btn{background:var(--accent);color:#fff;border:none;padding:12px 20px;border-radius:6px;cursor:pointer;font-weight:600;font-size:14px;transition:0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;}
   .btn:hover{background:var(--accent-hover);}
   .btn:disabled{opacity:0.5;cursor:not-allowed;background:var(--muted);}
@@ -57,12 +52,8 @@
   .btn.secondary:hover { background: rgba(255,255,255,0.1); }
   .btn-full { width: 100%; }
 
-  /* Navigation Links in Sidebar */
-  .nav-link { 
-      display: flex; align-items: center; gap: 10px; padding: 12px; 
-      color: var(--text); text-decoration: none; border-radius: 6px; transition: 0.2s; 
-  }
-  .nav-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
+  .nav-link { display: flex; align-items: center; gap: 10px; padding: 12px; color: var(--text); text-decoration: none; border-radius: 6px; transition: 0.2s; }
+  .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.05); color: #fff; }
   .nav-link i { width: 20px; text-align: center; color: var(--muted); }
   
   /* Step Interface */
@@ -70,33 +61,38 @@
   .step-container.active{display:block;}
   @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
   
-  /* Availability List */
+  /* Height fixes for "Show All Numbers" */
+  select[size] { height: 400px; max-height: 60vh; }
+
+  /* Grid & Tables */
   .offer-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));gap:10px;margin-top:15px;}
   .offer-item{background:var(--input-bg);border:1px solid var(--border);padding:15px;border-radius:6px;cursor:pointer;transition:0.2s;text-align:center;}
   .offer-item:hover{border-color:var(--accent);background:#1c2128;}
   .offer-price{font-size:18px;font-weight:bold;color:#fff;margin:5px 0;}
   .offer-stock{font-size:11px;color:var(--muted);}
 
-  /* Data Table */
   .table-container{overflow-x:auto; -webkit-overflow-scrolling: touch;}
-  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px; min-width: 600px;} /* Min width forces scroll on mobile */
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px; min-width: 600px;} 
   th{text-align:left;padding:12px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:500;}
   td{padding:12px;border-bottom:1px solid var(--border);color:#fff;}
   tr:last-child td{border-bottom:none;}
   
-  /* Badges */
   .badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;}
   .status-pending{background:rgba(210,153,34,0.15);color:#e3b341;}
   .status-finished{background:rgba(46,160,67,0.15);color:#3fb950;}
   .status-canceled{background:rgba(248,81,73,0.15);color:#f85149;}
   .code-box{font-family:monospace;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;letter-spacing:1px;}
 
-  /* Header Info */
   .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px; flex-wrap: wrap; gap: 15px;}
   .balance-card{text-align:right; background: rgba(46,160,67,0.1); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(46,160,67,0.3);}
   .balance-amount{font-size:20px;font-weight:700;color:var(--accent);}
 
-  /* Responsive Design */
+  /* Modal */
+  .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);z-index:2000}
+  .modal.open{display:flex}
+  .modal-card{width:350px;max-width:90%;background:var(--card);padding:24px;border-radius:12px;border:1px solid var(--border);}
+
+  /* Responsive */
   @media(max-width:800px){ 
       .mobile-header { display: flex; }
       .sidebar{ transform: translateX(-100%); width: 260px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); padding-top: 80px;}
@@ -104,7 +100,6 @@
       .main{ margin-left:0; padding: 15px; padding-top: 80px; }
       .top-bar { flex-direction: column; align-items: flex-start; }
       .balance-card { width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center;}
-      .table-container { border: 1px solid var(--border); border-radius: 6px; }
   }
 </style>
 </head>
@@ -113,6 +108,21 @@
 <div class="mobile-header">
     <div style="font-weight:bold;font-size:18px;">Sublime Logs</div>
     <button class="hamburger" id="menu-toggle"><i class="fas fa-bars"></i></button>
+</div>
+
+<div class="modal" id="add-money-modal">
+  <div class="modal-card">
+    <h3 style="margin-bottom:15px"><i class="fas fa-wallet"></i> Fund Wallet</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:15px;" id="modal-msg">Enter amount to continue.</p>
+    <form id="deposit-form">
+      <input type="number" id="pay-amount" placeholder="Amount (e.g. 1000)" min="100" required style="margin-bottom:15px;" />
+      <input type="email" id="pay-email-hidden" style="display:none;" />
+      <div style="display:flex;justify-content:flex-end;gap:10px">
+        <button type="button" class="btn secondary" id="close-add-money">Cancel</button>
+        <button type="submit" class="btn" id="start-paystack">Pay Now</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <div class="app-container">
@@ -125,10 +135,10 @@
         <a href="dashboard1.html" class="nav-link">
             <i class="fas fa-home"></i> Dashboard
         </a>
-        <a href="#" class="nav-link" onclick="goToStep1(); closeMenu();">
+        <a href="#" class="nav-link active" onclick="closeMenu()">
             <i class="fas fa-shopping-cart"></i> Buy Number
         </a>
-        <a href="fund.html" class="nav-link">
+        <a href="#" class="nav-link" id="nav-fund">
             <i class="fas fa-wallet"></i> Fund Account
         </a>
         
@@ -159,16 +169,15 @@
         
         <div id="step-1" class="step-container active">
             <h3 style="margin-bottom:15px">1. Select Country</h3>
-            <div class="label">Search Country</div>
             
             <div class="search-wrapper">
                 <i class="fas fa-search"></i>
-                <input type="text" id="search-country" class="search-input" placeholder="Type country name (e.g., Brazil)...">
+                <input type="text" id="search-country" class="search-input" placeholder="Search country (e.g., Brazil)...">
             </div>
             
-            <select id="sel-country" size="10" style="margin-bottom:15px; height: 150px;"></select>
+            <select id="sel-country" size="20"></select>
             
-            <button class="btn btn-full" onclick="goToStep2()">Continue &rarr;</button>
+            <button class="btn btn-full" style="margin-top:15px" onclick="goToStep2()">Continue &rarr;</button>
         </div>
 
         <div id="step-2" class="step-container">
@@ -178,15 +187,14 @@
                  <div class="label" style="margin:0">Country: <span id="display-country" style="color:#fff; font-weight:bold;"></span></div>
             </div>
             
-            <div class="label">Search Service</div>
             <div class="search-wrapper">
                 <i class="fas fa-search"></i>
-                <input type="text" id="search-service" class="search-input" placeholder="Type service name (e.g., Whatsapp)...">
+                <input type="text" id="search-service" class="search-input" placeholder="Search service (e.g., Whatsapp)...">
             </div>
 
-            <select id="sel-service" size="10" style="margin-bottom:15px; height: 150px;"></select>
+            <select id="sel-service" size="20"></select>
             
-            <button class="btn btn-full" id="btn-check-avail">Check Availability</button>
+            <button class="btn btn-full" style="margin-top:15px" id="btn-check-avail">Check Availability</button>
         </div>
 
         <div id="step-3" class="step-container">
@@ -230,15 +238,16 @@
     </main>
 </div>
 
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
 <script type="module">
-  // ================= CONFIGURATION =================
+  const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   const API_URL = "https://eod5fsiqjjs71gx.m.pipedream.net"; 
-  const EXCHANGE_RATE = 15; // 1 Ruble = 15 Naira
-  // =================================================
+  const EXCHANGE_RATE = 15; 
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, runTransaction, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, runTransaction, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
@@ -254,74 +263,61 @@
   const db = getFirestore(app);
 
   let currentUser = null;
-  let currentWalletBalance = 0; // Local tracking for immediate check
+  let currentWalletBalance = 0;
 
-  // --- COMPREHENSIVE DATA LISTS ---
+  // --- DATA ---
   const countries = [
       {code:"usa",name:"USA"},{code:"england",name:"United Kingdom"},{code:"russia",name:"Russia"},{code:"ukraine",name:"Ukraine"},
       {code:"kazakhstan",name:"Kazakhstan"},{code:"nigeria",name:"Nigeria"},{code:"kenya",name:"Kenya"},{code:"ghana",name:"Ghana"},
       {code:"southafrica",name:"South Africa"},{code:"brazil",name:"Brazil"},{code:"argentina",name:"Argentina"},{code:"colombia",name:"Colombia"},
       {code:"peru",name:"Peru"},{code:"india",name:"India"},{code:"indonesia",name:"Indonesia"},{code:"philippines",name:"Philippines"},
-      {code:"vietnam",name:"Vietnam"},{code:"thailand",name:"Thailand"},{code:"malaysia",name:"Malaysia"},{code:"myanmar",name:"Myanmar"},
-      {code:"cambodia",name:"Cambodia"},{code:"laos",name:"Laos"},{code:"germany",name:"Germany"},{code:"france",name:"France"},
-      {code:"netherlands",name:"Netherlands"},{code:"spain",name:"Spain"},{code:"poland",name:"Poland"},{code:"romania",name:"Romania"},
-      {code:"sweden",name:"Sweden"},{code:"canada",name:"Canada"},{code:"mexico",name:"Mexico"},{code:"australia",name:"Australia"},
-      {code:"egypt",name:"Egypt"},{code:"morocco",name:"Morocco"},{code:"algeria",name:"Algeria"},{code:"turkey",name:"Turkey"},
-      {code:"israel",name:"Israel"},{code:"saudiarabia",name:"Saudi Arabia"},{code:"uae",name:"UAE"},{code:"pakistan",name:"Pakistan"},
-      {code:"bangladesh",name:"Bangladesh"},{code:"nepal",name:"Nepal"},{code:"srilanka",name:"Sri Lanka"},{code:"china",name:"China"},
-      {code:"hongkong",name:"Hong Kong"},{code:"macau",name:"Macau"},{code:"taiwan",name:"Taiwan"},{code:"japan",name:"Japan"},
-      {code:"southkorea",name:"South Korea"},{code:"italy",name:"Italy"},{code:"portugal",name:"Portugal"},{code:"belgium",name:"Belgium"},
-      {code:"austria",name:"Austria"},{code:"switzerland",name:"Switzerland"},{code:"czech",name:"Czech Republic"},{code:"hungary",name:"Hungary"},
-      {code:"bulgaria",name:"Bulgaria"},{code:"serbia",name:"Serbia"},{code:"croatia",name:"Croatia"},{code:"greece",name:"Greece"}
+      {code:"vietnam",name:"Vietnam"},{code:"thailand",name:"Thailand"},{code:"malaysia",name:"Malaysia"},{code:"germany",name:"Germany"},
+      {code:"france",name:"France"},{code:"netherlands",name:"Netherlands"},{code:"spain",name:"Spain"},{code:"poland",name:"Poland"},
+      {code:"canada",name:"Canada"},{code:"mexico",name:"Mexico"},{code:"australia",name:"Australia"},{code:"egypt",name:"Egypt"},
+      {code:"morocco",name:"Morocco"},{code:"turkey",name:"Turkey"},{code:"uae",name:"UAE"},{code:"pakistan",name:"Pakistan"},
+      {code:"bangladesh",name:"Bangladesh"},{code:"china",name:"China"},{code:"japan",name:"Japan"},{code:"southkorea",name:"South Korea"},
+      {code:"italy",name:"Italy"},{code:"portugal",name:"Portugal"},{code:"belgium",name:"Belgium"}
   ];
-
   const services = [
-      {code:"whatsapp",name:"WhatsApp"},{code:"telegram",name:"Telegram"},{code:"google",name:"Google / Gmail / YouTube"},
+      {code:"whatsapp",name:"WhatsApp"},{code:"telegram",name:"Telegram"},{code:"google",name:"Google / Gmail"},
       {code:"facebook",name:"Facebook"},{code:"instagram",name:"Instagram"},{code:"tiktok",name:"TikTok"},{code:"twitter",name:"X (Twitter)"},
-      {code:"linkedin",name:"LinkedIn"},{code:"snapchat",name:"Snapchat"},{code:"viber",name:"Viber"},{code:"wechat",name:"WeChat"},
-      {code:"discord",name:"Discord"},{code:"microsoft",name:"Microsoft / Outlook"},{code:"openai",name:"OpenAI / ChatGPT"},{code:"netflix",name:"Netflix"},
-      {code:"uber",name:"Uber"},{code:"bolt",name:"Bolt"},{code:"airbnb",name:"Airbnb"},{code:"amazon",name:"Amazon"},{code:"ebay",name:"eBay"},
-      {code:"yahoo",name:"Yahoo"},{code:"aol",name:"AOL"},{code:"yandex",name:"Yandex"},{code:"vk",name:"VKontakte"},
-      {code:"steam",name:"Steam"},{code:"blizzard",name:"Blizzard"},{code:"twitch",name:"Twitch"},{code:"tinder",name:"Tinder"},
-      {code:"bumble",name:"Bumble"},{code:"hinge",name:"Hinge"},{code:"badoo",name:"Badoo"},{code:"kakaotalk",name:"KakaoTalk"},
-      {code:"line",name:"Line"},{code:"zalo",name:"Zalo"},{code:"grab",name:"Grab"},{code:"gojek",name:"Gojek"},{code:"foodpanda",name:"Foodpanda"},
-      {code:"deliveroo",name:"Deliveroo"},{code:"glovo",name:"Glovo"},{code:"wolt",name:"Wolt"},{code:"doordash",name:"DoorDash"},
-      {code:"ubereats",name:"Uber Eats"},{code:"paypal",name:"PayPal"},{code:"venmo",name:"Venmo"},{code:"cashapp",name:"Cash App"},
-      {code:"revolut",name:"Revolut"},{code:"wise",name:"Wise"},{code:"skrill",name:"Skrill"},{code:"neteller",name:"Neteller"},
-      {code:"coinbase",name:"Coinbase"},{code:"binance",name:"Binance"},{code:"crypto",name:"Crypto.com"},{code:"kraken",name:"Kraken"},
-      {code:"kucoin",name:"KuCoin"},{code:"bybit",name:"Bybit"},{code:"okx",name:"OKX"},{code:"paxful",name:"Paxful"},
-      {code:"localbitcoins",name:"LocalBitcoins"},{code:"protonmail",name:"ProtonMail"},{code:"adobe",name:"Adobe"},{code:"canva",name:"Canva"},
-      {code:"fiverr",name:"Fiverr"},{code:"upwork",name:"Upwork"},{code:"freelancer",name:"Freelancer"},{code:"alibaba",name:"Alibaba"},
-      {code:"aliexpress",name:"AliExpress"},{code:"temu",name:"Temu"},{code:"shein",name:"Shein"},{code:"shopee",name:"Shopee"},
-      {code:"lazada",name:"Lazada"},{code:"tokopedia",name:"Tokopedia"},{code:"flipkart",name:"Flipkart"},{code:"rakuten",name:"Rakuten"},
-      {code:"mercado",name:"Mercado Libre"},{code:"olx",name:"OLX"},{code:"quora",name:"Quora"},{code:"reddit",name:"Reddit"},
-      {code:"pinterest",name:"Pinterest"},{code:"tumblr",name:"Tumblr"},{code:"flickr",name:"Flickr"},{code:"meetup",name:"Meetup"},
-      {code:"imo",name:"Imo"},{code:"botim",name:"Botim"},{code:"signal",name:"Signal"},{code:"icq",name:"ICQ"}
+      {code:"linkedin",name:"LinkedIn"},{code:"netflix",name:"Netflix"},{code:"uber",name:"Uber"},{code:"amazon",name:"Amazon"},
+      {code:"discord",name:"Discord"},{code:"viber",name:"Viber"},{code:"snapchat",name:"Snapchat"},{code:"openai",name:"OpenAI / ChatGPT"},
+      {code:"microsoft",name:"Microsoft"},{code:"airbnb",name:"Airbnb"},{code:"bolt",name:"Bolt"},{code:"yahoo",name:"Yahoo"},
+      {code:"paypal",name:"PayPal"},{code:"tinder",name:"Tinder"},{code:"glovo",name:"Glovo"}
   ];
 
-  // --- MOBILE MENU LOGIC ---
+  // --- MENU & MODAL LOGIC ---
   const menuToggle = document.getElementById('menu-toggle');
   const sidebar = document.getElementById('sidebar');
+  const amModal = document.getElementById('add-money-modal');
 
-  menuToggle.addEventListener('click', () => {
-    sidebar.classList.toggle('open');
-  });
+  menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  window.closeMenu = () => sidebar.classList.remove('open');
   
-  window.closeMenu = () => {
-      sidebar.classList.remove('open');
-  }
-  
+  // Close menu when clicking outside
   document.addEventListener('click', (e) => {
       if(!sidebar.contains(e.target) && !menuToggle.contains(e.target) && sidebar.classList.contains('open')){
           sidebar.classList.remove('open');
       }
   });
 
-  // --- AUTH & INIT ---
+  // Modal Handlers
+  document.getElementById('nav-fund').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('modal-msg').textContent = "Enter amount to fund your wallet.";
+      document.getElementById('pay-amount').value = "";
+      amModal.classList.add('open');
+      closeMenu();
+  });
+  document.getElementById('close-add-money').addEventListener('click', () => amModal.classList.remove('open'));
+
+  // --- AUTH ---
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
       document.getElementById('user-email').textContent = user.email;
+      document.getElementById('pay-email-hidden').value = user.email;
       
       onSnapshot(doc(db, "users", user.uid), (docSnap) => {
          const bal = docSnap.exists() ? docSnap.data().balance : 0;
@@ -332,7 +328,7 @@
       loadHistory();
       initDropdowns();
     } else {
-      window.location.href = 'index.html'; // Or your login page
+      window.location.href = 'index.html';
     }
   });
   
@@ -340,15 +336,12 @@
       signOut(auth).then(() => window.location.href = 'index.html');
   });
 
-  // --- UI STEPS & SEARCH LOGIC ---
+  // --- DROPDOWN & SEARCH ---
   function initDropdowns() {
       countries.sort((a,b) => a.name.localeCompare(b.name));
       services.sort((a,b) => a.name.localeCompare(b.name));
-      
       renderOptions('sel-country', countries);
       renderOptions('sel-service', services);
-      
-      // Setup Search Listeners
       setupSearch('search-country', 'sel-country', countries);
       setupSearch('search-service', 'sel-service', services);
   }
@@ -358,11 +351,9 @@
       el.innerHTML = '';
       data.forEach(item => {
           const opt = document.createElement('option');
-          opt.value = item.code;
-          opt.textContent = item.name;
+          opt.value = item.code; opt.textContent = item.name;
           el.appendChild(opt);
       });
-      // Select first by default
       if(data.length > 0) el.selectedIndex = 0;
   }
   
@@ -374,30 +365,25 @@
       });
   }
 
+  // --- STEP NAV ---
   window.goToStep1 = () => {
       document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
       document.getElementById('step-1').classList.add('active');
   };
-
   window.goToStep2 = () => {
       const sel = document.getElementById('sel-country');
       if(!sel.value) return alert("Please select a country");
-      
-      const cCode = sel.value;
-      const cName = countries.find(x => x.code === cCode).name;
+      const cName = countries.find(x => x.code === sel.value).name;
       document.getElementById('display-country').textContent = cName;
-      
       document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
       document.getElementById('step-2').classList.add('active');
   };
 
-  // --- CHECK AVAILABILITY LOGIC ---
+  // --- CHECK AVAILABILITY ---
   document.getElementById('btn-check-avail').addEventListener('click', async () => {
       const country = document.getElementById('sel-country').value;
       const service = document.getElementById('sel-service').value;
       
-      if(!service) return alert("Please select a service");
-
       document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
       document.getElementById('step-3').classList.add('active');
       
@@ -407,22 +393,18 @@
       
       const grid = document.getElementById('offers-grid');
       const loader = document.getElementById('results-loader');
-      
-      grid.innerHTML = '';
-      loader.style.display = 'block';
+      grid.innerHTML = ''; loader.style.display = 'block';
 
       try {
           const res = await fetch(`${API_URL}/prices`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
+              method: 'POST', headers: {'Content-Type': 'application/json'},
               body: JSON.stringify({ country, product: service })
           });
-          
           const data = await res.json();
           loader.style.display = 'none';
 
           if(!data.offers || data.offers.length === 0) {
-              grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--warning);padding:20px;border:1px dashed var(--warning);border-radius:6px;">No numbers available right now for this combination.<br>Try a different country.</div>';
+              grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--warning)">No numbers available right now.</div>';
               return;
           }
 
@@ -431,9 +413,9 @@
              const div = document.createElement('div');
              div.className = 'offer-item';
              div.innerHTML = `
-                <div style="font-weight:700;text-transform:uppercase;font-size:12px;color:var(--muted);margin-bottom:5px;">${offer.operator}</div>
+                <div style="font-weight:700;font-size:12px;color:var(--muted);margin-bottom:5px;">${offer.operator}</div>
                 <div class="offer-price">₦${priceNaira}</div>
-                <div class="offer-stock">Stock: ${offer.count}</div>
+                <div class="offer-stock">Qty: ${offer.count}</div>
                 <button class="btn" style="width:100%;margin-top:10px;font-size:12px;padding:8px" 
                    onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${priceNaira})">
                    <i class="fas fa-shopping-cart"></i> Buy
@@ -441,153 +423,136 @@
              `;
              grid.appendChild(div);
           });
-
       } catch(e) {
           loader.style.display = 'none';
-          grid.innerHTML = '<div style="color:var(--danger)">Network Error. Please try again.</div>';
+          grid.innerHTML = '<div style="color:var(--danger)">Network Error.</div>';
       }
   });
 
-  // --- BUY LOGIC (WITH WALLET CHECK) ---
+  // --- BUY & PAYSTACK LOGIC ---
   window.buyNumber = async (country, product, operator, cost) => {
-      // 1. Immediate Balance Check (Client Side)
+      // 1. SMART BALANCE CHECK
       if (currentWalletBalance < cost) {
-          const proceed = confirm(`Insufficient Balance!\n\nCost: ₦${cost}\nYour Balance: ₦${currentWalletBalance}\n\nDo you want to fund your wallet now?`);
-          if(proceed) window.location.href = 'fund.html';
+          const deficit = cost - currentWalletBalance;
+          const fundAmount = deficit < 50 ? 50 : deficit; // Minimum 50 for Paystack
+          
+          document.getElementById('modal-msg').innerHTML = `<span style="color:var(--warning)">Insufficient Balance!</span><br>You need ₦${Math.ceil(deficit)} more.<br>Fund your wallet now to continue.`;
+          document.getElementById('pay-amount').value = Math.ceil(fundAmount);
+          amModal.classList.add('open');
           return;
       }
 
-      if(!confirm(`Confirm Purchase:\n${product} (${country})\nCost: ₦${cost}`)) return;
+      if(!confirm(`Confirm Purchase: ₦${cost}?`)) return;
       
       const userRef = doc(db, "users", currentUser.uid);
-      
       try {
         let apiData = null;
-
-        // 2. Transaction: Double check balance server-side & prepare
         await runTransaction(db, async (t) => {
             const uDoc = await t.get(userRef);
-            const bal = uDoc.data().balance || 0;
-            if(bal < cost) throw "Insufficient Balance (Server)";
+            if((uDoc.data().balance || 0) < cost) throw "Insufficient Balance (Server)";
         });
 
-        // 3. Call API
         const res = await fetch(`${API_URL}/buy`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            method: 'POST', headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ country, product, operator })
         });
         const data = await res.json();
-        
-        if(!res.ok || data.error) throw data.error || "Purchase failed from provider";
+        if(!res.ok || data.error) throw data.error || "Failed";
         apiData = data;
 
-        // 4. Deduct & Save Order
         await runTransaction(db, async (t) => {
             const uDoc = await t.get(userRef);
-            const currentBal = uDoc.data().balance || 0;
-            if(currentBal < cost) throw "Insufficient Balance";
-
-            // Deduct
-            t.update(userRef, { balance: currentBal - cost });
-            
-            // Add Order
+            t.update(userRef, { balance: uDoc.data().balance - cost });
             const newOrderRef = doc(collection(userRef, "orders"));
             t.set(newOrderRef, {
-                id: apiData.id,
-                phone: apiData.phone,
-                product: product,
-                country: country,
-                cost: cost,
-                status: 'PENDING', 
-                code: null,
-                createdAt: new Date().toISOString()
+                id: apiData.id, phone: apiData.phone, product: product, country: country,
+                cost: cost, status: 'PENDING', code: null, createdAt: new Date().toISOString()
             });
         });
 
         alert("Number Purchased Successfully!");
         window.goToStep1(); 
-        
       } catch(e) {
           if(e === "Insufficient Balance (Server)") {
-              alert("Insufficient Balance. Please fund your wallet.");
-              window.location.href = 'fund.html';
+              alert("Balance updated roughly. Please fund wallet.");
           } else {
               alert("Error: " + e);
           }
       }
   };
 
-  // --- HISTORY TABLE LOGIC ---
+  // Paystack Form Handler
+  document.getElementById('deposit-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const amount = document.getElementById('pay-amount').value;
+    const email = document.getElementById('pay-email-hidden').value;
+    const btn = document.getElementById('start-paystack');
+
+    if(amount < 50) return alert("Minimum ₦50");
+    btn.textContent = "Processing..."; btn.disabled = true;
+
+    const handler = PaystackPop.setup({
+      key: PAYSTACK_KEY, email: email, amount: amount * 100, currency: 'NGN',
+      ref: 'SL-'+Math.floor(Math.random()*1000000000),
+      callback: (res) => processDeposit(amount, res.reference),
+      onClose: () => { btn.disabled = false; btn.textContent = "Pay Now"; }
+    });
+    handler.openIframe();
+  });
+
+  async function processDeposit(amount, ref) {
+    amModal.classList.remove('open');
+    document.getElementById('start-paystack').disabled = false;
+    document.getElementById('start-paystack').textContent = "Pay Now";
+    try {
+        const userRef = doc(db, "users", currentUser.uid);
+        await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
+            type: 'deposit', amount: Number(amount), date: new Date().toISOString(), reference: ref
+        });
+        await runTransaction(db, async (t) => {
+            const sfDoc = await t.get(userRef);
+            t.update(userRef, { balance: (sfDoc.data().balance || 0) + Number(amount) });
+        });
+        alert("Wallet Funded! Please try your purchase again.");
+    } catch(e) { console.error(e); alert("Error updating balance. Contact support."); }
+  }
+
+  // --- HISTORY TABLE ---
   function loadHistory() {
       const q = query(collection(db, "users", currentUser.uid, "orders"), orderBy("createdAt", "desc"), limit(20));
       const tbody = document.getElementById('history-table-body');
       
       onSnapshot(q, (snapshot) => {
           tbody.innerHTML = '';
-          if(snapshot.empty) {
-              tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet.</td></tr>';
-              return;
-          }
+          if(snapshot.empty) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet.</td></tr>'; return; }
           
           let index = 1;
           snapshot.forEach(docSnap => {
               const d = docSnap.data();
               const tr = document.createElement('tr');
-              
               let statusClass = d.status === 'PENDING' ? 'status-pending' : (d.status === 'FINISHED' ? 'status-finished' : 'status-canceled');
               let codeDisplay = d.status === 'FINISHED' ? `<span class="code-box">${d.code}</span>` : (d.status === 'PENDING' ? '...' : '-');
-              
-              const dateObj = new Date(d.createdAt);
-              const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+              let actionBtn = d.status === 'PENDING' ? `<button class="btn secondary" style="padding:4px 8px;font-size:11px" onclick="checkSMS('${docSnap.id}', '${d.id}')">Check</button>` : '';
 
-              let actionBtn = d.status === 'PENDING' ? 
-                  `<button class="btn secondary" style="padding:4px 8px;font-size:11px" onclick="checkSMS('${docSnap.id}', '${d.id}')"><i class="fas fa-sync"></i> Check</button>` : '';
-
-              tr.innerHTML = `
-                <td>${index++}</td>
-                <td style="font-family:monospace">${d.phone}</td>
-                <td>${codeDisplay}</td>
-                <td style="text-transform:capitalize">${d.product}</td>
-                <td>₦${d.cost}</td>
-                <td><span class="badge ${statusClass}">${d.status}</span></td>
-                <td style="font-size:11px;color:var(--muted)">${dateStr}</td>
-                <td>${actionBtn}</td>
-              `;
+              tr.innerHTML = `<td>${index++}</td><td style="font-family:monospace">${d.phone}</td><td>${codeDisplay}</td><td style="text-transform:capitalize">${d.product}</td><td>₦${d.cost}</td><td><span class="badge ${statusClass}">${d.status}</span></td><td style="font-size:11px;color:var(--muted)">${new Date(d.createdAt).toLocaleDateString()}</td><td>${actionBtn}</td>`;
               tbody.appendChild(tr);
           });
       });
   }
 
   window.checkSMS = async (docId, orderId) => {
-      const btn = event.currentTarget;
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
-
+      const btn = event.currentTarget; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
       try {
-          const res = await fetch(`${API_URL}/check`, {
-             method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({orderId})
-          });
+          const res = await fetch(`${API_URL}/check`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({orderId}) });
           const data = await res.json();
-          
           if(data.sms && data.sms.length > 0) {
-              await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), {
-                  status: 'FINISHED', code: data.sms[0].code
-              });
+              await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { status: 'FINISHED', code: data.sms[0].code });
           } else if (data.status === 'CANCELED' || data.status === 'BANNED') {
-              // Add refund logic here if your API supports it
               await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { status: 'CANCELED' });
-              alert("Order Canceled/Banned by Network.");
-          } else {
-              // alert("Still waiting for SMS..."); // Optional: removed to reduce annoyance
+              alert("Order Canceled by Network.");
           }
-      } catch(e) {
-          console.error(e);
-      } finally {
-          btn.innerHTML = originalText; btn.disabled = false;
-      }
+      } catch(e) { console.error(e); } finally { btn.innerHTML = 'Check'; btn.disabled = false; }
   };
 </script>
-
 </body>
 </html>
