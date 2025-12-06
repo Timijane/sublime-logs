@@ -83,6 +83,14 @@
   
   .copy-btn { font-size: 12px; color: var(--accent-2); background: none; border: none; cursor: pointer; text-decoration: underline; margin-left: 10px; }
 
+  /* New Price Display Styles */
+  .product-option-detail { 
+    font-size: 11px; 
+    color: var(--muted); 
+    padding: 0 5px; 
+    float: right;
+  }
+
 </style>
 </head>
 <body>
@@ -177,30 +185,16 @@
 <div class="modal" id="buy-modal">
   <div class="modal-card">
     <h3 style="margin:0 0 8px 0">Buy Number</h3>
-    <div class="small" style="margin-bottom:15px">Select service and country.</div>
+    <div class="small" style="margin-bottom:15px">Select service and country. Prices shown in Naira (₦)</div>
     
     <label class="small" style="display:block; margin-bottom:5px;">Service</label>
     <select id="buy-product" style="margin-bottom:15px;">
-        <option value="whatsapp">WhatsApp</option>
-        <option value="telegram">Telegram</option>
-        <option value="google">Google / Gmail</option>
-        <option value="facebook">Facebook</option>
-        <option value="instagram">Instagram</option>
-        <option value="tiktok">TikTok</option>
-        <option value="twitter">X (Twitter)</option>
+        <option value="" disabled selected>Loading services...</option>
     </select>
     
     <label class="small" style="display:block; margin-bottom:5px;">Country</label>
     <select id="buy-country">
-        <option value="nigeria">Nigeria</option>
-        <option value="usa">USA</option>
-        <option value="uk">United Kingdom</option>
-        <option value="canada">Canada</option>
-        <option value="ghana">Ghana</option>
-        <option value="kenya">Kenya</option>
-        <option value="southafrica">South Africa</option>
-        <option value="russia">Russia</option>
-        <option value="any">Any Country (Cheapest)</option>
+        <option value="" disabled selected>Loading countries...</option>
     </select>
 
     <div style="height:25px"></div>
@@ -241,12 +235,16 @@
   setPersistence(auth, browserLocalPersistence).catch(console.error);
 
   let currentUser = null;
+  // Global variable to store price data from 5SIM
+  let priceData = null; 
   
   // UI References
   const appLoader = document.getElementById('app-loader');
   const mainContent = document.getElementById('main-content');
   const activeSection = document.getElementById('active-section');
   const activeList = document.getElementById('active-list');
+  const buyProductSelect = document.getElementById('buy-product');
+  const buyCountrySelect = document.getElementById('buy-country');
 
   // --- AUTH & INIT ---
   onAuthStateChanged(auth, (user) => {
@@ -270,6 +268,9 @@
       
       // Load Active Orders
       loadActiveOrders(user.uid);
+      
+      // Load Prices on startup
+      load5SimPrices();
 
     } else {
       window.location.href = 'login.html';
@@ -292,6 +293,157 @@
   document.getElementById('open-buy-modal').addEventListener('click', () => toggleModal('buy-modal', true));
   document.getElementById('close-buy').addEventListener('click', () => toggleModal('buy-modal', false));
 
+  // Update dropdowns when a country or product is selected
+  buyCountrySelect.addEventListener('change', updateBuyOptions);
+  buyProductSelect.addEventListener('change', updateBuyOptions);
+
+
+  // =========================================================
+  // CORE LOGIC: PRICE FETCHING AND UI UPDATES (NEW)
+  // =========================================================
+
+  // Helper to convert 5SIM product names to user-friendly names
+  const productNames = {
+    whatsapp: 'WhatsApp',
+    telegram: 'Telegram',
+    google: 'Google / Gmail',
+    facebook: 'Facebook',
+    instagram: 'Instagram',
+    tiktok: 'TikTok',
+    twitter: 'X (Twitter)',
+    // Add other product mappings here if needed
+  };
+  
+  // Helper to convert 5SIM country names to user-friendly names (Capitalize)
+  const countryNames = (name) => {
+      if (name === 'uk') return 'UK';
+      if (name === 'usa') return 'USA';
+      return name.charAt(0).toUpperCase() + name.slice(1);
+  };
+
+  async function load5SimPrices() {
+    try {
+        buyProductSelect.innerHTML = '<option value="" disabled selected>Loading prices...</option>';
+        buyCountrySelect.innerHTML = '<option value="" disabled selected>Loading prices...</option>';
+        
+        const res = await fetch(`${API_URL}/prices`, { method: 'POST' }); // Using POST with empty body for full price list
+        const data = await res.json();
+        
+        if (!res.ok || data.error) {
+            console.error("Failed to load 5SIM prices:", data.error || res.status);
+            buyProductSelect.innerHTML = '<option value="" disabled selected>Error loading prices</option>';
+            buyCountrySelect.innerHTML = '<option value="" disabled selected>Error loading prices</option>';
+            return;
+        }
+
+        priceData = data;
+        updateBuyOptions(); // Initial call to populate dropdowns
+
+    } catch(e) {
+        console.error("Network error fetching prices:", e);
+        buyProductSelect.innerHTML = '<option value="" disabled selected>Network error</option>';
+        buyCountrySelect.innerHTML = '<option value="" disabled selected>Network error</option>';
+    }
+  }
+
+  function updateBuyOptions() {
+    if (!priceData) return;
+    
+    const selectedCountry = buyCountrySelect.value;
+    const selectedProduct = buyProductSelect.value;
+
+    // --- 1. Populate/Update Product Select ---
+    if (!selectedProduct) {
+        let products = {};
+        // Aggregate all products across all countries
+        for (const country in priceData) {
+            for (const product in priceData[country]) {
+                // Find the cheapest cost for this product in this country
+                const operators = priceData[country][product];
+                const availableOperators = Object.values(operators).filter(op => op.count > 0);
+
+                if (availableOperators.length > 0) {
+                    const cheapest = availableOperators.reduce((min, op) => op.cost < min.cost ? op : min, availableOperators[0]);
+                    
+                    if (!products[product] || cheapest.cost < products[product].cheapestCost) {
+                        products[product] = {
+                            cheapestCost: cheapest.cost,
+                            totalCount: (products[product]?.totalCount || 0) + availableOperators.reduce((sum, op) => sum + op.count, 0)
+                        };
+                    }
+                }
+            }
+        }
+
+        const productOptions = Object.keys(products)
+            .sort((a, b) => products[a].cheapestCost - products[b].cheapestCost)
+            .map(product => {
+                const cost = Math.ceil(products[product].cheapestCost * EXCHANGE_RATE).toLocaleString();
+                const count = products[product].totalCount;
+                const name = productNames[product] || product;
+                // Display the price and count
+                return `<option value="${product}">${name} <span class="product-option-detail">(₦${cost} - ${count} available)</span></option>`;
+            }).join('');
+
+        buyProductSelect.innerHTML = `<option value="" disabled selected>Select Service</option>` + productOptions;
+        if (selectedProduct) buyProductSelect.value = selectedProduct;
+    }
+
+
+    // --- 2. Populate/Update Country Select ---
+    let countries = {};
+    for (const country in priceData) {
+        if (selectedProduct && !priceData[country][selectedProduct]) continue;
+        
+        let cheapestCost = Infinity;
+        let totalCount = 0;
+        
+        const productsToCheck = selectedProduct ? [selectedProduct] : Object.keys(priceData[country]);
+
+        for (const product of productsToCheck) {
+            const operators = priceData[country][product];
+            for (const op in operators) {
+                const data = operators[op];
+                if (data.count > 0) {
+                    cheapestCost = Math.min(cheapestCost, data.cost);
+                    totalCount += data.count;
+                }
+            }
+        }
+
+        if (totalCount > 0) {
+            countries[country] = { 
+                cheapestCost: cheapestCost, 
+                totalCount: totalCount 
+            };
+        }
+    }
+    
+    // Add "Any Country" option first
+    let countryOptions = '<option value="any">Any Country (Cheapest)</option>';
+    
+    countryOptions += Object.keys(countries)
+        .sort((a, b) => countries[a].cheapestCost - countries[b].cheapestCost)
+        .map(country => {
+            const cost = Math.ceil(countries[country].cheapestCost * EXCHANGE_RATE).toLocaleString();
+            const count = countries[country].totalCount;
+            const name = countryNames(country);
+            // Display the price and count
+            return `<option value="${country}">${name} <span class="product-option-detail">(₦${cost} - ${count} available)</span></option>`;
+        }).join('');
+
+    buyCountrySelect.innerHTML = countryOptions;
+    if (selectedCountry) buyCountrySelect.value = selectedCountry;
+    else buyCountrySelect.value = 'any';
+
+    // Enable/disable the purchase button
+    if (buyProductSelect.value && buyCountrySelect.value) {
+        document.getElementById('confirm-buy').disabled = false;
+    } else {
+        document.getElementById('confirm-buy').disabled = true;
+    }
+  }
+
 
   // =========================================================
   // CORE LOGIC: BUY NUMBER
@@ -302,7 +454,7 @@
     const product = document.getElementById('buy-product').value;
     const country = document.getElementById('buy-country').value;
     
-    if(!currentUser) return;
+    if(!currentUser || !product || !country) return;
     
     buyBtn.textContent = "Processing...";
     buyBtn.disabled = true;
@@ -314,14 +466,23 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ country, product })
         });
-        const data = await res.json();
         
-        // 2. Error Check
-        if (!res.ok || !data.phone) throw new Error(data.message || "No numbers available.");
-
+        // Attempt to parse JSON regardless of status for error details
+        const data = await res.json(); 
+        
+        // 2. Error Check - Check for failed HTTP status OR a 5SIM internal error object
+        if (!res.ok || data.error || !data.phone) { 
+            // Use the specific error message from the backend if available
+            const errorMessage = data.error 
+                || (res.status !== 200 ? `Pipedream Error: ${res.status}` : null) 
+                || "No numbers available for this combination. Please try a different country/service.";
+            
+            throw new Error(errorMessage);
+        }
+        
         // 3. Process Transaction (Deduct Money)
         // 5SIM price is usually in Rubles. We multiply by EXCHANGE_RATE.
-        const cost = Math.ceil(Number(data.amount) * EXCHANGE_RATE);
+        const cost = Math.ceil(Number(data.price) * EXCHANGE_RATE); // Use data.price from 5sim response
         
         await handlePurchaseTransaction(currentUser.uid, cost, data, product, country);
         
@@ -368,7 +529,7 @@
         t.set(txRef, {
             type: 'purchase',
             amount: cost,
-            note: `${product} Number`,
+            note: `${productNames[product] || product} Number`,
             date: new Date().toISOString()
         });
     });
@@ -435,10 +596,13 @@
         // Canceled
         actionArea = `<div class="small" style="color:var(--danger)">Order Canceled. Refund processed.</div>`;
     }
+    
+    const countryDisplay = countryNames(order.country);
+    const productDisplay = productNames[order.product] || order.product;
 
     div.innerHTML = `
         <div class="ao-header">
-            <div class="small" style="text-transform:uppercase; letter-spacing:1px">${order.country} • ${order.product}</div>
+            <div class="small" style="text-transform:uppercase; letter-spacing:1px">${countryDisplay} • ${productDisplay}</div>
             ${statusBadge}
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -467,7 +631,8 @@
         });
         const data = await res.json();
 
-        // SCENARIO 1: GOT CODE
+        // SCENARIO 1: GOT CODE (status: RECEIVED, READY, CANCELED, BANNED, FINISHED)
+        // data.sms will be an array if received
         if (data.sms && data.sms.length > 0) {
             const code = data.sms[0].code; // Get first code
             
@@ -485,9 +650,9 @@
             alert("Order was canceled by network. You have been refunded.");
         } 
         // SCENARIO 3: STILL WAITING
-        else {
+        else if (data.status === 'PENDING' || data.status === 'WAITING') {
             // Do nothing, just alert
-            console.log("Still waiting...", data);
+            alert("Still waiting for SMS code...");
         }
 
     } catch(e) {
@@ -524,7 +689,7 @@
         t.set(txRef, {
             type: 'refund',
             amount: cost,
-            note: `Refund: ${oDoc.data().product}`,
+            note: `Refund: ${productNames[oDoc.data().product] || oDoc.data().product}`,
             date: new Date().toISOString()
         });
     });
@@ -581,11 +746,13 @@
         const isDep = data.type === 'deposit' || data.type === 'refund';
         const formattedAmount = Number(data.amount).toLocaleString(undefined, {minimumFractionDigits: 2});
         
+        const noteDisplay = data.note || data.type.toUpperCase();
+
         list.innerHTML += `
         <div class="tx-item">
             <div>
                 <div style="font-weight:700">${isDep?'+':'-'} ₦${formattedAmount}</div>
-                <div class="small">${data.note || data.type.toUpperCase()} • ${new Date(data.date).toLocaleDateString()}</div>
+                <div class="small">${noteDisplay} • ${new Date(data.date).toLocaleDateString()}</div>
             </div>
             <div style="font-weight:700;color:${isDep?'var(--accent)':'#ff8a8a'}">${data.type.toUpperCase()}</div>
         </div>`;
