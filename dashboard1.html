@@ -5,119 +5,84 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Dashboard — Sublime Logs</title>
 <style>
-  :root{ --bg:#0b0f13; --card:#0f1720; --muted:#98a0a8; --accent:#6ee7b7; --accent-2:#7c5cff; }
+  :root{ --bg:#0b0f13; --card:#0f1720; --muted:#98a0a8; --accent:#6ee7b7; --accent-2:#7c5cff; --danger:#ff5c5c; --warning:#fca5a5; }
   *{box-sizing:border-box}
   body{margin:0;font-family:Inter,system-ui,Arial;background:radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.06), transparent 5%),linear-gradient(180deg,#020408 0%, #061018 100%);color:#e6eef6;min-height:100vh;display:flex;}
   
-  /* CORE FIX: Loader Styles */
-  #app-loader {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #020408; z-index: 99999; display: flex;
-    justify-content: center; align-items: center;
-  }
-  .spinner {
-    width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1);
-    border-top-color: var(--accent); border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
+  /* Loader */
+  #app-loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #020408; z-index: 99999; display: flex; justify-content: center; align-items: center; }
+  .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Hide main content initially */
   #main-content { display: none; width: 100%; }
 
-  .sidebar{
-    width:260px;
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-right:1px solid rgba(255,255,255,0.03);
-    padding:28px 20px;
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-    /* Mobile-specific properties */
-    position: fixed; /* Fix sidebar position on mobile */
-    top: 0;
-    left: 0;
-    height: 100%;
-    z-index: 100;
-    transform: translateX(-100%); /* Start hidden off-screen */
-    transition: transform 0.3s ease;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.5);
-  }
-  .sidebar.open {
-    transform: translateX(0); /* Slide in when open */
-  }
-
-  /* Hamburger Menu Button */
-  #menu-toggle {
-    display: none; /* Hidden by default on desktop */
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    width: 40px;
-    height: 40px;
-    background: rgba(255,255,255,0.1);
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    z-index: 101; /* Above sidebar backdrop */
-    font-size: 24px;
-    line-height: 40px;
-    text-align: center;
-  }
+  /* Sidebar */
+  .sidebar{ width:260px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-right:1px solid rgba(255,255,255,0.03); padding:28px 20px; display:flex; flex-direction:column; gap:18px; position: fixed; top: 0; left: 0; height: 100%; z-index: 100; transform: translateX(-100%); transition: transform 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
+  @media(min-width: 921px) { .sidebar { position: sticky; transform: translateX(0); box-shadow: none; height: 100vh; } }
+  .sidebar.open { transform: translateX(0); }
+  
+  #menu-toggle { display: none; position: fixed; top: 20px; left: 20px; width: 40px; height: 40px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; cursor: pointer; z-index: 101; font-size: 24px; }
+  @media(max-width:920px){ #menu-toggle { display: block; } }
 
   .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;color:#051018;font-size:18px}
   nav{display:flex;flex-direction:column;gap:10px;margin-top:6px}
   .nav-link{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer;text-decoration:none;font-size:14px}
   .nav-link.active, .nav-link:hover{background: linear-gradient(90deg, rgba(124,92,255,0.06), rgba(110,231,183,0.03));color:#e9fef0}
   
-  .main{flex:1;padding:28px;display:flex;flex-direction:column;gap:20px}
-  .top-bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
-  .card-row{display:flex;gap:18px;align-items:stretch}
-  .card{background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:20px;flex:1;box-shadow:0 8px 30px rgba(2,6,12,0.6);min-height:110px}
+  .main{flex:1;padding:28px;display:flex;flex-direction:column;gap:20px; overflow-x: hidden;}
+  @media(max-width:920px){ .main { padding-top: 80px; margin-left: 0; } }
+
+  .top-bar{display:flex;justify-content:space-between;align-items:center;gap:12px; flex-wrap: wrap;}
+  .card-row{display:flex;gap:18px;align-items:stretch; flex-wrap: wrap;}
+  .card{background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:20px;flex:1;box-shadow:0 8px 30px rgba(2,6,12,0.6);min-width: 280px;}
   .big-card{flex:1.4}
+  
   .balance-value{font-size:28px;font-weight:700;color:var(--accent)}
   .small{font-size:13px;color:var(--muted)}
   .actions{display:flex;gap:12px}
-  .btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#051018;font-weight:700}
+  
+  .btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#051018;font-weight:700; font-size: 14px;}
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
   .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);box-shadow:none}
+  .btn.danger{background: rgba(255, 92, 92, 0.1); border: 1px solid var(--danger); color: var(--danger); }
   .buy-button{display:inline-block;padding:12px 16px;border-radius:12px;background:linear-gradient(90deg,#ff8a65,#ffb74d);color:#051018;font-weight:700;cursor:pointer}
   
   /* Modals */
-  .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.6);z-index:999}
+  .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.8);z-index:999; backdrop-filter: blur(4px);}
   .modal.open{display:flex}
-  .modal-card{width:400px;max-width:95%;background:#071018;padding:24px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+  .modal-card{width:400px;max-width:95%;background:#0b1219;padding:24px;border-radius:12px;border:1px solid rgba(255,255,255,0.05); box-shadow: 0 20px 40px rgba(0,0,0,0.8);}
   .form-row{display:flex;gap:8px;margin-top:12px}
-  input, select{padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.03);color:#e6eef6;outline:none; width:100%}
-  .tx-list{margin-top:12px;max-height:320px;overflow:auto;background:var(--card);padding:12px;border-radius:10px}
-  .tx-item{display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid rgba(255,255,255,0.02)}
+  input, select{padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.2);color:#e6eef6;outline:none; width:100%; font-size: 15px;}
+  select option { background: #0b1219; }
+
+  /* Lists */
+  .tx-list{margin-top:12px;max-height:320px;overflow:auto;background:rgba(0,0,0,0.2);padding:12px;border-radius:10px}
+  .tx-item{display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid rgba(255,255,255,0.02)}
   
-  /* MEDIA QUERY FOR MOBILE DEVICES */
-  @media(max-width:920px){
-    /* Show menu toggle button */
-    #menu-toggle { display: block; }
-    
-    /* On mobile, remove flex from body and rely on padding */
-    body { display: block; }
-    
-    /* Make the main content take up full width and push it over for the button */
-    .main { 
-        padding-top: 70px; /* Make space for the fixed menu button */
-        margin-left: 0;
-    }
-    
-    /* Sidebar is hidden by default, position is fixed */
-    .sidebar {
-        transform: translateX(-100%);
-        box-shadow: 0 0 0 transparent; /* Reset desktop shadow */
-    }
-    .sidebar.open {
-        transform: translateX(0);
-        box-shadow: 2px 0 10px rgba(0,0,0,0.5);
-    }
-    
-    .card-row{flex-direction:column}
+  /* Active Order Styles */
+  .active-orders-container { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+  .active-order-card {
+    background: rgba(110, 231, 183, 0.03); border: 1px solid rgba(110, 231, 183, 0.1);
+    border-radius: 12px; padding: 20px; position: relative; overflow: hidden;
   }
+  .active-order-card.completed { background: rgba(124, 92, 255, 0.05); border-color: var(--accent-2); }
+  
+  .ao-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+  .ao-number { font-size: 20px; font-weight: 700; letter-spacing: 1px; color: #fff; font-family: monospace; }
+  .ao-status { font-size: 11px; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; font-weight: 700; background: rgba(255,255,255,0.1); }
+  .status-pending { color: #ffd166; background: rgba(255, 209, 102, 0.1); }
+  .status-finished { color: var(--accent); background: rgba(110, 231, 183, 0.1); }
+  
+  .otp-display { 
+    background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; text-align: center; 
+    font-size: 24px; font-weight: 800; letter-spacing: 5px; color: var(--accent); margin: 10px 0;
+    border: 1px dashed rgba(255,255,255,0.1); position: relative; cursor: pointer;
+  }
+  .otp-placeholder { font-size: 14px; letter-spacing: 0; color: var(--muted); font-weight: 400; animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+  
+  .copy-btn { font-size: 12px; color: var(--accent-2); background: none; border: none; cursor: pointer; text-decoration: underline; margin-left: 10px; }
+
 </style>
 </head>
 <body>
@@ -149,8 +114,8 @@
   <main class="main">
     <div class="top-bar">
       <div>
-        <h2 id="greeting">Welcome</h2>
-        <p class="small">Your dashboard overview</p>
+        <h2 id="greeting" style="margin:0">Welcome</h2>
+        <p class="small">Manage your SMS activations</p>
       </div>
       <div class="actions">
         <a href="wallet.html" class="btn" style="text-decoration:none;">Open Wallet</a>
@@ -167,17 +132,26 @@
       <div class="card big-card">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div>
-            <div class="small">Buy Number</div>
-            <div style="font-weight:700;font-size:18px;margin-top:6px">Purchase a temporary number</div>
-            <div class="small" style="margin-top:6px">WhatsApp, Google, Telegram, etc.</div>
+            <div class="small">New Activation</div>
+            <div style="font-weight:700;font-size:18px;margin-top:6px">Purchase a Number</div>
+            <div class="small" style="margin-top:6px">WhatsApp, Telegram, Google, Gmail, etc.</div>
           </div>
           <div><div class="buy-button" id="open-buy-modal">Buy Number</div></div>
         </div>
       </div>
     </div>
 
+    <section id="active-section" style="display:none;">
+        <h3 style="margin:30px 0 10px 0; display:flex; align-items:center; gap:10px;">
+            Active Activations 
+            <span style="font-size:12px; background:var(--accent); color:black; padding:2px 6px; border-radius:4px;">LIVE</span>
+        </h3>
+        <div class="active-orders-container" id="active-list">
+            </div>
+    </section>
+
     <section>
-      <h3 style="margin:20px 0 8px 0">Recent activity</h3>
+      <h3 style="margin:30px 0 10px 0">Recent Transactions</h3>
       <div class="tx-list" id="tx-list"><div class="tx-item"><div class="small">Loading…</div></div></div>
     </section>
   </main>
@@ -187,11 +161,11 @@
   <div class="modal-card">
     <h3 style="margin:0 0 8px 0">Fund Wallet</h3>
     <form id="deposit-form">
-      <div class="small">Enter amount to fund your wallet.</div>
+      <div class="small">Funds are added automatically.</div>
       <div style="height:10px"></div>
       <input type="number" id="pay-amount" placeholder="Amount (e.g. 1000)" min="50" required />
       <input type="email" id="pay-email-hidden" style="display:none;" />
-      <div style="height:15px"></div>
+      <div style="height:20px"></div>
       <div style="display:flex;justify-content:flex-end;gap:8px">
         <button type="button" class="btn secondary" id="close-add-money">Cancel</button>
         <button type="submit" class="btn" id="start-paystack">Pay Now</button>
@@ -203,14 +177,36 @@
 <div class="modal" id="buy-modal">
   <div class="modal-card">
     <h3 style="margin:0 0 8px 0">Buy Number</h3>
-    <div class="form-row">
-      <select id="buy-product"><option value="whatsapp">WhatsApp</option><option value="google">Google</option></select>
-      <input id="buy-country" placeholder="Country" />
-    </div>
-    <div style="height:15px"></div>
+    <div class="small" style="margin-bottom:15px">Select service and country.</div>
+    
+    <label class="small" style="display:block; margin-bottom:5px;">Service</label>
+    <select id="buy-product" style="margin-bottom:15px;">
+        <option value="whatsapp">WhatsApp</option>
+        <option value="telegram">Telegram</option>
+        <option value="google">Google / Gmail</option>
+        <option value="facebook">Facebook</option>
+        <option value="instagram">Instagram</option>
+        <option value="tiktok">TikTok</option>
+        <option value="twitter">X (Twitter)</option>
+    </select>
+    
+    <label class="small" style="display:block; margin-bottom:5px;">Country</label>
+    <select id="buy-country">
+        <option value="nigeria">Nigeria</option>
+        <option value="usa">USA</option>
+        <option value="uk">United Kingdom</option>
+        <option value="canada">Canada</option>
+        <option value="ghana">Ghana</option>
+        <option value="kenya">Kenya</option>
+        <option value="southafrica">South Africa</option>
+        <option value="russia">Russia</option>
+        <option value="any">Any Country (Cheapest)</option>
+    </select>
+
+    <div style="height:25px"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px">
-      <button class="btn secondary" id="close-buy">Close</button>
-      <button class="btn" id="confirm-buy">Buy</button>
+      <button class="btn secondary" id="close-buy">Cancel</button>
+      <button class="btn" id="confirm-buy">Purchase Number</button>
     </div>
   </div>
 </div>
@@ -218,13 +214,16 @@
 <script src="https://js.paystack.co/v1/inline.js"></script>
 
 <script type="module">
+  // ================= CONFIGURATION =================
   const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
-  
+  const API_URL = "https://eod5fsiqjjs71gx.m.pipedream.net"; 
+  const EXCHANGE_RATE = 15; // e.g. 1 Ruble = 15 Naira (Set your profit margin here)
+  // =================================================
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, onSnapshot, collection, addDoc, query, orderBy, limit, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, doc, onSnapshot, collection, addDoc, query, orderBy, limit, getDocs, runTransaction, updateDoc, where } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  // CORRECTED CONFIG: Using the 'sublime-log' project
   const firebaseConfig = {
     apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
     authDomain: "sublime-log.firebaseapp.com",
@@ -239,72 +238,301 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Persistence
   setPersistence(auth, browserLocalPersistence).catch(console.error);
 
   let currentUser = null;
+  
+  // UI References
   const appLoader = document.getElementById('app-loader');
   const mainContent = document.getElementById('main-content');
-  const sidebar = document.getElementById('sidebar');
-  const menuToggle = document.getElementById('menu-toggle');
-  
-  // Helper to format name: uses displayName, or email prefix
-  const formatUserName = (user) => {
-      const name = user.displayName;
-      if (name && name.trim().length > 0) return name;
-      return user.email ? user.email.split('@')[0] : 'User';
-  }
+  const activeSection = document.getElementById('active-section');
+  const activeList = document.getElementById('active-list');
 
-  // --- Mobile Menu Toggle Logic ---
-  menuToggle.addEventListener('click', () => {
-    sidebar.classList.toggle('open');
-  });
-  // Close menu when a link is clicked (mobile UX)
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => {
-        if (window.innerWidth <= 920) {
-            sidebar.classList.remove('open');
-        }
-    });
-  });
-
-  // --- CRITICAL: THE FIREBASE GUARD ---
+  // --- AUTH & INIT ---
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
       appLoader.style.display = 'none'; 
       mainContent.style.display = 'flex'; 
 
-      const formattedName = formatUserName(user);
-      document.getElementById('side-user').textContent = formattedName;
-      document.getElementById('greeting').textContent = `Welcome, ${formattedName}`;
+      const name = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+      document.getElementById('side-user').textContent = name;
+      document.getElementById('greeting').textContent = `Welcome, ${name}`;
       document.getElementById('pay-email-hidden').value = user.email;
 
+      // Balance Listener
       onSnapshot(doc(db, "users", user.uid), (doc) => {
         if(doc.exists()) document.getElementById('balance').textContent = '₦' + (doc.data().balance || 0).toLocaleString(undefined, {minimumFractionDigits:2});
       });
 
+      // Load History
       loadTransactions(user.uid);
+      
+      // Load Active Orders
+      loadActiveOrders(user.uid);
 
     } else {
       window.location.href = 'login.html';
     }
   });
 
-  // Logout (Redirect to index.html)
   document.getElementById('btn-logout').addEventListener('click', () => {
     signOut(auth).then(() => window.location.href = 'index.html');
   });
 
-  // Modal Handlers
-  const amModal = document.getElementById('add-money-modal');
-  const bModal = document.getElementById('buy-modal');
-  document.getElementById('open-add-money').addEventListener('click', () => amModal.classList.add('open'));
-  document.getElementById('close-add-money').addEventListener('click', () => amModal.classList.remove('open'));
-  document.getElementById('open-buy-modal').addEventListener('click', () => bModal.classList.add('open'));
-  document.getElementById('close-buy').addEventListener('click', () => bModal.classList.remove('open'));
+  // --- MODAL CONTROLS ---
+  const toggleModal = (id, show) => {
+      const el = document.getElementById(id);
+      if(show) el.classList.add('open');
+      else el.classList.remove('open');
+  }
+  
+  document.getElementById('open-add-money').addEventListener('click', () => toggleModal('add-money-modal', true));
+  document.getElementById('close-add-money').addEventListener('click', () => toggleModal('add-money-modal', false));
+  document.getElementById('open-buy-modal').addEventListener('click', () => toggleModal('buy-modal', true));
+  document.getElementById('close-buy').addEventListener('click', () => toggleModal('buy-modal', false));
 
-  // Paystack Logic
+
+  // =========================================================
+  // CORE LOGIC: BUY NUMBER
+  // =========================================================
+  const buyBtn = document.getElementById('confirm-buy');
+  
+  buyBtn.addEventListener('click', async () => {
+    const product = document.getElementById('buy-product').value;
+    const country = document.getElementById('buy-country').value;
+    
+    if(!currentUser) return;
+    
+    buyBtn.textContent = "Processing...";
+    buyBtn.disabled = true;
+
+    try {
+        // 1. Call Backend
+        const res = await fetch(`${API_URL}/buy`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country, product })
+        });
+        const data = await res.json();
+        
+        // 2. Error Check
+        if (!res.ok || !data.phone) throw new Error(data.message || "No numbers available.");
+
+        // 3. Process Transaction (Deduct Money)
+        // 5SIM price is usually in Rubles. We multiply by EXCHANGE_RATE.
+        const cost = Math.ceil(Number(data.amount) * EXCHANGE_RATE);
+        
+        await handlePurchaseTransaction(currentUser.uid, cost, data, product, country);
+        
+        toggleModal('buy-modal', false);
+        alert(`Success! Number: ${data.phone}`);
+
+    } catch (e) {
+        console.error(e);
+        alert("Purchase Failed: " + e.message);
+    } finally {
+        buyBtn.textContent = "Purchase Number";
+        buyBtn.disabled = false;
+    }
+  });
+
+  async function handlePurchaseTransaction(uid, cost, apiData, product, country) {
+    const userRef = doc(db, "users", uid);
+    
+    await runTransaction(db, async (t) => {
+        const userDoc = await t.get(userRef);
+        if (!userDoc.exists()) throw "User error";
+        
+        const currentBal = userDoc.data().balance || 0;
+        if (currentBal < cost) throw "Insufficient Balance. Please Fund Wallet.";
+
+        // Deduct
+        t.update(userRef, { balance: currentBal - cost });
+
+        // Create Order Record (Stored in 'orders' subcollection for active tracking)
+        const orderRef = doc(collection(userRef, "orders"));
+        t.set(orderRef, {
+            id: apiData.id,
+            phone: apiData.phone,
+            product: product,
+            country: country,
+            cost: cost,
+            status: 'PENDING', // PENDING, FINISHED, CANCELED
+            code: null,
+            createdAt: new Date().toISOString()
+        });
+        
+        // Add to Transaction History as well
+        const txRef = doc(collection(userRef, "transactions"));
+        t.set(txRef, {
+            type: 'purchase',
+            amount: cost,
+            note: `${product} Number`,
+            date: new Date().toISOString()
+        });
+    });
+  }
+
+
+  // =========================================================
+  // CORE LOGIC: ACTIVE ORDERS & CHECK SMS
+  // =========================================================
+  
+  // Realtime Listener for Active Orders
+  function loadActiveOrders(uid) {
+    const q = query(collection(db, "users", uid, "orders"), orderBy("createdAt", "desc"), limit(5));
+    
+    onSnapshot(q, (snapshot) => {
+        activeList.innerHTML = '';
+        if (snapshot.empty) {
+            activeSection.style.display = 'none';
+        } else {
+            activeSection.style.display = 'block';
+            snapshot.forEach(docSnap => {
+                const order = docSnap.data();
+                const docId = docSnap.id; // Firebase Doc ID
+                renderOrderCard(docId, order);
+            });
+        }
+    });
+  }
+
+  function renderOrderCard(docId, order) {
+    // Only show relevant statuses
+    if (order.status === 'REFUNDED') return;
+
+    const isPending = order.status === 'PENDING';
+    const isFinished = order.status === 'FINISHED';
+    
+    // HTML Template
+    const div = document.createElement('div');
+    div.className = `active-order-card ${isFinished ? 'completed' : ''}`;
+    
+    let statusBadge = isPending ? 
+        `<span class="ao-status status-pending">Waiting for SMS...</span>` : 
+        `<span class="ao-status status-finished">COMPLETED</span>`;
+    
+    if(order.status === 'CANCELED') statusBadge = `<span class="ao-status" style="background:red;color:white">CANCELED</span>`;
+
+    let actionArea = '';
+    if (isPending) {
+        actionArea = `
+            <div class="otp-display">
+                <span class="otp-placeholder">Waiting for code...</span>
+            </div>
+            <div style="display:flex; gap:10px">
+                <button class="btn" style="width:100%" onclick="window.checkSMS('${docId}', '${order.id}')">Check SMS</button>
+            </div>
+        `;
+    } else if (isFinished) {
+        actionArea = `
+            <div class="otp-display" onclick="navigator.clipboard.writeText('${order.code}'); alert('Code copied!')">
+                ${order.code} <span style="font-size:12px; vertical-align:middle">📋</span>
+            </div>
+        `;
+    } else {
+        // Canceled
+        actionArea = `<div class="small" style="color:var(--danger)">Order Canceled. Refund processed.</div>`;
+    }
+
+    div.innerHTML = `
+        <div class="ao-header">
+            <div class="small" style="text-transform:uppercase; letter-spacing:1px">${order.country} • ${order.product}</div>
+            ${statusBadge}
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="ao-number">${order.phone}</div>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText('${order.phone}');alert('Number copied!')">Copy Number</button>
+        </div>
+        ${actionArea}
+    `;
+    
+    activeList.appendChild(div);
+  }
+
+  // GLOBAL FUNCTION: Check SMS
+  // Attached to window so the HTML onclick works
+  window.checkSMS = async (firebaseDocId, apiOrderId) => {
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "Checking...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/check`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: apiOrderId })
+        });
+        const data = await res.json();
+
+        // SCENARIO 1: GOT CODE
+        if (data.sms && data.sms.length > 0) {
+            const code = data.sms[0].code; // Get first code
+            
+            // Update Firebase
+            const orderRef = doc(db, "users", currentUser.uid, "orders", firebaseDocId);
+            await updateDoc(orderRef, {
+                status: 'FINISHED',
+                code: code
+            });
+            alert("SMS Received!");
+        } 
+        // SCENARIO 2: CANCELED OR EXPIRED
+        else if (data.status === 'CANCELED' || data.status === 'BANNED') {
+            await processRefund(firebaseDocId, apiOrderId);
+            alert("Order was canceled by network. You have been refunded.");
+        } 
+        // SCENARIO 3: STILL WAITING
+        else {
+            // Do nothing, just alert
+            console.log("Still waiting...", data);
+        }
+
+    } catch(e) {
+        console.error(e);
+        alert("Check failed. Network error?");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+  };
+
+  // Refund Logic
+  async function processRefund(firebaseDocId, apiOrderId) {
+    const userRef = doc(db, "users", currentUser.uid);
+    const orderRef = doc(db, "users", currentUser.uid, "orders", firebaseDocId);
+
+    await runTransaction(db, async (t) => {
+        const oDoc = await t.get(orderRef);
+        if (!oDoc.exists()) return;
+        if (oDoc.data().status === 'REFUNDED') return; // Already refunded
+
+        const cost = oDoc.data().cost;
+
+        // Refund Balance
+        const uDoc = await t.get(userRef);
+        const newBal = (uDoc.data().balance || 0) + cost;
+        t.update(userRef, { balance: newBal });
+
+        // Update Order Status
+        t.update(orderRef, { status: 'REFUNDED' });
+
+        // Add Refund Record to History
+        const txRef = doc(collection(userRef, "transactions"));
+        t.set(txRef, {
+            type: 'refund',
+            amount: cost,
+            note: `Refund: ${oDoc.data().product}`,
+            date: new Date().toISOString()
+        });
+    });
+  }
+
+  // =========================================================
+  // DEPOSIT & HISTORY
+  // =========================================================
   document.getElementById('deposit-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const amount = document.getElementById('pay-amount').value;
@@ -318,14 +546,14 @@
     const handler = PaystackPop.setup({
       key: PAYSTACK_KEY, email: email, amount: amount * 100, currency: 'NGN',
       ref: 'SL-'+Math.floor(Math.random()*1000000000),
-      callback: (res) => processDeposit(amount, res.reference),
+      callback: (res) => confirmDeposit(amount, res.reference),
       onClose: () => { btn.disabled = false; btn.textContent = "Pay Now"; }
     });
     handler.openIframe();
   });
 
-  async function processDeposit(amount, ref) {
-    amModal.classList.remove('open');
+  async function confirmDeposit(amount, ref) {
+    toggleModal('add-money-modal', false);
     document.getElementById('start-paystack').disabled = false;
     document.getElementById('start-paystack').textContent = "Pay Now";
     try {
@@ -338,23 +566,27 @@
             const newBal = (sfDoc.data().balance || 0) + Number(amount);
             t.update(userRef, { balance: newBal });
         });
-        alert("Wallet Funded!");
+        alert("Wallet Funded Successfully!");
     } catch(e) { console.error(e); alert("Error updating balance. Ref: " + ref); }
   }
 
   async function loadTransactions(uid) {
     const list = document.getElementById('tx-list');
-    const q = query(collection(db, "users", uid, "transactions"), orderBy("date", "desc"), limit(5));
+    const q = query(collection(db, "users", uid, "transactions"), orderBy("date", "desc"), limit(10));
     const snap = await getDocs(q);
     list.innerHTML = '';
     if(snap.empty) { list.innerHTML = '<div class="tx-item"><div class="small">No transactions</div></div>'; return; }
     snap.forEach(d => {
         const data = d.data();
-        const isDep = data.type === 'deposit';
-        const formattedAmount = Number(data.amount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        const isDep = data.type === 'deposit' || data.type === 'refund';
+        const formattedAmount = Number(data.amount).toLocaleString(undefined, {minimumFractionDigits: 2});
+        
         list.innerHTML += `
         <div class="tx-item">
-            <div><div style="font-weight:700">${isDep?'+':'-'} ₦${formattedAmount}</div><div class="small">${new Date(data.date).toLocaleDateString()}</div></div>
+            <div>
+                <div style="font-weight:700">${isDep?'+':'-'} ₦${formattedAmount}</div>
+                <div class="small">${data.note || data.type.toUpperCase()} • ${new Date(data.date).toLocaleDateString()}</div>
+            </div>
             <div style="font-weight:700;color:${isDep?'var(--accent)':'#ff8a8a'}">${data.type.toUpperCase()}</div>
         </div>`;
     });
