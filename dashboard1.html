@@ -204,14 +204,8 @@
   <div class="modal-card">
     <h3 style="margin:0 0 8px 0">Buy Number</h3>
     <div class="form-row">
-      <select id="buy-product">
-          <option value="whatsapp">WhatsApp</option>
-          <option value="google">Google</option>
-          <option value="telegram">Telegram</option>
-          <option value="facebook">Facebook</option>
-          <option value="amazon">Amazon</option>
-      </select>
-      <input id="buy-country" placeholder="Country (e.g., 'england' or 'any')" />
+      <select id="buy-product"><option value="whatsapp">WhatsApp</option><option value="google">Google</option></select>
+      <input id="buy-country" placeholder="Country" />
     </div>
     <div style="height:15px"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px">
@@ -222,65 +216,6 @@
 </div>
 
 <script src="https://js.paystack.co/v1/inline.js"></script>
-
-<script>
-    // CRITICAL: YOUR 5SIM API TOKEN IS NOW PLACED HERE
-    const FIVESIM_TOKEN = 'eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3OTExMjczNjYsImlhdCI6MTc1OTU5MTM2NiwicmF5IjoiYzdlMTU3YmE2MDU2ODNkNmZjNzUzMzE4NTc4YTg0ZTQiLCJzdWIiOjM1MzY0NTl9.dDT08PGc_jJa7c6i-24hMcIUpGmOhgagFL8FN1MpMpsp5LImU9xxvgZPylAGlyVjab4CaISbZb0kSm1YqaJnFUNro3hUvHH1qehlklQIi8aWQeXdQ-C6DrMTlQc0XRqVC5NIkPHRi699R5716vLoxUx0eud9na4XdU5ywJeRVaPdTW9jt4Nd1RBAuu8mxfIW_EBKCyPHUjVzt3qw-pETcBtcC3Ly0qS3XbhpOBOcCHERXEvmZEOiuVqJ-nqqOqa3dSVJbGGiz1MbXHmBqw3S8vxI0zTT_tUtU_JFJytipmpjw0QPnqSWTAHwfNiaxcq-B2mVHqaIZgOodaQ8Z2xbfw'; 
-    const API_BASE_URL = 'https://5sim.net/v1/user';
-
-    /**
-     * Handles Fetch requests to 5sim API with token and error checking.
-     * @param {string} endpoint - The 5sim endpoint (e.g., 'profile', 'buy/activation/russia/any/whatsapp')
-     * @param {string} method - HTTP method (default 'GET')
-     * @returns {Promise<Object>} - The JSON response data
-     */
-    async function fetch5sim(endpoint, method = 'GET') {
-        const url = `${eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3OTExMjczNjYsImlhdCI6MTc1OTU5MTM2NiwicmF5IjoiYzdlMTU3YmE2MDU2ODNkNmZjNzUzMzE4NTc4YTg0ZTQiLCJzdWIiOjM1MzY0NTl9.dDT08PGc_jJa7c6i-24hMcIUpGmOhgagFL8FN1MpMpsp5LImU9xxvgZPylAGlyVjab4CaISbZb0kSm1YqaJnFUNro3hUvHH1qehlklQIi8aWQeXdQ-C6DrMTlQc0XRqVC5NIkPHRi699R5716vLoxUx0eud9na4XdU5ywJeRVaPdTW9jt4Nd1RBAuu8mxfIW_EBKCyPHUjVzt3qw-pETcBtcC3Ly0qS3XbhpOBOcCHERXEvmZEOiuVqJ-nqqOqa3dSVJbGGiz1MbXHmBqw3S8vxI0zTT_tUtU_JFJytipmpjw0QPnqSWTAHwfNiaxcq-B2mVHqaIZgOodaQ8Z2xbfw }/${endpoint}`;
-        const headers = {
-            'Authorization': `Bearer ${FIVESIM_TOKEN}`,
-            'Accept': 'application/json',
-        };
-
-        try {
-            const response = await fetch(url, { method, headers });
-            const data = await response.json();
-
-            // Check for non-2xx status codes
-            if (!response.ok) {
-                // 5sim often returns error details in the body
-                const errorMsg = data.error || data.message || `HTTP status ${response.status}`;
-                throw new Error(`5sim API Error: ${errorMsg}`);
-            }
-            return data;
-        } catch (e) {
-            console.error('5sim API Fetch Error:', e);
-            throw e; // Re-throw to be caught by the calling function
-        }
-    }
-
-    /**
-     * Marks a 5sim order as finished. Called from the dynamically created button.
-     * @param {HTMLElement} buttonElement - The button that was clicked
-     */
-    async function finish5simOrder(buttonElement) {
-        const orderId = buttonElement.getAttribute('data-order-id');
-        buttonElement.textContent = 'Finishing...';
-        buttonElement.disabled = true;
-        
-        try {
-            // Endpoint: /v1/user/finish/{id}
-            await fetch5sim(`finish/${orderId}`);
-            buttonElement.textContent = 'Finished!';
-            buttonElement.style.background = 'var(--accent)'; // Greenish finish color
-            alert(`Order ID ${orderId} successfully marked as FINISHED. You can use this number for other services now.`);
-        } catch (e) {
-            console.error('Error finishing 5sim order:', e);
-            buttonElement.textContent = 'Error Finishing';
-            buttonElement.disabled = false;
-            alert(`Failed to finish order. Please try again or manually cancel/ban if necessary: ${e.message}`);
-        }
-    }
-</script>
 
 <script type="module">
   const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
@@ -312,8 +247,7 @@
   const mainContent = document.getElementById('main-content');
   const sidebar = document.getElementById('sidebar');
   const menuToggle = document.getElementById('menu-toggle');
-  const bModal = document.getElementById('buy-modal'); // Define buy modal here
-
+  
   // Helper to format name: uses displayName, or email prefix
   const formatUserName = (user) => {
       const name = user.displayName;
@@ -334,7 +268,7 @@
     });
   });
 
-  // --- CRITICAL: THE FIREBASE GUARD (onAuthStateChanged) ---
+  // --- CRITICAL: THE FIREBASE GUARD ---
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
@@ -346,7 +280,6 @@
       document.getElementById('greeting').textContent = `Welcome, ${formattedName}`;
       document.getElementById('pay-email-hidden').value = user.email;
 
-      // Real-time balance update
       onSnapshot(doc(db, "users", user.uid), (doc) => {
         if(doc.exists()) document.getElementById('balance').textContent = '₦' + (doc.data().balance || 0).toLocaleString(undefined, {minimumFractionDigits:2});
       });
@@ -358,19 +291,20 @@
     }
   });
 
-  // Logout
+  // Logout (Redirect to index.html)
   document.getElementById('btn-logout').addEventListener('click', () => {
     signOut(auth).then(() => window.location.href = 'index.html');
   });
 
   // Modal Handlers
   const amModal = document.getElementById('add-money-modal');
+  const bModal = document.getElementById('buy-modal');
   document.getElementById('open-add-money').addEventListener('click', () => amModal.classList.add('open'));
   document.getElementById('close-add-money').addEventListener('click', () => amModal.classList.remove('open'));
   document.getElementById('open-buy-modal').addEventListener('click', () => bModal.classList.add('open'));
   document.getElementById('close-buy').addEventListener('click', () => bModal.classList.remove('open'));
 
-  // Paystack Logic (Unchanged)
+  // Paystack Logic
   document.getElementById('deposit-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const amount = document.getElementById('pay-amount').value;
@@ -408,7 +342,6 @@
     } catch(e) { console.error(e); alert("Error updating balance. Ref: " + ref); }
   }
 
-  // Transaction Loader (Unchanged)
   async function loadTransactions(uid) {
     const list = document.getElementById('tx-list');
     const q = query(collection(db, "users", uid, "transactions"), orderBy("date", "desc"), limit(5));
@@ -426,128 +359,6 @@
         </div>`;
     });
   }
-
-  // --- 5SIM HELPER: Poll for SMS Code ---
-  /** Polls the check endpoint until the status is 'RECEIVED' or 'BANNED'. */
-  function checkOrderStatus(orderId) {
-      return new Promise((resolve, reject) => {
-          const checkInterval = setInterval(async () => {
-              try {
-                  // fetch5sim is globally available
-                  const order = await fetch5sim(`check/${orderId}`);
-                  
-                  if (order.status === 'RECEIVED') {
-                      clearInterval(checkInterval);
-                      resolve(order); // SMS code is in order.sms[0].code
-                  } else if (order.status === 'BANNED' || order.status === 'CANCELLED') {
-                      clearInterval(checkInterval);
-                      reject(new Error(`Order failed with status: ${order.status}. Try again.`));
-                  }
-                  // PENDING: Keep polling
-                  
-              } catch (error) {
-                  clearInterval(checkInterval);
-                  reject(error);
-              }
-          }, 5000); // Check every 5 seconds
-      });
-  }
-
-
-  // --- 5SIM: BUY NUMBER LOGIC ---
-  document.getElementById('confirm-buy').addEventListener('click', async () => {
-      const product = document.getElementById('buy-product').value;
-      const country = document.getElementById('buy-country').value.toLowerCase().trim();
-      const btn = document.getElementById('confirm-buy');
-      
-      if (!country) return alert("Please enter a country (e.g., 'england' or 'any').");
-
-      const operator = 'any'; 
-      const type = 'activation'; 
-
-      // 1. UI Feedback and State
-      btn.textContent = 'Purchasing...';
-      btn.disabled = true;
-      bModal.classList.remove('open'); 
-      const recentActivitySection = document.getElementById('tx-list');
-
-
-      try {
-          // --- 2. 5SIM API: Buy Number ---
-          // Endpoint: /v1/user/buy/activation/{country}/{operator}/{product}
-          const orderEndpoint = `buy/${type}/${country}/${operator}/${product}`;
-          const order = await fetch5sim(orderEndpoint);
-          const orderId = order.id;
-          const number = order.phone;
-          const price = order.price; 
-
-          // --- 3. FIREBASE: Deduct Balance (Atomic Transaction) ---
-          const userRef = doc(db, "users", currentUser.uid);
-
-          await runTransaction(db, async (t) => {
-              const sfDoc = await t.get(userRef);
-              if (!sfDoc.exists()) throw new Error("User document does not exist!");
-              
-              const currentBalance = sfDoc.data().balance || 0;
-              const newBal = currentBalance - price;
-
-              if (newBal < 0) {
-                  // Cancel the 5sim order if balance is insufficient (best effort)
-                  await fetch5sim(`cancel/${orderId}`).catch(e => console.error("Could not auto-cancel 5sim order:", e));
-                  throw new Error(`Insufficient funds (₦${currentBalance}). Price was ₦${price}. Order cancelled.`);
-              }
-
-              // Update balance and log number purchase transaction
-              t.update(userRef, { balance: newBal });
-              t.set(doc(collection(db, "users", currentUser.uid, "transactions")), {
-                  type: 'number_purchase', 
-                  amount: -Number(price), 
-                  date: new Date().toISOString(), 
-                  reference: `5SIM-ID-${orderId}`,
-                  number: number,
-                  product: product,
-              });
-          });
-
-          // --- 4. SUCCESS UI / Start Polling for SMS ---
-          const numberDisplayId = `number-display-${orderId}`;
-          recentActivitySection.innerHTML = `
-              <div id="${numberDisplayId}" style="padding:15px; background:#1c2430; border-radius:8px; margin-bottom:15px;">
-                  <p style="margin:0; font-size:16px; font-weight:700;">
-                      Your ${product.toUpperCase()} Number: <span style="color:var(--accent-2);">${number}</span>
-                  </p>
-                  <p style="margin:5px 0 0 0; color:var(--muted);">
-                      Waiting for SMS Code... <span class="spinner" style="width:15px; height:15px; border-width:2px; display:inline-block; vertical-align:middle;"></span>
-                  </p>
-              </div>
-          ` + recentActivitySection.innerHTML;
-
-          // --- 5. 5SIM API: Wait for SMS Code ---
-          const receivedOrder = await checkOrderStatus(orderId);
-          const smsCode = receivedOrder.sms[0]?.code;
-
-          // Update UI with the code and mark as received
-          const numberDisplay = document.getElementById(numberDisplayId);
-          numberDisplay.innerHTML = `
-              <p style="margin:0; font-size:16px; font-weight:700;">
-                  Number: <span style="color:var(--accent-2);">${number}</span> | Service: ${product.toUpperCase()}
-              </p>
-              <h3 style="margin:10px 0;">Verification Code: <span style="color:var(--accent);">${smsCode || 'N/A (Check SMS Inbox)'}</span></h3>
-              <button class="btn secondary" data-order-id="${orderId}" onclick="finish5simOrder(this)" style="padding:5px 10px; font-size:12px;">
-                  Confirm & Finish Order
-              </button>
-          `;
-
-      } catch (e) {
-          alert(`Purchase failed: ${e.message}`);
-          console.error('Number purchase failed:', e);
-          loadTransactions(currentUser.uid); 
-      } finally {
-          btn.textContent = 'Buy';
-          btn.disabled = false;
-      }
-  });
-
 </script>
 </body>
 </html>
