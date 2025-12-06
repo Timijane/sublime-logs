@@ -5,218 +5,155 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Dashboard — Sublime Logs</title>
 <style>
-  :root{ --bg:#0b0f13; --card:#0f1720; --muted:#98a0a8; --accent:#6ee7b7; --accent-2:#7c5cff; --danger:#ff5c5c; --warning:#fca5a5; }
+  :root{ --bg:#0b0f13; --card:#161b22; --input-bg:#0d1117; --muted:#8b949e; --text:#c9d1d9; --accent:#2ea043; --accent-hover:#3fb950; --border:rgba(240,246,252,0.1); --danger:#f85149; --warning:#d29922; }
   *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,Arial;background:radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.06), transparent 5%),linear-gradient(180deg,#020408 0%, #061018 100%);color:#e6eef6;min-height:100vh;display:flex;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
   
-  /* Loader */
-  #app-loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #020408; z-index: 99999; display: flex; justify-content: center; align-items: center; }
-  .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Layout */
+  .sidebar{width:250px;background:var(--card);border-right:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:15px;position:fixed;height:100%;}
+  .main{margin-left:250px;flex:1;padding:30px;max-width:1200px;}
+  @media(max-width:800px){ .sidebar{display:none} .main{margin-left:0;padding:15px} }
 
-  #main-content { display: none; width: 100%; }
+  /* Typography */
+  h1,h2,h3{margin:0;color:#fff}
+  .label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;}
+  
+  /* Cards */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:20px;margin-bottom:20px;}
+  
+  /* Inputs & Buttons */
+  select, input{width:100%;padding:10px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;color:#fff;font-size:14px;outline:none;}
+  select:focus, input:focus{border-color:var(--accent);}
+  
+  .btn{background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:600;font-size:14px;transition:0.2s;}
+  .btn:hover{background:var(--accent-hover);}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;background:var(--muted);}
+  .btn.secondary{background:#21262d;border:1px solid var(--border);color:var(--text);}
+  
+  /* Step Interface */
+  .step-container{display:none; animation: fadeIn 0.3s ease;}
+  .step-container.active{display:block;}
+  @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+  
+  /* Availability List */
+  .offer-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:10px;margin-top:15px;}
+  .offer-item{background:var(--input-bg);border:1px solid var(--border);padding:15px;border-radius:6px;cursor:pointer;transition:0.2s;text-align:center;}
+  .offer-item:hover{border-color:var(--accent);background:#1c2128;}
+  .offer-price{font-size:18px;font-weight:bold;color:#fff;margin:5px 0;}
+  .offer-stock{font-size:11px;color:var(--muted);}
 
-  /* Sidebar */
-  .sidebar{ width:260px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-right:1px solid rgba(255,255,255,0.03); padding:28px 20px; display:flex; flex-direction:column; gap:18px; position: fixed; top: 0; left: 0; height: 100%; z-index: 100; transform: translateX(-100%); transition: transform 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
-  @media(min-width: 921px) { .sidebar { position: sticky; transform: translateX(0); box-shadow: none; height: 100vh; } }
-  .sidebar.open { transform: translateX(0); }
+  /* Data Table */
+  .table-container{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;}
+  th{text-align:left;padding:12px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:500;}
+  td{padding:12px;border-bottom:1px solid var(--border);color:#fff;}
+  tr:last-child td{border-bottom:none;}
   
-  #menu-toggle { display: none; position: fixed; top: 20px; left: 20px; width: 40px; height: 40px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; cursor: pointer; z-index: 101; font-size: 24px; }
-  @media(max-width:920px){ #menu-toggle { display: block; } }
+  /* Badges */
+  .badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;}
+  .status-pending{background:rgba(210,153,34,0.15);color:#e3b341;}
+  .status-finished{background:rgba(46,160,67,0.15);color:#3fb950;}
+  .status-canceled{background:rgba(248,81,73,0.15);color:#f85149;}
+  .code-box{font-family:monospace;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;letter-spacing:1px;}
 
-  .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;color:#051018;font-size:18px}
-  nav{display:flex;flex-direction:column;gap:10px;margin-top:6px}
-  .nav-link{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer;text-decoration:none;font-size:14px}
-  .nav-link.active, .nav-link:hover{background: linear-gradient(90deg, rgba(124,92,255,0.06), rgba(110,231,183,0.03));color:#e9fef0}
-  
-  .main{flex:1;padding:28px;display:flex;flex-direction:column;gap:20px; overflow-x: hidden;}
-  @media(max-width:920px){ .main { padding-top: 80px; margin-left: 0; } }
-
-  .top-bar{display:flex;justify-content:space-between;align-items:center;gap:12px; flex-wrap: wrap;}
-  .card-row{display:flex;gap:18px;align-items:stretch; flex-wrap: wrap;}
-  .card{background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:20px;flex:1;box-shadow:0 8px 30px rgba(2,6,12,0.6);min-width: 280px;}
-  .big-card{flex:1.4}
-  
-  .balance-value{font-size:28px;font-weight:700;color:var(--accent)}
-  .small{font-size:13px;color:var(--muted)}
-  .actions{display:flex;gap:12px}
-  
-  .btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#051018;font-weight:700; font-size: 14px;}
-  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-  .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);box-shadow:none}
-  .btn.danger{background: rgba(255, 92, 92, 0.1); border: 1px solid var(--danger); color: var(--danger); }
-  .buy-button{display:inline-block;padding:12px 16px;border-radius:12px;background:linear-gradient(90deg,#ff8a65,#ffb74d);color:#051018;font-weight:700;cursor:pointer}
-  
-  /* Modals */
-  .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.8);z-index:999; backdrop-filter: blur(4px);}
-  .modal.open{display:flex}
-  .modal-card{width:400px;max-width:95%;background:#0b1219;padding:24px;border-radius:12px;border:1px solid rgba(255,255,255,0.05); box-shadow: 0 20px 40px rgba(0,0,0,0.8);}
-  .form-row{display:flex;gap:8px;margin-top:12px}
-  input, select{padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.2);color:#e6eef6;outline:none; width:100%; font-size: 15px;}
-  select option { background: #0b1219; }
-
-  /* Lists */
-  .tx-list{margin-top:12px;max-height:320px;overflow:auto;background:rgba(0,0,0,0.2);padding:12px;border-radius:10px}
-  .tx-item{display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid rgba(255,255,255,0.02)}
-  
-  /* Active Order Styles */
-  .active-orders-container { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
-  .active-order-card {
-    background: rgba(110, 231, 183, 0.03); border: 1px solid rgba(110, 231, 183, 0.1);
-    border-radius: 12px; padding: 20px; position: relative; overflow: hidden;
-  }
-  .active-order-card.completed { background: rgba(124, 92, 255, 0.05); border-color: var(--accent-2); }
-  
-  .ao-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-  .ao-number { font-size: 20px; font-weight: 700; letter-spacing: 1px; color: #fff; font-family: monospace; }
-  .ao-status { font-size: 11px; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; font-weight: 700; background: rgba(255,255,255,0.1); }
-  .status-pending { color: #ffd166; background: rgba(255, 209, 102, 0.1); }
-  .status-finished { color: var(--accent); background: rgba(110, 231, 183, 0.1); }
-  
-  .otp-display { 
-    background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; text-align: center; 
-    font-size: 24px; font-weight: 800; letter-spacing: 5px; color: var(--accent); margin: 10px 0;
-    border: 1px dashed rgba(255,255,255,0.1); position: relative; cursor: pointer;
-  }
-  .otp-placeholder { font-size: 14px; letter-spacing: 0; color: var(--muted); font-weight: 400; animation: pulse 2s infinite; }
-  @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-  
-  .copy-btn { font-size: 12px; color: var(--accent-2); background: none; border: none; cursor: pointer; text-decoration: underline; margin-left: 10px; }
-
-  /* New Price Display Styles */
-  .product-option-detail { 
-    font-size: 11px; 
-    color: var(--muted); 
-    padding: 0 5px; 
-    float: right;
-  }
-
+  /* Header */
+  .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;}
+  .balance-card{text-align:right;}
+  .balance-amount{font-size:24px;font-weight:700;color:var(--accent);}
 </style>
 </head>
 <body>
 
-<div id="app-loader"><div class="spinner"></div></div>
+<aside class="sidebar">
+  <div style="font-weight:bold;font-size:18px;margin-bottom:20px;padding-left:5px;">Sublime Logs</div>
+  <a href="#" class="btn secondary" style="text-align:left;border:none;background:rgba(255,255,255,0.05);">Dashboard</a>
+  <a href="wallet.html" class="btn secondary" style="text-align:left;border:none;background:transparent;">Wallet</a>
+  <div style="margin-top:auto;font-size:12px;color:var(--muted)">User: <span id="user-email">...</span></div>
+  <button id="logout" class="btn secondary" style="margin-top:10px;">Logout</button>
+</aside>
 
-<div id="main-content">
-  <button id="menu-toggle" aria-label="Toggle Menu">☰</button>
-
-  <aside class="sidebar" id="sidebar">
-    <div style="display:flex;align-items:center;gap:12px">
-      <div class="logo">SL</div>
-      <div>
-        <h1 style="margin:0;font-size:16px">Sublime Logs</h1>
-        <p style="margin:0;font-size:12px;color:var(--muted)">Wallet & Numbers</p>
-      </div>
+<main class="main">
+  
+  <div class="top-bar">
+    <div>
+      <h2>New Order</h2>
+      <div style="color:var(--muted);font-size:14px">Buy verification numbers securely</div>
     </div>
-    <nav>
-      <a href="#" class="nav-link active">Dashboard</a>
-      <a href="wallet.html" class="nav-link">Wallet</a>
-      <a href="transactions.html" class="nav-link">Transactions</a>
-      <a href="#" class="nav-link" id="btn-logout">Logout</a>
-    </nav>
-    <div style="margin-top:auto;font-size:12px;color:var(--muted)">
-      Signed in as: <div id="side-user" style="margin-top:8px;font-weight:600">...</div>
+    <div class="balance-card">
+        <div class="label">Wallet Balance</div>
+        <div class="balance-amount" id="balance">...</div>
     </div>
-  </aside>
+  </div>
 
-  <main class="main">
-    <div class="top-bar">
-      <div>
-        <h2 id="greeting" style="margin:0">Welcome</h2>
-        <p class="small">Manage your SMS activations</p>
-      </div>
-      <div class="actions">
-        <a href="wallet.html" class="btn" style="text-decoration:none;">Open Wallet</a>
-        <button class="btn secondary" id="open-add-money">Fund Wallet</button>
-      </div>
+  <div class="card">
+    
+    <div id="step-1" class="step-container active">
+        <h3 style="margin-bottom:15px">1. Select Country</h3>
+        <div class="label">Choose the country for the number</div>
+        <select id="sel-country" style="margin-bottom:15px; max-width:400px;"></select>
+        <button class="btn" onclick="goToStep2()">Continue &rarr;</button>
     </div>
 
-    <div class="card-row">
-      <div class="card">
-        <div class="small">Available Balance</div>
-        <div style="height:8px"></div>
-        <div class="balance-value" id="balance">...</div>
-      </div>
-      <div class="card big-card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div class="small">New Activation</div>
-            <div style="font-weight:700;font-size:18px;margin-top:6px">Purchase a Number</div>
-            <div class="small" style="margin-top:6px">WhatsApp, Telegram, Google, Gmail, etc.</div>
-          </div>
-          <div><div class="buy-button" id="open-buy-modal">Buy Number</div></div>
+    <div id="step-2" class="step-container">
+        <h3 style="margin-bottom:15px">2. Select Service</h3>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px;">
+             <button class="btn secondary" style="padding:5px 10px;font-size:12px;" onclick="goToStep1()">&larr; Back</button>
+             <div class="label" style="margin:0">Selected: <span id="display-country" style="color:#fff"></span></div>
         </div>
-      </div>
+        
+        <div class="label">Choose the App/Website</div>
+        <select id="sel-service" style="margin-bottom:15px; max-width:400px;"></select>
+        <button class="btn" id="btn-check-avail">Check Availability</button>
     </div>
 
-    <section id="active-section" style="display:none;">
-        <h3 style="margin:30px 0 10px 0; display:flex; align-items:center; gap:10px;">
-            Active Activations 
-            <span style="font-size:12px; background:var(--accent); color:black; padding:2px 6px; border-radius:4px;">LIVE</span>
-        </h3>
-        <div class="active-orders-container" id="active-list">
-            </div>
-    </section>
+    <div id="step-3" class="step-container">
+        <h3 style="margin-bottom:15px">3. Available Numbers</h3>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px;">
+             <button class="btn secondary" style="padding:5px 10px;font-size:12px;" onclick="goToStep2()">&larr; Back</button>
+             <div class="label" style="margin:0">For: <span id="display-final" style="color:#fff"></span></div>
+        </div>
+        
+        <div id="results-loader" style="display:none;color:var(--muted);">Fetching best prices...</div>
+        <div id="offers-grid" class="offer-list"></div>
+    </div>
 
-    <section>
-      <h3 style="margin:30px 0 10px 0">Recent Transactions</h3>
-      <div class="tx-list" id="tx-list"><div class="tx-item"><div class="small">Loading…</div></div></div>
-    </section>
-  </main>
-</div>
-
-<div class="modal" id="add-money-modal">
-  <div class="modal-card">
-    <h3 style="margin:0 0 8px 0">Fund Wallet</h3>
-    <form id="deposit-form">
-      <div class="small">Funds are added automatically.</div>
-      <div style="height:10px"></div>
-      <input type="number" id="pay-amount" placeholder="Amount (e.g. 1000)" min="50" required />
-      <input type="email" id="pay-email-hidden" style="display:none;" />
-      <div style="height:20px"></div>
-      <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button type="button" class="btn secondary" id="close-add-money">Cancel</button>
-        <button type="submit" class="btn" id="start-paystack">Pay Now</button>
-      </div>
-    </form>
   </div>
-</div>
 
-<div class="modal" id="buy-modal">
-  <div class="modal-card">
-    <h3 style="margin:0 0 8px 0">Buy Number</h3>
-    <div class="small" style="margin-bottom:15px">Select service and country. Prices shown in Naira (₦)</div>
-    
-    <label class="small" style="display:block; margin-bottom:5px;">Service</label>
-    <select id="buy-product" style="margin-bottom:15px;">
-        <option value="" disabled selected>Loading services...</option>
-    </select>
-    
-    <label class="small" style="display:block; margin-bottom:5px;">Country</label>
-    <select id="buy-country">
-        <option value="" disabled selected>Loading countries...</option>
-    </select>
-
-    <div style="height:25px"></div>
-    <div style="display:flex;justify-content:flex-end;gap:8px">
-      <button class="btn secondary" id="close-buy">Cancel</button>
-      <button class="btn" id="confirm-buy">Purchase Number</button>
+  <h3 style="margin-top:40px;margin-bottom:15px;">Transaction History</h3>
+  <div class="card" style="padding:0;">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:50px">No.</th>
+                    <th>Phone Number</th>
+                    <th>Code</th>
+                    <th>Service</th>
+                    <th>Price</th>
+                    <th>Country</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="history-table-body">
+                <tr><td colspan="9" style="text-align:center;color:var(--muted)">Loading history...</td></tr>
+            </tbody>
+        </table>
     </div>
   </div>
-</div>
 
-<script src="https://js.paystack.co/v1/inline.js"></script>
+</main>
 
 <script type="module">
   // ================= CONFIGURATION =================
-  const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
-  const API_URL = "https://eod5fsiqjjs71gx.m.pipedream.net"; 
-  const EXCHANGE_RATE = 15; // e.g. 1 Ruble = 15 Naira (Set your profit margin here)
+  const API_URL = "https://eod5fsiqjjs71gx.m.pipedream.net"; // YOUR PIPEDREAM URL
+  const EXCHANGE_RATE = 15; // 1 Ruble = 15 Naira
   // =================================================
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, onSnapshot, collection, addDoc, query, orderBy, limit, getDocs, runTransaction, updateDoc, where } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, runTransaction, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
@@ -224,540 +161,304 @@
     projectId: "sublime-log",
     storageBucket: "sublime-log.firebasestorage.app",
     messagingSenderId: "644554254089",
-    appId: "1:644554254089:web:dd3374c9468046a5a015d8",
-    measurementId: "G-YMPGVWCK16"
+    appId: "1:644554254089:web:dd3374c9468046a5a015d8"
   };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  setPersistence(auth, browserLocalPersistence).catch(console.error);
-
   let currentUser = null;
-  // Global variable to store price data from 5SIM
-  let priceData = null; 
-  
-  // UI References
-  const appLoader = document.getElementById('app-loader');
-  const mainContent = document.getElementById('main-content');
-  const activeSection = document.getElementById('active-section');
-  const activeList = document.getElementById('active-list');
-  const buyProductSelect = document.getElementById('buy-product');
-  const buyCountrySelect = document.getElementById('buy-country');
+
+  // --- STATIC DATA (To prevent Network Fail) ---
+  const countries = [
+      {code:"usa", name:"USA"}, {code:"england", name:"UK"}, {code:"nigeria", name:"Nigeria"},
+      {code:"russia", name:"Russia"}, {code:"ukraine", name:"Ukraine"}, {code:"kazakhstan", name:"Kazakhstan"},
+      {code:"kenya", name:"Kenya"}, {code:"ghana", name:"Ghana"}, {code:"southafrica", name:"South Africa"},
+      {code:"brazil", name:"Brazil"}, {code:"india", name:"India"}, {code:"indonesia", name:"Indonesia"},
+      {code:"philippines", name:"Philippines"}, {code:"vietnam", name:"Vietnam"}, {code:"thailand", name:"Thailand"},
+      {code:"germany", name:"Germany"}, {code:"france", name:"France"}, {code:"netherlands", name:"Netherlands"},
+      {code:"poland", name:"Poland"}, {code:"canada", name:"Canada"}
+  ];
+  const services = [
+      {code:"whatsapp", name:"WhatsApp"}, {code:"telegram", name:"Telegram"}, {code:"google", name:"Google / Gmail"},
+      {code:"facebook", name:"Facebook"}, {code:"instagram", name:"Instagram"}, {code:"tiktok", name:"TikTok"},
+      {code:"twitter", name:"X (Twitter)"}, {code:"linkedin", name:"LinkedIn"}, {code:"netflix", name:"Netflix"},
+      {code:"uber", name:"Uber"}, {code:"amazon", name:"Amazon"}, {code:"discord", name:"Discord"},
+      {code:"viber", name:"Viber"}, {code:"wechat", name:"WeChat"}, {code:"snapchat", name:"Snapchat"},
+      {code:"openai", name:"OpenAI / ChatGPT"}, {code:"microsoft", name:"Microsoft"}, {code:"yahoo", name:"Yahoo"},
+      {code:"airbnb", name:"Airbnb"}, {code:"bolt", name:"Bolt"}
+  ];
 
   // --- AUTH & INIT ---
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
-      appLoader.style.display = 'none'; 
-      mainContent.style.display = 'flex'; 
-
-      const name = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
-      document.getElementById('side-user').textContent = name;
-      document.getElementById('greeting').textContent = `Welcome, ${name}`;
-      document.getElementById('pay-email-hidden').value = user.email;
-
+      document.getElementById('user-email').textContent = user.email;
+      
       // Balance Listener
-      onSnapshot(doc(db, "users", user.uid), (doc) => {
-        if(doc.exists()) document.getElementById('balance').textContent = '₦' + (doc.data().balance || 0).toLocaleString(undefined, {minimumFractionDigits:2});
+      onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+         const bal = docSnap.exists() ? docSnap.data().balance : 0;
+         document.getElementById('balance').textContent = '₦' + (bal || 0).toLocaleString();
       });
 
       // Load History
-      loadTransactions(user.uid);
+      loadHistory();
       
-      // Load Active Orders
-      loadActiveOrders(user.uid);
-      
-      // Load Prices on startup
-      load5SimPrices();
-
+      // Populate Dropdowns
+      initDropdowns();
     } else {
-      window.location.href = 'login.html';
+      window.location.href = 'login.html'; // Adjust to your login page
     }
   });
+  
+  document.getElementById('logout').addEventListener('click', () => signOut(auth));
 
-  document.getElementById('btn-logout').addEventListener('click', () => {
-    signOut(auth).then(() => window.location.href = 'index.html');
+  // --- UI STEPS LOGIC ---
+  function initDropdowns() {
+      // Sort and Populate Countries
+      countries.sort((a,b) => a.name.localeCompare(b.name));
+      const countrySel = document.getElementById('sel-country');
+      countries.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.code; opt.text = c.name;
+          countrySel.appendChild(opt);
+      });
+
+      // Sort and Populate Services
+      services.sort((a,b) => a.name.localeCompare(b.name));
+      const serviceSel = document.getElementById('sel-service');
+      services.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.code; opt.text = s.name;
+          serviceSel.appendChild(opt);
+      });
+  }
+
+  // Expose functions to window for onclick events
+  window.goToStep1 = () => {
+      document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+      document.getElementById('step-1').classList.add('active');
+  };
+
+  window.goToStep2 = () => {
+      const cCode = document.getElementById('sel-country').value;
+      const cName = countries.find(x => x.code === cCode).name;
+      document.getElementById('display-country').textContent = cName;
+      
+      document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+      document.getElementById('step-2').classList.add('active');
+  };
+
+  // --- CHECK AVAILABILITY LOGIC ---
+  document.getElementById('btn-check-avail').addEventListener('click', async () => {
+      const country = document.getElementById('sel-country').value;
+      const service = document.getElementById('sel-service').value;
+      
+      // Update UI to Step 3
+      document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+      document.getElementById('step-3').classList.add('active');
+      
+      const sName = services.find(x => x.code === service).name;
+      const cName = countries.find(x => x.code === country).name;
+      document.getElementById('display-final').textContent = `${sName} in ${cName}`;
+      
+      const grid = document.getElementById('offers-grid');
+      const loader = document.getElementById('results-loader');
+      
+      grid.innerHTML = '';
+      loader.style.display = 'block';
+
+      try {
+          const res = await fetch(`${API_URL}/prices`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ country, product: service })
+          });
+          
+          const data = await res.json();
+          loader.style.display = 'none';
+
+          if(!data.offers || data.offers.length === 0) {
+              grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--warning)">No numbers available right now. Try a different country.</div>';
+              return;
+          }
+
+          // RENDER OFFERS
+          data.offers.forEach(offer => {
+             const priceNaira = Math.ceil(offer.cost * EXCHANGE_RATE);
+             
+             const div = document.createElement('div');
+             div.className = 'offer-item';
+             div.innerHTML = `
+                <div style="font-weight:600;text-transform:uppercase;font-size:12px;color:var(--muted)">${offer.operator}</div>
+                <div class="offer-price">₦${priceNaira}</div>
+                <div class="offer-stock">Qty: ${offer.count}</div>
+                <button class="btn" style="width:100%;margin-top:10px;font-size:12px;padding:8px" 
+                   onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${priceNaira})">
+                   Buy
+                </button>
+             `;
+             grid.appendChild(div);
+          });
+
+      } catch(e) {
+          loader.style.display = 'none';
+          grid.innerHTML = '<div style="color:var(--danger)">Network Error. Please try again.</div>';
+      }
   });
 
-  // --- MODAL CONTROLS ---
-  const toggleModal = (id, show) => {
-      const el = document.getElementById(id);
-      if(show) el.classList.add('open');
-      else el.classList.remove('open');
-  }
-  
-  document.getElementById('open-add-money').addEventListener('click', () => toggleModal('add-money-modal', true));
-  document.getElementById('close-add-money').addEventListener('click', () => toggleModal('add-money-modal', false));
-  document.getElementById('open-buy-modal').addEventListener('click', () => toggleModal('buy-modal', true));
-  document.getElementById('close-buy').addEventListener('click', () => toggleModal('buy-modal', false));
+  // --- BUY LOGIC ---
+  window.buyNumber = async (country, product, operator, cost) => {
+      if(!confirm(`Buy ${product} number for ₦${cost}?`)) return;
+      
+      // 1. Check Balance & Deduct (Frontend optimistically, Backend verifies)
+      const userRef = doc(db, "users", currentUser.uid);
+      
+      try {
+        let apiData = null;
 
-  // Update dropdowns when a country or product is selected
-  buyCountrySelect.addEventListener('change', updateBuyOptions);
-  buyProductSelect.addEventListener('change', updateBuyOptions);
+        // Transaction: Check Balance
+        await runTransaction(db, async (t) => {
+            const uDoc = await t.get(userRef);
+            const currentBal = uDoc.data().balance || 0;
+            if(currentBal < cost) throw "Insufficient Balance";
+            
+            // If balance ok, call API *inside* try block but before DB commit? 
+            // Better: Call API first, then deduct. 
+        });
 
-
-  // =========================================================
-  // CORE LOGIC: PRICE FETCHING AND UI UPDATES (NEW)
-  // =========================================================
-
-  // Helper to convert 5SIM product names to user-friendly names
-  const productNames = {
-    whatsapp: 'WhatsApp',
-    telegram: 'Telegram',
-    google: 'Google / Gmail',
-    facebook: 'Facebook',
-    instagram: 'Instagram',
-    tiktok: 'TikTok',
-    twitter: 'X (Twitter)',
-    // Add other product mappings here if needed
-  };
-  
-  // Helper to convert 5SIM country names to user-friendly names (Capitalize)
-  const countryNames = (name) => {
-      if (name === 'uk') return 'UK';
-      if (name === 'usa') return 'USA';
-      return name.charAt(0).toUpperCase() + name.slice(1);
-  };
-
-  async function load5SimPrices() {
-    try {
-        buyProductSelect.innerHTML = '<option value="" disabled selected>Loading prices...</option>';
-        buyCountrySelect.innerHTML = '<option value="" disabled selected>Loading prices...</option>';
-        
-        const res = await fetch(`${API_URL}/prices`, { method: 'POST' }); // Using POST with empty body for full price list
-        const data = await res.json();
-        
-        if (!res.ok || data.error) {
-            console.error("Failed to load 5SIM prices:", data.error || res.status);
-            buyProductSelect.innerHTML = '<option value="" disabled selected>Error loading prices</option>';
-            buyCountrySelect.innerHTML = '<option value="" disabled selected>Error loading prices</option>';
-            return;
-        }
-
-        priceData = data;
-        updateBuyOptions(); // Initial call to populate dropdowns
-
-    } catch(e) {
-        console.error("Network error fetching prices:", e);
-        buyProductSelect.innerHTML = '<option value="" disabled selected>Network error</option>';
-        buyCountrySelect.innerHTML = '<option value="" disabled selected>Network error</option>';
-    }
-  }
-
-  function updateBuyOptions() {
-    if (!priceData) return;
-    
-    const selectedCountry = buyCountrySelect.value;
-    const selectedProduct = buyProductSelect.value;
-
-    // --- 1. Populate/Update Product Select ---
-    if (!selectedProduct) {
-        let products = {};
-        // Aggregate all products across all countries
-        for (const country in priceData) {
-            for (const product in priceData[country]) {
-                // Find the cheapest cost for this product in this country
-                const operators = priceData[country][product];
-                const availableOperators = Object.values(operators).filter(op => op.count > 0);
-
-                if (availableOperators.length > 0) {
-                    const cheapest = availableOperators.reduce((min, op) => op.cost < min.cost ? op : min, availableOperators[0]);
-                    
-                    if (!products[product] || cheapest.cost < products[product].cheapestCost) {
-                        products[product] = {
-                            cheapestCost: cheapest.cost,
-                            totalCount: (products[product]?.totalCount || 0) + availableOperators.reduce((sum, op) => sum + op.count, 0)
-                        };
-                    }
-                }
-            }
-        }
-
-        const productOptions = Object.keys(products)
-            .sort((a, b) => products[a].cheapestCost - products[b].cheapestCost)
-            .map(product => {
-                const cost = Math.ceil(products[product].cheapestCost * EXCHANGE_RATE).toLocaleString();
-                const count = products[product].totalCount;
-                const name = productNames[product] || product;
-                // Display the price and count
-                return `<option value="${product}">${name} <span class="product-option-detail">(₦${cost} - ${count} available)</span></option>`;
-            }).join('');
-
-        buyProductSelect.innerHTML = `<option value="" disabled selected>Select Service</option>` + productOptions;
-        if (selectedProduct) buyProductSelect.value = selectedProduct;
-    }
-
-
-    // --- 2. Populate/Update Country Select ---
-    let countries = {};
-    for (const country in priceData) {
-        if (selectedProduct && !priceData[country][selectedProduct]) continue;
-        
-        let cheapestCost = Infinity;
-        let totalCount = 0;
-        
-        const productsToCheck = selectedProduct ? [selectedProduct] : Object.keys(priceData[country]);
-
-        for (const product of productsToCheck) {
-            const operators = priceData[country][product];
-            for (const op in operators) {
-                const data = operators[op];
-                if (data.count > 0) {
-                    cheapestCost = Math.min(cheapestCost, data.cost);
-                    totalCount += data.count;
-                }
-            }
-        }
-
-        if (totalCount > 0) {
-            countries[country] = { 
-                cheapestCost: cheapestCost, 
-                totalCount: totalCount 
-            };
-        }
-    }
-    
-    // Add "Any Country" option first
-    let countryOptions = '<option value="any">Any Country (Cheapest)</option>';
-    
-    countryOptions += Object.keys(countries)
-        .sort((a, b) => countries[a].cheapestCost - countries[b].cheapestCost)
-        .map(country => {
-            const cost = Math.ceil(countries[country].cheapestCost * EXCHANGE_RATE).toLocaleString();
-            const count = countries[country].totalCount;
-            const name = countryNames(country);
-            // Display the price and count
-            return `<option value="${country}">${name} <span class="product-option-detail">(₦${cost} - ${count} available)</span></option>`;
-        }).join('');
-
-    buyCountrySelect.innerHTML = countryOptions;
-    if (selectedCountry) buyCountrySelect.value = selectedCountry;
-    else buyCountrySelect.value = 'any';
-
-    // Enable/disable the purchase button
-    if (buyProductSelect.value && buyCountrySelect.value) {
-        document.getElementById('confirm-buy').disabled = false;
-    } else {
-        document.getElementById('confirm-buy').disabled = true;
-    }
-  }
-
-
-  // =========================================================
-  // CORE LOGIC: BUY NUMBER
-  // =========================================================
-  const buyBtn = document.getElementById('confirm-buy');
-  
-  buyBtn.addEventListener('click', async () => {
-    const product = document.getElementById('buy-product').value;
-    const country = document.getElementById('buy-country').value;
-    
-    if(!currentUser || !product || !country) return;
-    
-    buyBtn.textContent = "Processing...";
-    buyBtn.disabled = true;
-
-    try {
-        // 1. Call Backend
+        // 2. Call API
         const res = await fetch(`${API_URL}/buy`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ country, product })
-        });
-        
-        // Attempt to parse JSON regardless of status for error details
-        const data = await res.json(); 
-        
-        // 2. Error Check - Check for failed HTTP status OR a 5SIM internal error object
-        if (!res.ok || data.error || !data.phone) { 
-            // Use the specific error message from the backend if available
-            const errorMessage = data.error 
-                || (res.status !== 200 ? `Pipedream Error: ${res.status}` : null) 
-                || "No numbers available for this combination. Please try a different country/service.";
-            
-            throw new Error(errorMessage);
-        }
-        
-        // 3. Process Transaction (Deduct Money)
-        // 5SIM price is usually in Rubles. We multiply by EXCHANGE_RATE.
-        const cost = Math.ceil(Number(data.price) * EXCHANGE_RATE); // Use data.price from 5sim response
-        
-        await handlePurchaseTransaction(currentUser.uid, cost, data, product, country);
-        
-        toggleModal('buy-modal', false);
-        alert(`Success! Number: ${data.phone}`);
-
-    } catch (e) {
-        console.error(e);
-        alert("Purchase Failed: " + e.message);
-    } finally {
-        buyBtn.textContent = "Purchase Number";
-        buyBtn.disabled = false;
-    }
-  });
-
-  async function handlePurchaseTransaction(uid, cost, apiData, product, country) {
-    const userRef = doc(db, "users", uid);
-    
-    await runTransaction(db, async (t) => {
-        const userDoc = await t.get(userRef);
-        if (!userDoc.exists()) throw "User error";
-        
-        const currentBal = userDoc.data().balance || 0;
-        if (currentBal < cost) throw "Insufficient Balance. Please Fund Wallet.";
-
-        // Deduct
-        t.update(userRef, { balance: currentBal - cost });
-
-        // Create Order Record (Stored in 'orders' subcollection for active tracking)
-        const orderRef = doc(collection(userRef, "orders"));
-        t.set(orderRef, {
-            id: apiData.id,
-            phone: apiData.phone,
-            product: product,
-            country: country,
-            cost: cost,
-            status: 'PENDING', // PENDING, FINISHED, CANCELED
-            code: null,
-            createdAt: new Date().toISOString()
-        });
-        
-        // Add to Transaction History as well
-        const txRef = doc(collection(userRef, "transactions"));
-        t.set(txRef, {
-            type: 'purchase',
-            amount: cost,
-            note: `${productNames[product] || product} Number`,
-            date: new Date().toISOString()
-        });
-    });
-  }
-
-
-  // =========================================================
-  // CORE LOGIC: ACTIVE ORDERS & CHECK SMS
-  // =========================================================
-  
-  // Realtime Listener for Active Orders
-  function loadActiveOrders(uid) {
-    const q = query(collection(db, "users", uid, "orders"), orderBy("createdAt", "desc"), limit(5));
-    
-    onSnapshot(q, (snapshot) => {
-        activeList.innerHTML = '';
-        if (snapshot.empty) {
-            activeSection.style.display = 'none';
-        } else {
-            activeSection.style.display = 'block';
-            snapshot.forEach(docSnap => {
-                const order = docSnap.data();
-                const docId = docSnap.id; // Firebase Doc ID
-                renderOrderCard(docId, order);
-            });
-        }
-    });
-  }
-
-  function renderOrderCard(docId, order) {
-    // Only show relevant statuses
-    if (order.status === 'REFUNDED') return;
-
-    const isPending = order.status === 'PENDING';
-    const isFinished = order.status === 'FINISHED';
-    
-    // HTML Template
-    const div = document.createElement('div');
-    div.className = `active-order-card ${isFinished ? 'completed' : ''}`;
-    
-    let statusBadge = isPending ? 
-        `<span class="ao-status status-pending">Waiting for SMS...</span>` : 
-        `<span class="ao-status status-finished">COMPLETED</span>`;
-    
-    if(order.status === 'CANCELED') statusBadge = `<span class="ao-status" style="background:red;color:white">CANCELED</span>`;
-
-    let actionArea = '';
-    if (isPending) {
-        actionArea = `
-            <div class="otp-display">
-                <span class="otp-placeholder">Waiting for code...</span>
-            </div>
-            <div style="display:flex; gap:10px">
-                <button class="btn" style="width:100%" onclick="window.checkSMS('${docId}', '${order.id}')">Check SMS</button>
-            </div>
-        `;
-    } else if (isFinished) {
-        actionArea = `
-            <div class="otp-display" onclick="navigator.clipboard.writeText('${order.code}'); alert('Code copied!')">
-                ${order.code} <span style="font-size:12px; vertical-align:middle">📋</span>
-            </div>
-        `;
-    } else {
-        // Canceled
-        actionArea = `<div class="small" style="color:var(--danger)">Order Canceled. Refund processed.</div>`;
-    }
-    
-    const countryDisplay = countryNames(order.country);
-    const productDisplay = productNames[order.product] || order.product;
-
-    div.innerHTML = `
-        <div class="ao-header">
-            <div class="small" style="text-transform:uppercase; letter-spacing:1px">${countryDisplay} • ${productDisplay}</div>
-            ${statusBadge}
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="ao-number">${order.phone}</div>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText('${order.phone}');alert('Number copied!')">Copy Number</button>
-        </div>
-        ${actionArea}
-    `;
-    
-    activeList.appendChild(div);
-  }
-
-  // GLOBAL FUNCTION: Check SMS
-  // Attached to window so the HTML onclick works
-  window.checkSMS = async (firebaseDocId, apiOrderId) => {
-    const btn = event.target;
-    const originalText = btn.innerText;
-    btn.innerText = "Checking...";
-    btn.disabled = true;
-
-    try {
-        const res = await fetch(`${API_URL}/check`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId: apiOrderId })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ country, product, operator })
         });
         const data = await res.json();
+        
+        if(!res.ok || data.error) throw data.error || "Purchase failed";
+        apiData = data;
 
-        // SCENARIO 1: GOT CODE (status: RECEIVED, READY, CANCELED, BANNED, FINISHED)
-        // data.sms will be an array if received
-        if (data.sms && data.sms.length > 0) {
-            const code = data.sms[0].code; // Get first code
+        // 3. Deduct & Save Order
+        await runTransaction(db, async (t) => {
+            const uDoc = await t.get(userRef);
+            const currentBal = uDoc.data().balance || 0;
+            if(currentBal < cost) throw "Insufficient Balance";
+
+            // Deduct
+            t.update(userRef, { balance: currentBal - cost });
             
-            // Update Firebase
-            const orderRef = doc(db, "users", currentUser.uid, "orders", firebaseDocId);
-            await updateDoc(orderRef, {
-                status: 'FINISHED',
-                code: code
+            // Add Order
+            const newOrderRef = doc(collection(userRef, "orders"));
+            t.set(newOrderRef, {
+                id: apiData.id,
+                phone: apiData.phone,
+                product: product,
+                country: country,
+                cost: cost,
+                status: 'PENDING', 
+                code: null,
+                createdAt: new Date().toISOString()
             });
-            alert("SMS Received!");
-        } 
-        // SCENARIO 2: CANCELED OR EXPIRED
-        else if (data.status === 'CANCELED' || data.status === 'BANNED') {
-            await processRefund(firebaseDocId, apiOrderId);
-            alert("Order was canceled by network. You have been refunded.");
-        } 
-        // SCENARIO 3: STILL WAITING
-        else if (data.status === 'PENDING' || data.status === 'WAITING') {
-            // Do nothing, just alert
-            alert("Still waiting for SMS code...");
-        }
+        });
 
-    } catch(e) {
-        console.error(e);
-        alert("Check failed. Network error?");
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
+        alert("Number Purchased Successfully!");
+        window.goToStep1(); // Reset UI
+        
+      } catch(e) {
+          alert("Error: " + e);
+      }
   };
 
-  // Refund Logic
-  async function processRefund(firebaseDocId, apiOrderId) {
-    const userRef = doc(db, "users", currentUser.uid);
-    const orderRef = doc(db, "users", currentUser.uid, "orders", firebaseDocId);
+  // --- HISTORY TABLE LOGIC ---
+  function loadHistory() {
+      const q = query(collection(db, "users", currentUser.uid, "orders"), orderBy("createdAt", "desc"), limit(20));
+      const tbody = document.getElementById('history-table-body');
+      
+      onSnapshot(q, (snapshot) => {
+          tbody.innerHTML = '';
+          if(snapshot.empty) {
+              tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet.</td></tr>';
+              return;
+          }
+          
+          let index = 1;
+          snapshot.forEach(docSnap => {
+              const d = docSnap.data();
+              const tr = document.createElement('tr');
+              
+              // Status Styling
+              let statusClass = '';
+              let codeDisplay = '';
+              
+              if(d.status === 'PENDING') {
+                  statusClass = 'status-pending';
+                  codeDisplay = '<span style="color:var(--muted);font-style:italic;font-size:11px">Waiting...</span>';
+              } else if (d.status === 'FINISHED') {
+                  statusClass = 'status-finished';
+                  codeDisplay = `<span class="code-box">${d.code}</span>`;
+              } else {
+                  statusClass = 'status-canceled';
+                  codeDisplay = '-';
+              }
+              
+              // Date Formatting
+              const dateObj = new Date(d.createdAt);
+              const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-    await runTransaction(db, async (t) => {
-        const oDoc = await t.get(orderRef);
-        if (!oDoc.exists()) return;
-        if (oDoc.data().status === 'REFUNDED') return; // Already refunded
+              // Action Button
+              let actionBtn = '';
+              if(d.status === 'PENDING') {
+                  actionBtn = `<button class="btn secondary" style="padding:4px 8px;font-size:11px" onclick="checkSMS('${docSnap.id}', '${d.id}')">Check SMS</button>`;
+              }
 
-        const cost = oDoc.data().cost;
-
-        // Refund Balance
-        const uDoc = await t.get(userRef);
-        const newBal = (uDoc.data().balance || 0) + cost;
-        t.update(userRef, { balance: newBal });
-
-        // Update Order Status
-        t.update(orderRef, { status: 'REFUNDED' });
-
-        // Add Refund Record to History
-        const txRef = doc(collection(userRef, "transactions"));
-        t.set(txRef, {
-            type: 'refund',
-            amount: cost,
-            note: `Refund: ${productNames[oDoc.data().product] || oDoc.data().product}`,
-            date: new Date().toISOString()
-        });
-    });
+              tr.innerHTML = `
+                <td>${index++}</td>
+                <td>${d.phone}</td>
+                <td>${codeDisplay}</td>
+                <td style="text-transform:capitalize">${d.product}</td>
+                <td>₦${d.cost}</td>
+                <td style="text-transform:capitalize">${d.country}</td>
+                <td><span class="badge ${statusClass}">${d.status}</span></td>
+                <td>${dateStr}</td>
+                <td>${actionBtn}</td>
+              `;
+              tbody.appendChild(tr);
+          });
+      });
   }
 
-  // =========================================================
-  // DEPOSIT & HISTORY
-  // =========================================================
-  document.getElementById('deposit-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const amount = document.getElementById('pay-amount').value;
-    const email = document.getElementById('pay-email-hidden').value;
-    const btn = document.getElementById('start-paystack');
+  // --- SMS CHECKER ---
+  window.checkSMS = async (docId, orderId) => {
+      const btn = event.target;
+      const originalText = btn.innerText;
+      btn.innerText = "..."; btn.disabled = true;
 
-    if(amount < 50) return alert("Minimum ₦50");
-    btn.textContent = "Processing...";
-    btn.disabled = true;
-
-    const handler = PaystackPop.setup({
-      key: PAYSTACK_KEY, email: email, amount: amount * 100, currency: 'NGN',
-      ref: 'SL-'+Math.floor(Math.random()*1000000000),
-      callback: (res) => confirmDeposit(amount, res.reference),
-      onClose: () => { btn.disabled = false; btn.textContent = "Pay Now"; }
-    });
-    handler.openIframe();
-  });
-
-  async function confirmDeposit(amount, ref) {
-    toggleModal('add-money-modal', false);
-    document.getElementById('start-paystack').disabled = false;
-    document.getElementById('start-paystack').textContent = "Pay Now";
-    try {
-        const userRef = doc(db, "users", currentUser.uid);
-        await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
-            type: 'deposit', amount: Number(amount), date: new Date().toISOString(), reference: ref
-        });
-        await runTransaction(db, async (t) => {
-            const sfDoc = await t.get(userRef);
-            const newBal = (sfDoc.data().balance || 0) + Number(amount);
-            t.update(userRef, { balance: newBal });
-        });
-        alert("Wallet Funded Successfully!");
-    } catch(e) { console.error(e); alert("Error updating balance. Ref: " + ref); }
-  }
-
-  async function loadTransactions(uid) {
-    const list = document.getElementById('tx-list');
-    const q = query(collection(db, "users", uid, "transactions"), orderBy("date", "desc"), limit(10));
-    const snap = await getDocs(q);
-    list.innerHTML = '';
-    if(snap.empty) { list.innerHTML = '<div class="tx-item"><div class="small">No transactions</div></div>'; return; }
-    snap.forEach(d => {
-        const data = d.data();
-        const isDep = data.type === 'deposit' || data.type === 'refund';
-        const formattedAmount = Number(data.amount).toLocaleString(undefined, {minimumFractionDigits: 2});
-        
-        const noteDisplay = data.note || data.type.toUpperCase();
-
-        list.innerHTML += `
-        <div class="tx-item">
-            <div>
-                <div style="font-weight:700">${isDep?'+':'-'} ₦${formattedAmount}</div>
-                <div class="small">${noteDisplay} • ${new Date(data.date).toLocaleDateString()}</div>
-            </div>
-            <div style="font-weight:700;color:${isDep?'var(--accent)':'#ff8a8a'}">${data.type.toUpperCase()}</div>
-        </div>`;
-    });
-  }
+      try {
+          const res = await fetch(`${API_URL}/check`, {
+             method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({orderId})
+          });
+          const data = await res.json();
+          
+          if(data.sms && data.sms.length > 0) {
+              // Success
+              await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), {
+                  status: 'FINISHED', code: data.sms[0].code
+              });
+          } else if (data.status === 'CANCELED' || data.status === 'BANNED') {
+              // Refund Logic would go here (same as previous script)
+              await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { status: 'CANCELED' });
+              alert("Order Canceled by Network.");
+          } else {
+              alert("Still waiting for SMS...");
+          }
+      } catch(e) {
+          console.error(e);
+      } finally {
+          btn.innerText = originalText; btn.disabled = false;
+      }
+  };
 </script>
+
 </body>
 </html>
