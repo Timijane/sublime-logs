@@ -243,7 +243,17 @@
 <script type="module">
   const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   const API_URL = "https://eoslm172tqy3opg.m.pipedream.net"; 
-  const EXCHANGE_RATE = 15; 
+  const EXCHANGE_RATE = 1600; // CHANGE 1: Updated from 15 to 1600
+
+  // CHANGE 2: Added country surcharges
+  const COUNTRY_SURCHARGES = {
+      'usa': 1000,          // ₦1,000 for USA
+      'england': 700,       // ₦700 for UK
+      'germany': 2500,      // ₦2,500 for Germany
+      'canada': 2000,       // ₦2,000 for Canada
+      'netherlands': 3000,  // ₦3,000 for Netherlands
+      'poland': 1500,       // ₦1,500 for Poland
+  };
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
@@ -278,13 +288,16 @@
       {code:"bangladesh",name:"Bangladesh"},{code:"china",name:"China"},{code:"japan",name:"Japan"},{code:"southkorea",name:"South Korea"},
       {code:"italy",name:"Italy"},{code:"portugal",name:"Portugal"},{code:"belgium",name:"Belgium"}
   ];
+  
+  // CHANGE 3: Added Upwork and Fiverr to services
   const services = [
       {code:"whatsapp",name:"WhatsApp"},{code:"telegram",name:"Telegram"},{code:"google",name:"Google / Gmail"},
       {code:"facebook",name:"Facebook"},{code:"instagram",name:"Instagram"},{code:"tiktok",name:"TikTok"},{code:"twitter",name:"X (Twitter)"},
       {code:"linkedin",name:"LinkedIn"},{code:"netflix",name:"Netflix"},{code:"uber",name:"Uber"},{code:"amazon",name:"Amazon"},
       {code:"discord",name:"Discord"},{code:"viber",name:"Viber"},{code:"snapchat",name:"Snapchat"},{code:"openai",name:"OpenAI / ChatGPT"},
       {code:"microsoft",name:"Microsoft"},{code:"airbnb",name:"Airbnb"},{code:"bolt",name:"Bolt"},{code:"yahoo",name:"Yahoo"},
-      {code:"paypal",name:"PayPal"},{code:"tinder",name:"Tinder"},{code:"glovo",name:"Glovo"}
+      {code:"paypal",name:"PayPal"},{code:"tinder",name:"Tinder"},{code:"glovo",name:"Glovo"},
+      {code:"upwork",name:"Upwork"},{code:"fiverr",name:"Fiverr"} // Added here
   ];
 
   // --- MENU & MODAL LOGIC ---
@@ -408,16 +421,21 @@
               return;
           }
 
+          // CHANGE 4: Updated price calculation with surcharge
           data.offers.forEach(offer => {
-             const priceNaira = Math.ceil(offer.cost * EXCHANGE_RATE);
+             const basePriceNaira = Math.ceil(offer.cost * EXCHANGE_RATE);
+             const surcharge = COUNTRY_SURCHARGES[country] || 1000; // Default to 1000 if country not in list
+             const finalPrice = basePriceNaira + surcharge;
+             
              const div = document.createElement('div');
              div.className = 'offer-item';
              div.innerHTML = `
                 <div style="font-weight:700;font-size:12px;color:var(--muted);margin-bottom:5px;">${offer.operator}</div>
-                <div class="offer-price">₦${priceNaira}</div>
+                <div class="offer-price">₦${finalPrice.toLocaleString()}</div>
+                <div style="font-size:10px;color:var(--muted);">Includes ₦${surcharge} surcharge</div>
                 <div class="offer-stock">Qty: ${offer.count}</div>
                 <button class="btn" style="width:100%;margin-top:10px;font-size:12px;padding:8px" 
-                   onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${priceNaira})">
+                   onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${finalPrice})">
                    <i class="fas fa-shopping-cart"></i> Buy
                 </button>
              `;
