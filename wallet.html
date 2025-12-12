@@ -423,10 +423,10 @@
               return;
           }
 
-          // FIXED PRICE CALCULATION: API provides dollars, no division by 100 needed
+          // CORRECTED: API provides costs in CENTS, divide by 100 to get dollars
           data.offers.forEach(offer => {
-             // Calculate base price: API cost in dollars × exchange rate
-             const basePriceNaira = Math.ceil(offer.cost * EXCHANGE_RATE);
+             // Convert cents to dollars: divide by 100, then multiply by exchange rate
+             const basePriceNaira = Math.ceil((offer.cost / 100) * EXCHANGE_RATE);
              
              // Get surcharge for country or default to 1000
              const surcharge = COUNTRY_SURCHARGES[country] || 1000;
@@ -577,4 +577,4 @@
   };
 </script>
 </body>
-  </html>
+</html>
