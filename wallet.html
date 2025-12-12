@@ -243,9 +243,11 @@
 <script type="module">
   const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   const API_URL = "https://eoslm172tqy3opg.m.pipedream.net"; 
-  const EXCHANGE_RATE = 1600; // CHANGE 1: Updated from 15 to 1600
+  
+  // UPDATED: Changed from 15 to 1600
+  const EXCHANGE_RATE = 1600;
 
-  // CHANGE 2: Added country surcharges
+  // UPDATED: Added country surcharges object
   const COUNTRY_SURCHARGES = {
       'usa': 1000,          // ₦1,000 for USA
       'england': 700,       // ₦700 for UK
@@ -289,7 +291,7 @@
       {code:"italy",name:"Italy"},{code:"portugal",name:"Portugal"},{code:"belgium",name:"Belgium"}
   ];
   
-  // CHANGE 3: Added Upwork and Fiverr to services
+  // UPDATED: Added Upwork and Fiverr to services list
   const services = [
       {code:"whatsapp",name:"WhatsApp"},{code:"telegram",name:"Telegram"},{code:"google",name:"Google / Gmail"},
       {code:"facebook",name:"Facebook"},{code:"instagram",name:"Instagram"},{code:"tiktok",name:"TikTok"},{code:"twitter",name:"X (Twitter)"},
@@ -297,7 +299,7 @@
       {code:"discord",name:"Discord"},{code:"viber",name:"Viber"},{code:"snapchat",name:"Snapchat"},{code:"openai",name:"OpenAI / ChatGPT"},
       {code:"microsoft",name:"Microsoft"},{code:"airbnb",name:"Airbnb"},{code:"bolt",name:"Bolt"},{code:"yahoo",name:"Yahoo"},
       {code:"paypal",name:"PayPal"},{code:"tinder",name:"Tinder"},{code:"glovo",name:"Glovo"},
-      {code:"upwork",name:"Upwork"},{code:"fiverr",name:"Fiverr"} // Added here
+      {code:"upwork",name:"Upwork"},{code:"fiverr",name:"Fiverr"} // Added these two
   ];
 
   // --- MENU & MODAL LOGIC ---
@@ -421,10 +423,13 @@
               return;
           }
 
-          // CHANGE 4: Updated price calculation with surcharge
+          // UPDATED: Fixed price calculation - divide by 100 (cents to dollars) then apply exchange rate
           data.offers.forEach(offer => {
-             const basePriceNaira = Math.ceil(offer.cost * EXCHANGE_RATE);
-             const surcharge = COUNTRY_SURCHARGES[country] || 1000; // Default to 1000 if country not in list
+             // Convert cents to dollars, then to Naira at 1600 exchange rate
+             const basePriceNaira = Math.ceil((offer.cost / 100) * EXCHANGE_RATE);
+             
+             // Get surcharge for country or default to 1000
+             const surcharge = COUNTRY_SURCHARGES[country] || 1000;
              const finalPrice = basePriceNaira + surcharge;
              
              const div = document.createElement('div');
