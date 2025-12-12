@@ -90,7 +90,18 @@
   /* Modal */
   .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);z-index:2000}
   .modal.open{display:flex}
-  .modal-card{width:350px;max-width:90%;background:var(--card);padding:24px;border-radius:12px;border:1px solid var(--border);}
+  .modal-card{width:450px; max-width:90%;background:var(--card);padding:24px;border-radius:12px;border:1px solid var(--border); max-height: 85vh; overflow-y: auto;}
+  
+  /* Rules Section in Modal */
+  .rules-toggle{ background: none; border: none; color: var(--muted); text-align: left; padding: 10px 0; width: 100%; cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+  .rules-toggle:hover { color: var(--text); }
+  .rules-content{ font-size: 12px; color: var(--muted); padding: 15px; background: rgba(255,255,255,0.03); border-radius: 6px; border: 1px solid var(--border); margin-top: 10px; display: none; }
+  .rules-content ul { margin: 10px 0; padding-left: 20px; }
+  .rules-content li { margin-bottom: 8px; }
+  
+  /* Support & Community Buttons */
+  .support-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .support-actions .btn { flex: 1; }
 
   /* Responsive */
   @media(max-width:800px){ 
@@ -100,6 +111,7 @@
       .main{ margin-left:0; padding: 15px; padding-top: 80px; }
       .top-bar { flex-direction: column; align-items: flex-start; }
       .balance-card { width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center;}
+      .support-actions { flex-direction: column; }
   }
 </style>
 </head>
@@ -110,18 +122,57 @@
     <button class="hamburger" id="menu-toggle"><i class="fas fa-bars"></i></button>
 </div>
 
+<!-- Fund Wallet Modal - UPDATED WITH NEW FEATURES -->
 <div class="modal" id="add-money-modal">
   <div class="modal-card">
     <h3 style="margin-bottom:15px"><i class="fas fa-wallet"></i> Fund Wallet</h3>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:15px;" id="modal-msg">Enter amount to continue.</p>
+    
+    <button class="rules-toggle" id="rules-toggle">
+        <span><i class="fas fa-info-circle"></i> Important Usage Rules</span>
+        <i class="fas fa-chevron-down" id="rules-chevron"></i>
+    </button>
+    
+    <div class="rules-content" id="rules-content">
+        <p><strong>Please read before purchasing:</strong></p>
+        <ul>
+            <li><strong>1. Security:</strong> Immediately set up two-factor authentication (2FA) on your service account after purchasing a number.</li>
+            <li><strong>2. For Faster OTP:</strong> Higher-priced numbers typically receive OTP codes faster. You may experience delays with lower-priced options.</li>
+            <li><strong>3. Payment Issues:</strong> If your wallet balance doesn't update after a successful payment, contact support immediately.</li>
+        </ul>
+        <p style="font-size:11px; margin-top: 15px; color: var(--warning);"><i class="fas fa-exclamation-triangle"></i> Purchases are final. Please test numbers promptly upon receipt.</p>
+    </div>
+    
+    <p style="font-size:13px;color:var(--muted);margin-bottom:15px;" id="modal-msg">Enter amount to fund your wallet (Minimum: ₦100).</p>
+    
     <form id="deposit-form">
-      <input type="number" id="pay-amount" placeholder="Amount (e.g. 1000)" min="100" required style="margin-bottom:15px;" />
+      <input type="number" id="pay-amount" placeholder="Amount (e.g., 1000)" min="100" required style="margin-bottom:15px;" />
       <input type="email" id="pay-email-hidden" style="display:none;" />
+      
       <div style="display:flex;justify-content:flex-end;gap:10px">
         <button type="button" class="btn secondary" id="close-add-money">Cancel</button>
         <button type="submit" class="btn" id="start-paystack">Pay Now</button>
       </div>
     </form>
+    
+    <div class="support-actions">
+        <!-- WhatsApp Support Button -->
+        <a href="https://wa.me/2349056658964?text=User%20of%20Sublime%20Logs%2C%20have%20a%20complaint.%20My%20email%20is%3A%20[USER_EMAIL]" 
+           class="btn secondary" 
+           id="whatsapp-support" 
+           target="_blank" 
+           style="background:rgba(37,211,102,0.1); color:#25D366; border-color:rgba(37,211,102,0.3);">
+            <i class="fab fa-whatsapp"></i> Contact Support
+        </a>
+        
+        <!-- Community Button -->
+        <button class="btn secondary" id="community-btn">
+            <i class="fas fa-users"></i> Join Community
+        </button>
+    </div>
+    
+    <p style="font-size:11px; color:var(--muted); text-align:center; margin-top:15px;">
+        <i class="fas fa-sync-alt"></i> Wallet updates may take 1-2 minutes for bank transfers.
+    </p>
   </div>
 </div>
 
@@ -317,14 +368,44 @@
       }
   });
 
+  // --- NEW: RULES TOGGLE LOGIC ---
+  document.getElementById('rules-toggle').addEventListener('click', function() {
+    const content = document.getElementById('rules-content');
+    const chevron = document.getElementById('rules-chevron');
+    const isHidden = content.style.display === 'none' || content.style.display === '';
+    
+    content.style.display = isHidden ? 'block' : 'none';
+    chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    chevron.style.transition = 'transform 0.3s ease';
+  });
+
+  // --- NEW: COMMUNITY BUTTON LOGIC (Update link as needed) ---
+  document.getElementById('community-btn').addEventListener('click', function() {
+    // Replace with your actual community link (Telegram, Discord, etc.)
+    const communityLink = 'https://t.me/yourcommunitylink'; // PLACEHOLDER
+    window.open(communityLink, '_blank');
+  });
+
+  // --- UPDATED: WHATSAPP SUPPORT BUTTON - DYNAMIC EMAIL ---
+  function updateWhatsAppLink() {
+    if (currentUser && currentUser.email) {
+      const userEmail = encodeURIComponent(currentUser.email);
+      const message = encodeURIComponent(`User of Sublime Logs, have a complaint. My email is: ${currentUser.email}`);
+      const whatsappBtn = document.getElementById('whatsapp-support');
+      whatsappBtn.href = `https://wa.me/2349056658964?text=${message}`;
+    }
+  }
+
   // Modal Handlers
   document.getElementById('nav-fund').addEventListener('click', (e) => {
       e.preventDefault();
-      document.getElementById('modal-msg').textContent = "Enter amount to fund your wallet.";
+      document.getElementById('modal-msg').textContent = "Enter amount to fund your wallet (Minimum: ₦100).";
       document.getElementById('pay-amount').value = "";
       amModal.classList.add('open');
+      updateWhatsAppLink(); // Update link with current user email
       closeMenu();
   });
+  
   document.getElementById('close-add-money').addEventListener('click', () => amModal.classList.remove('open'));
 
   // --- AUTH ---
@@ -333,6 +414,7 @@
       currentUser = user;
       document.getElementById('user-email').textContent = user.email;
       document.getElementById('pay-email-hidden').value = user.email;
+      updateWhatsAppLink(); // Update WhatsApp link on login
       
       onSnapshot(doc(db, "users", user.uid), (docSnap) => {
          const bal = docSnap.exists() ? docSnap.data().balance : 0;
@@ -461,6 +543,7 @@
           document.getElementById('modal-msg').innerHTML = `<span style="color:var(--warning)">Insufficient Balance!</span><br>You need ₦${Math.ceil(deficit)} more.<br>Fund your wallet now to continue.`;
           document.getElementById('pay-amount').value = Math.ceil(fundAmount);
           amModal.classList.add('open');
+          updateWhatsAppLink();
           return;
       }
 
@@ -503,41 +586,161 @@
       }
   };
 
-  // Paystack Form Handler
+  // --- UPDATED: PAYSTACK FORM HANDLER WITH IMPROVED FEEDBACK ---
   document.getElementById('deposit-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const amount = document.getElementById('pay-amount').value;
     const email = document.getElementById('pay-email-hidden').value;
     const btn = document.getElementById('start-paystack');
 
-    if(amount < 50) return alert("Minimum ₦50");
-    btn.textContent = "Processing..."; btn.disabled = true;
+    if(amount < 100) return alert("Minimum deposit is ₦100");
+    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    btn.disabled = true;
 
+    // IMPORTANT: Generate a unique reference for tracking
+    const txRef = 'SL-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    
     const handler = PaystackPop.setup({
-      key: PAYSTACK_KEY, email: email, amount: amount * 100, currency: 'NGN',
-      ref: 'SL-'+Math.floor(Math.random()*1000000000),
-      callback: (res) => processDeposit(amount, res.reference),
-      onClose: () => { btn.disabled = false; btn.textContent = "Pay Now"; }
+      key: PAYSTACK_KEY, 
+      email: email, 
+      amount: amount * 100, 
+      currency: 'NGN',
+      ref: txRef, // Use our unique reference
+      metadata: {
+        userId: currentUser.uid,
+        userEmail: currentUser.email
+      },
+      callback: (response) => {
+        // Payment attempted - but may not be fully settled for bank transfers
+        console.log('Paystack callback. Reference:', response.reference);
+        
+        // Record the transaction attempt immediately with PENDING status
+        recordTransactionAttempt(amount, txRef, 'PENDING');
+        
+        // Show appropriate message based on likely payment method
+        const isBankTransfer = amount >= 5000; // Bank transfers often for larger amounts
+        const message = isBankTransfer 
+          ? `Bank transfer initiated! Your wallet will update in 1-5 minutes once we receive confirmation. Reference: ${txRef}`
+          : `Payment processing! Your wallet will update shortly. Reference: ${txRef}`;
+          
+        alert(message);
+        amModal.classList.remove('open');
+      },
+      onClose: () => {
+        // User closed the payment modal
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
+        alert('Payment window closed. If you completed a payment, your wallet will update once we receive confirmation.');
+      }
     });
     handler.openIframe();
   });
 
-  async function processDeposit(amount, ref) {
-    amModal.classList.remove('open');
-    document.getElementById('start-paystack').disabled = false;
-    document.getElementById('start-paystack').textContent = "Pay Now";
+  // --- NEW: FUNCTION TO RECORD TRANSACTION ATTEMPT ---
+  async function recordTransactionAttempt(amount, reference, status) {
     try {
-        const userRef = doc(db, "users", currentUser.uid);
-        await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
-            type: 'deposit', amount: Number(amount), date: new Date().toISOString(), reference: ref
-        });
-        await runTransaction(db, async (t) => {
-            const sfDoc = await t.get(userRef);
-            t.update(userRef, { balance: (sfDoc.data().balance || 0) + Number(amount) });
-        });
-        alert("Wallet Funded! Please try your purchase again.");
-    } catch(e) { console.error(e); alert("Error updating balance. Contact support."); }
+      const userRef = doc(db, "users", currentUser.uid);
+      await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
+        type: 'deposit',
+        amount: Number(amount),
+        date: new Date().toISOString(),
+        reference: reference,
+        status: status, // 'PENDING', 'SUCCESS', or 'FAILED'
+        updatedAt: new Date().toISOString()
+      });
+      console.log('Transaction attempt recorded:', reference);
+    } catch(e) { 
+      console.error('Error recording transaction:', e);
+    }
   }
+
+  // --- NEW: FUNCTION TO CHECK PENDING TRANSACTIONS PERIODICALLY ---
+  function checkPendingTransactions() {
+    // This would be called periodically or via webhook
+    // For now, we'll just set up a basic listener for Firestore updates
+    const q = query(
+      collection(db, "users", currentUser.uid, "transactions"), 
+      orderBy("date", "desc"), 
+      limit(5)
+    );
+    
+    onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "modified") {
+          const tx = change.doc.data();
+          if (tx.status === 'SUCCESS' && tx.type === 'deposit') {
+            // Transaction was confirmed via webhook
+            console.log('Transaction confirmed via webhook:', tx.reference);
+          }
+        }
+      });
+    });
+  }
+
+  // --- UPDATED: PROCESS DEPOSIT FUNCTION (Now handles webhook confirmation) ---
+  async function processDeposit(amount, ref) {
+    // Note: This function is now primarily for the callback flow
+    // Real balance updates should happen via webhook (see below)
+    
+    // For card payments that are immediate, we can update balance here
+    // But for bank transfers (Opay, etc.), we MUST wait for webhook
+    
+    try {
+      // Record the transaction with PENDING status
+      await recordTransactionAttempt(amount, ref, 'PENDING');
+      
+      // For immediate payments, you could verify with Paystack API here
+      // But the RECOMMENDED approach is webhooks (see below)
+      
+      // Show user message about potential delay
+      const message = `Payment received! For bank transfers, please allow 1-5 minutes for wallet update. Reference: ${ref}`;
+      
+      // Don't automatically update balance here - wait for webhook
+      // This prevents the "money in Paystack but not in wallet" issue
+      
+    } catch(e) { 
+      console.error('Error in processDeposit:', e);
+      alert("Payment recorded but please contact support if wallet doesn't update within 10 minutes.");
+    } finally {
+      document.getElementById('start-paystack').disabled = false;
+      document.getElementById('start-paystack').innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
+    }
+  }
+
+  // --- NEW: CRITICAL - IMPLEMENT WEBHOOK HANDLER ON YOUR SERVER ---
+  /*
+  You MUST set up a webhook endpoint on your server to get real-time
+  payment notifications from Paystack. This is the PROPER solution.
+  
+  Steps:
+  1. Create an endpoint like: https://yourdomain.com/api/paystack-webhook
+  2. In Paystack Dashboard: Settings > Webhooks > Add Webhook
+  3. Add your endpoint URL
+  4. Handle the 'charge.success' event
+  
+  Example webhook payload from Paystack:
+  {
+    "event": "charge.success",
+    "data": {
+      "reference": "SL-123456789",
+      "amount": 100000,
+      "status": "success",
+      "customer": {
+        "email": "user@example.com"
+      }
+    }
+  }
+  
+  Your webhook handler should:
+  1. Verify the webhook signature (Paystack sends a hash)
+  2. Find user by email in Firebase
+  3. Update their balance in Firestore
+  4. Update transaction status to 'SUCCESS'
+  */
+
+  // Initialize transaction checker
+  checkPendingTransactions();
 
   // --- HISTORY TABLE ---
   function loadHistory() {
@@ -577,4 +780,4 @@
   };
 </script>
 </body>
-</html>
+  </html>
