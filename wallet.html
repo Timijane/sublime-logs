@@ -244,10 +244,10 @@
   const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   const API_URL = "https://eoslm172tqy3opg.m.pipedream.net"; 
   
-  // UPDATED: Changed from 15 to 1600
+  // Fixed exchange rate
   const EXCHANGE_RATE = 1600;
 
-  // UPDATED: Added country surcharges object
+  // Country-specific surcharges in Naira
   const COUNTRY_SURCHARGES = {
       'usa': 1000,          // ₦1,000 for USA
       'england': 700,       // ₦700 for UK
@@ -291,7 +291,7 @@
       {code:"italy",name:"Italy"},{code:"portugal",name:"Portugal"},{code:"belgium",name:"Belgium"}
   ];
   
-  // UPDATED: Added Upwork and Fiverr to services list
+  // Services including Upwork and Fiverr
   const services = [
       {code:"whatsapp",name:"WhatsApp"},{code:"telegram",name:"Telegram"},{code:"google",name:"Google / Gmail"},
       {code:"facebook",name:"Facebook"},{code:"instagram",name:"Instagram"},{code:"tiktok",name:"TikTok"},{code:"twitter",name:"X (Twitter)"},
@@ -299,7 +299,7 @@
       {code:"discord",name:"Discord"},{code:"viber",name:"Viber"},{code:"snapchat",name:"Snapchat"},{code:"openai",name:"OpenAI / ChatGPT"},
       {code:"microsoft",name:"Microsoft"},{code:"airbnb",name:"Airbnb"},{code:"bolt",name:"Bolt"},{code:"yahoo",name:"Yahoo"},
       {code:"paypal",name:"PayPal"},{code:"tinder",name:"Tinder"},{code:"glovo",name:"Glovo"},
-      {code:"upwork",name:"Upwork"},{code:"fiverr",name:"Fiverr"} // Added these two
+      {code:"upwork",name:"Upwork"},{code:"fiverr",name:"Fiverr"}
   ];
 
   // --- MENU & MODAL LOGIC ---
@@ -423,10 +423,10 @@
               return;
           }
 
-          // UPDATED: Fixed price calculation - divide by 100 (cents to dollars) then apply exchange rate
+          // FIXED PRICE CALCULATION: API provides dollars, no division by 100 needed
           data.offers.forEach(offer => {
-             // Convert cents to dollars, then to Naira at 1600 exchange rate
-             const basePriceNaira = Math.ceil((offer.cost / 100) * EXCHANGE_RATE);
+             // Calculate base price: API cost in dollars × exchange rate
+             const basePriceNaira = Math.ceil(offer.cost * EXCHANGE_RATE);
              
              // Get surcharge for country or default to 1000
              const surcharge = COUNTRY_SURCHARGES[country] || 1000;
@@ -437,7 +437,6 @@
              div.innerHTML = `
                 <div style="font-weight:700;font-size:12px;color:var(--muted);margin-bottom:5px;">${offer.operator}</div>
                 <div class="offer-price">₦${finalPrice.toLocaleString()}</div>
-                <div style="font-size:10px;color:var(--muted);">Includes ₦${surcharge} surcharge</div>
                 <div class="offer-stock">Qty: ${offer.count}</div>
                 <button class="btn" style="width:100%;margin-top:10px;font-size:12px;padding:8px" 
                    onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${finalPrice})">
