@@ -476,14 +476,14 @@
 
   // --- NEW: COMMUNITY BUTTON LOGIC - UPDATED ---
   document.getElementById('community-btn').addEventListener('click', function() {
-    // Replace with your actual community link
-    const communityLink = 'https://t.me/sublimelogs_community'; // CHANGE THIS
+    // Updated community link to provided WhatsApp group
+    const communityLink = 'https://chat.whatsapp.com/GCk6NVzCiZ39ym5xOfWK8g';
     window.open(communityLink, '_blank');
   });
 
   document.getElementById('main-community-btn').addEventListener('click', function() {
     // Same community link for main button
-    const communityLink = 'https://t.me/sublimelogs_community'; // CHANGE THIS
+    const communityLink = 'https://chat.whatsapp.com/GCk6NVzCiZ39ym5xOfWK8g';
     window.open(communityLink, '_blank');
   });
 
@@ -687,9 +687,6 @@
                 <div style="font-weight:700;font-size:12px;color:var(--muted);margin-bottom:5px;">${offer.operator}</div>
                 <div class="offer-price">₦${finalPrice.toLocaleString()}</div>
                 <div class="offer-stock">Qty: ${offer.count}</div>
-                <div style="font-size:10px;color:${finalPrice > 5000 ? 'var(--accent)' : 'var(--warning)'};margin:5px 0;">
-                    <i class="fas fa-bolt"></i> ${finalPrice > 5000 ? 'Fast OTP' : 'May be slower'}
-                </div>
                 <button class="btn" style="width:100%;margin-top:10px;font-size:12px;padding:8px" 
                    onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${finalPrice})">
                    <i class="fas fa-shopping-cart"></i> Buy
@@ -952,4 +949,4 @@
   };
 </script>
 </body>
-</html>
+                                                                              </html>
