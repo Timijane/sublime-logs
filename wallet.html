@@ -70,6 +70,28 @@
   .offer-item:hover{border-color:var(--accent);background:#1c2128;}
   .offer-price{font-size:18px;font-weight:bold;color:#fff;margin:5px 0;}
   .offer-stock{font-size:11px;color:var(--muted);}
+  
+  /* Price Breakdown Tooltip */
+  .price-breakdown {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 5px;
+      text-align: left;
+      border-top: 1px dashed var(--border);
+      padding-top: 5px;
+  }
+  .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+  }
+  .breakdown-label {
+      color: var(--muted);
+  }
+  .breakdown-value {
+      color: #fff;
+      font-weight: 600;
+  }
 
   .table-container{overflow-x:auto; -webkit-overflow-scrolling: touch;}
   table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px; min-width: 600px;} 
@@ -388,24 +410,47 @@
   const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   const API_URL = "https://eo8vf2h1c9hcxf6.m.pipedream.net"; 
   
-  // Fixed exchange rate
-  const EXCHANGE_RATE = 1600;
-
-  // 5sim pricing: 1 dollar = 79 coins
-  const COINS_PER_DOLLAR = 79;
-
-  // Minimum selling price for USA WhatsApp (this is your new target price)
-  const MINIMUM_SELLING_PRICE_USA_WHATSAPP = 4500;
-
-  // Country-specific surcharges in Naira
+  // =============================================
+  // PERFECT PRICING MATHEMATICS CONFIGURATION
+  // =============================================
+  
+  // 5sim Conversion Rates
+  const COINS_PER_DOLLAR = 79;          // 1 dollar = 79 coins on 5sim
+  const EXCHANGE_RATE = 1600;           // 1 USD = 1600 NGN
+  
+  // OTPGet Pricing Configuration
+  const OTPGET_BASE_PRICE = 2400;       // Initial price OTPGet charges you (in NGN)
+  const OTPGET_GAIN = 1700;             // Your profit on OTPGet (in NGN)
+  const OTPGET_FINAL_PRICE = OTPGET_BASE_PRICE + OTPGET_GAIN; // 2400 + 1700 = 4100 NGN
+  
+  // Minimum Prices
+  const MINIMUM_SELLING_PRICE_USA_WHATSAPP = 4500;  // Minimum for USA WhatsApp
+  
+  // Country-specific Surcharges (Your operational costs per country in NGN)
   const COUNTRY_SURCHARGES = {
-      'usa': 1000,          // ₦1,000 for USA
+      'usa': 1000,          // ₦1,000 for USA (higher demand, better numbers)
       'england': 700,       // ₦700 for UK
-      'germany': 2500,      // ₦2,500 for Germany
+      'germany': 2500,      // ₦2,500 for Germany (expensive infrastructure)
       'canada': 2000,       // ₦2,000 for Canada
       'netherlands': 3000,  // ₦3,000 for Netherlands
       'poland': 1500,       // ₦1,500 for Poland
+      'russia': 800,        // ₦800 for Russia
+      'ukraine': 600,       // ₦600 for Ukraine
+      'brazil': 500,        // ₦500 for Brazil
+      'india': 400,         // ₦400 for India
+      // Default surcharge for other countries
   };
+  
+  // Default surcharge for countries not in the list
+  const DEFAULT_SURCHARGE = 1000;  // ₦1,000
+  
+  // Profit Margins
+  const MINIMUM_PROFIT_MARGIN = 0.20;  // 20% minimum profit
+  const DESIRED_PROFIT_MARGIN = 0.30;  // 30% desired profit
+  
+  // =============================================
+  // END OF PRICING CONFIGURATION
+  // =============================================
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
@@ -623,127 +668,293 @@
       document.getElementById('step-2').classList.add('active');
   };
 
-  // --- CHECK AVAILABILITY ---
-  document.getElementById('btn-check-avail').addEventListener('click', async () => {
-      const country = document.getElementById('sel-country').value;
-      const service = document.getElementById('sel-service').value;
-      
-      document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
-      document.getElementById('step-3').classList.add('active');
-      
-      const sName = services.find(x => x.code === service).name;
-      const cName = countries.find(x => x.code === country).name;
-      document.getElementById('display-final').textContent = `${sName} in ${cName}`;
-      
-      const grid = document.getElementById('offers-grid');
-      const loader = document.getElementById('results-loader');
-      grid.innerHTML = ''; loader.style.display = 'block';
-
-      try {
-          const res = await fetch(`${API_URL}/prices`, {
-              method: 'POST', headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({ country, product: service })
-          });
-          const data = await res.json();
-          loader.style.display = 'none';
-
-          if(!data.offers || data.offers.length === 0) {
-              grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--warning)">No numbers available right now.</div>';
-              return;
-          }
-
-          data.offers.forEach(offer => {
-             const costInDollars = offer.cost / COINS_PER_DOLLAR;
-             const basePriceNaira = Math.ceil(costInDollars * EXCHANGE_RATE);
-             const surcharge = COUNTRY_SURCHARGES[country] || 1000;
-             let finalPrice = basePriceNaira + surcharge;
-             
-             if (country === 'usa' && service === 'whatsapp') {
-                 if (finalPrice < MINIMUM_SELLING_PRICE_USA_WHATSAPP) {
-                     finalPrice = MINIMUM_SELLING_PRICE_USA_WHATSAPP;
-                 }
-             }
-             
-             const MINIMUM_PROFIT_MARGIN = 0.20;
-             const costPrice = basePriceNaira + surcharge;
-             const profitablePrice = Math.ceil(costPrice * (1 + MINIMUM_PROFIT_MARGIN));
-             
-             if (finalPrice < profitablePrice) {
-                 finalPrice = profitablePrice;
-             }
-             
-             const div = document.createElement('div');
-             div.className = 'offer-item';
-             div.innerHTML = `
-                <div style="font-weight:700;font-size:12px;color:var(--muted);margin-bottom:5px;">${offer.operator}</div>
-                <div class="offer-price">₦${finalPrice.toLocaleString()}</div>
-                <div class="offer-stock">Qty: ${offer.count}</div>
-                <button class="btn" style="width:100%;margin-top:10px;font-size:12px;padding:8px" 
-                   onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${finalPrice})">
-                   <i class="fas fa-shopping-cart"></i> Buy
-                </button>
-             `;
-             grid.appendChild(div);
-          });
-      } catch(e) {
-          loader.style.display = 'none';
-          grid.innerHTML = '<div style="color:var(--danger)">Network Error.</div>';
+  // =============================================
+  // PERFECT PRICING CALCULATION FUNCTIONS
+  // =============================================
+  
+  /**
+   * Calculate 5sim price with perfect mathematics
+   * @param {number} coinCost - Cost in 5sim coins
+   * @param {string} country - Country code
+   * @param {string} service - Service name
+   * @returns {object} - Final price and breakdown
+   */
+  function calculate5simPrice(coinCost, country, service) {
+    // Step 1: Convert coins to dollars
+    const costInDollars = coinCost / COINS_PER_DOLLAR;
+    
+    // Step 2: Convert dollars to Naira
+    const basePriceNaira = costInDollars * EXCHANGE_RATE;
+    
+    // Step 3: Add country surcharge (operational cost)
+    const surcharge = COUNTRY_SURCHARGES[country] || DEFAULT_SURCHARGE;
+    const priceWithSurcharge = basePriceNaira + surcharge;
+    
+    // Step 4: Calculate desired profit (30% margin)
+    const desiredProfitPrice = priceWithSurcharge * (1 + DESIRED_PROFIT_MARGIN);
+    
+    // Step 5: Ensure minimum profit (20% margin)
+    const minimumProfitPrice = priceWithSurcharge * (1 + MINIMUM_PROFIT_MARGIN);
+    
+    // Step 6: Start with desired profit price
+    let finalPrice = Math.ceil(desiredProfitPrice);
+    
+    // Step 7: Ensure we at least get minimum profit
+    if (finalPrice < minimumProfitPrice) {
+      finalPrice = Math.ceil(minimumProfitPrice);
+    }
+    
+    // Step 8: Apply special pricing for USA WhatsApp
+    if (country === 'usa' && service === 'whatsapp') {
+      if (finalPrice < MINIMUM_SELLING_PRICE_USA_WHATSAPP) {
+        finalPrice = MINIMUM_SELLING_PRICE_USA_WHATSAPP;
       }
+    }
+    
+    // Calculate profit amount and percentage
+    const totalCost = priceWithSurcharge;
+    const profitAmount = finalPrice - totalCost;
+    const profitPercentage = (profitAmount / totalCost) * 100;
+    
+    return {
+      finalPrice: Math.ceil(finalPrice),
+      breakdown: {
+        coinCost: coinCost,
+        costInDollars: costInDollars.toFixed(2),
+        basePriceNaira: Math.ceil(basePriceNaira),
+        surcharge: surcharge,
+        totalCost: Math.ceil(totalCost),
+        profitAmount: Math.ceil(profitAmount),
+        profitPercentage: profitPercentage.toFixed(1),
+        margin: DESIRED_PROFIT_MARGIN * 100
+      }
+    };
+  }
+  
+  /**
+   * Calculate OTPGet price with perfect mathematics
+   * @returns {object} - Final price and breakdown
+   */
+  function calculateOTPGetPrice() {
+    const totalCost = OTPGET_BASE_PRICE;
+    const profitAmount = OTPGET_GAIN;
+    const profitPercentage = (OTPGET_GAIN / OTPGET_BASE_PRICE) * 100;
+    const finalPrice = OTPGET_FINAL_PRICE;
+    
+    return {
+      finalPrice: finalPrice,
+      breakdown: {
+        basePrice: OTPGET_BASE_PRICE,
+        gain: OTPGET_GAIN,
+        totalCost: totalCost,
+        profitAmount: profitAmount,
+        profitPercentage: profitPercentage.toFixed(1)
+      }
+    };
+  }
+  
+  // =============================================
+  // CHECK AVAILABILITY WITH PERFECT PRICING
+  // =============================================
+  document.getElementById('btn-check-avail').addEventListener('click', async () => {
+    const country = document.getElementById('sel-country').value;
+    const service = document.getElementById('sel-service').value;
+    
+    document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+    document.getElementById('step-3').classList.add('active');
+    
+    const sName = services.find(x => x.code === service).name;
+    const cName = countries.find(x => x.code === country).name;
+    document.getElementById('display-final').textContent = `${sName} in ${cName}`;
+    
+    const grid = document.getElementById('offers-grid');
+    const loader = document.getElementById('results-loader');
+    grid.innerHTML = ''; 
+    loader.style.display = 'block';
+
+    try {
+      const res = await fetch(`${API_URL}/prices`, {
+        method: 'POST', 
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ country, product: service })
+      });
+      const data = await res.json();
+      loader.style.display = 'none';
+
+      if(!data.offers || data.offers.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--warning);padding:20px;">No numbers available right now. Please try another country or service.</div>';
+        return;
+      }
+
+      // Process each offer with perfect pricing
+      data.offers.forEach(offer => {
+        let priceData;
+        let source;
+        
+        // Check if this is from OTPGet or 5sim
+        if (offer.source === 'otpget') {
+          // OTPGet pricing
+          priceData = calculateOTPGetPrice();
+          source = 'OTPGet';
+        } else {
+          // 5sim pricing
+          priceData = calculate5simPrice(offer.cost, country, service);
+          source = '5sim';
+        }
+        
+        const div = document.createElement('div');
+        div.className = 'offer-item';
+        div.innerHTML = `
+          <div style="font-weight:700;font-size:12px;color:var(--muted);margin-bottom:5px;">
+            ${offer.operator} <span style="font-size:10px;color:var(--accent)">(${source})</span>
+          </div>
+          <div class="offer-price">₦${priceData.finalPrice.toLocaleString()}</div>
+          <div class="offer-stock">Stock: ${offer.count} numbers</div>
+          
+          <div class="price-breakdown">
+            <div class="breakdown-item">
+              <span class="breakdown-label">Cost:</span>
+              <span class="breakdown-value">₦${priceData.breakdown.totalCost?.toLocaleString() || priceData.breakdown.basePrice?.toLocaleString()}</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label">Profit:</span>
+              <span class="breakdown-value">₦${priceData.breakdown.profitAmount?.toLocaleString()}</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-label">Margin:</span>
+              <span class="breakdown-value" style="color:var(--accent)">${priceData.breakdown.profitPercentage || priceData.breakdown.margin}%</span>
+            </div>
+          </div>
+          
+          <button class="btn" style="width:100%;margin-top:10px;font-size:12px;padding:8px" 
+             onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${priceData.finalPrice}, '${source}')">
+             <i class="fas fa-shopping-cart"></i> Buy Now
+          </button>
+        `;
+        grid.appendChild(div);
+      });
+      
+      // Add pricing summary
+      const summaryDiv = document.createElement('div');
+      summaryDiv.style.gridColumn = '1/-1';
+      summaryDiv.style.marginTop = '20px';
+      summaryDiv.style.padding = '15px';
+      summaryDiv.style.backgroundColor = 'var(--input-bg)';
+      summaryDiv.style.borderRadius = '6px';
+      summaryDiv.style.border = '1px solid var(--border)';
+      summaryDiv.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:600; color:#fff; margin-bottom:5px;">Pricing Summary</div>
+            <div style="font-size:11px; color:var(--muted);">
+              <div>• 5sim: Converted at ${COINS_PER_DOLLAR} coins/$1, then $1 = ₦${EXCHANGE_RATE}</div>
+              <div>• OTPGet: Base ₦${OTPGET_BASE_PRICE} + ₦${OTPGET_GAIN} gain = ₦${OTPGET_FINAL_PRICE}</div>
+              <div>• All prices include country-specific operational costs</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:11px; color:var(--muted);">Minimum Profit Margin</div>
+            <div style="font-size:18px; font-weight:700; color:var(--accent);">${MINIMUM_PROFIT_MARGIN*100}%</div>
+          </div>
+        </div>
+      `;
+      grid.appendChild(summaryDiv);
+      
+    } catch(e) {
+      loader.style.display = 'none';
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);padding:20px;">Network Error. Please check your connection and try again.</div>';
+      console.error('Error fetching prices:', e);
+    }
   });
 
-  // --- BUY & PAYSTACK LOGIC ---
-  window.buyNumber = async (country, product, operator, cost) => {
-      if (currentWalletBalance < cost) {
-          const deficit = cost - currentWalletBalance;
-          const fundAmount = deficit < 100 ? 100 : deficit;
-          
-          document.getElementById('modal-msg').innerHTML = `<span style="color:var(--warning)">Insufficient Balance!</span><br>You need ₦${Math.ceil(deficit)} more.<br>Fund your wallet now to continue.`;
-          document.getElementById('pay-amount').value = Math.ceil(fundAmount);
-          amModal.classList.add('open');
-          updateWhatsAppLink();
-          return;
-      }
-
-      if(!confirm(`Confirm Purchase: ₦${cost}?\n\nRemember: Higher-priced numbers receive OTP faster.`)) return;
+  // --- BUY NUMBER LOGIC ---
+  window.buyNumber = async (country, product, operator, cost, source) => {
+    // 1. SMART BALANCE CHECK
+    if (currentWalletBalance < cost) {
+      const deficit = cost - currentWalletBalance;
+      const fundAmount = deficit < 100 ? 100 : deficit;
       
-      const userRef = doc(db, "users", currentUser.uid);
-      try {
-        let apiData = null;
-        await runTransaction(db, async (t) => {
-            const uDoc = await t.get(userRef);
-            if((uDoc.data().balance || 0) < cost) throw "Insufficient Balance (Server)";
-        });
+      document.getElementById('modal-msg').innerHTML = `
+        <span style="color:var(--warning)">Insufficient Balance!</span><br>
+        You need ₦${Math.ceil(deficit)} more to purchase this ${product} number for ${country}.<br>
+        Fund your wallet now to continue.
+      `;
+      document.getElementById('pay-amount').value = Math.ceil(fundAmount);
+      amModal.classList.add('open');
+      updateWhatsAppLink();
+      return;
+    }
 
-        const res = await fetch(`${API_URL}/buy`, {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ country, product, operator })
-        });
-        const data = await res.json();
-        if(!res.ok || data.error) throw data.error || "Failed";
-        apiData = data;
+    const confirmMessage = `Confirm Purchase:\n\n• Service: ${product}\n• Country: ${country}\n• Provider: ${source}\n• Price: ₦${cost.toLocaleString()}\n\nRemember: Higher-priced numbers receive OTP faster.`;
+    
+    if(!confirm(confirmMessage)) return;
+    
+    const userRef = doc(db, "users", currentUser.uid);
+    try {
+      let apiData = null;
+      
+      // Check balance in transaction
+      await runTransaction(db, async (t) => {
+        const uDoc = await t.get(userRef);
+        if((uDoc.data().balance || 0) < cost) throw "Insufficient Balance (Server)";
+      });
 
-        await runTransaction(db, async (t) => {
-            const uDoc = await t.get(userRef);
-            t.update(userRef, { balance: uDoc.data().balance - cost });
-            const newOrderRef = doc(collection(userRef, "orders"));
-            t.set(newOrderRef, {
-                id: apiData.id, phone: apiData.phone, product: product, country: country,
-                cost: cost, status: 'PENDING', code: null, createdAt: new Date().toISOString()
-            });
-        });
+      // Purchase from API
+      const res = await fetch(`${API_URL}/buy`, {
+        method: 'POST', 
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ country, product, operator })
+      });
+      const data = await res.json();
+      
+      if(!res.ok || data.error) throw data.error || "Failed to purchase number";
+      apiData = data;
 
-        alert("Number Purchased Successfully!\n\nIMPORTANT: Immediately set up 2FA on your account!");
-        window.goToStep1(); 
-      } catch(e) {
-          if(e === "Insufficient Balance (Server)") {
-              alert("Balance updated roughly. Please fund wallet.");
-          } else {
-              alert("Error: " + e);
-          }
+      // Deduct from balance and create order
+      await runTransaction(db, async (t) => {
+        const uDoc = await t.get(userRef);
+        t.update(userRef, { balance: uDoc.data().balance - cost });
+        
+        const newOrderRef = doc(collection(userRef, "orders"));
+        t.set(newOrderRef, {
+          id: apiData.id, 
+          phone: apiData.phone, 
+          product: product, 
+          country: country,
+          operator: operator,
+          provider: source,
+          cost: cost, 
+          status: 'PENDING', 
+          code: null, 
+          createdAt: new Date().toISOString()
+        });
+      });
+
+      alert(`
+        ✅ Number Purchased Successfully!
+        
+        Phone: ${apiData.phone}
+        Service: ${product}
+        Country: ${country}
+        Price: ₦${cost}
+        
+        ⚠️ IMPORTANT: 
+        1. Immediately set up 2FA on your account!
+        2. Check for SMS code in Transaction History.
+        3. Higher-priced numbers receive OTP faster.
+      `);
+      window.goToStep1(); 
+      
+    } catch(e) {
+      if(e === "Insufficient Balance (Server)") {
+        alert("Balance updated. Please refresh and try again, or fund your wallet.");
+      } else {
+        alert("Error: " + e);
       }
+    }
   };
 
-  // --- SIMPLIFIED PAYSTACK FORM HANDLER (USING DASHBOARD CODE) ---
+  // --- SIMPLIFIED PAYSTACK FORM HANDLER ---
   document.getElementById('deposit-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const amount = document.getElementById('pay-amount').value;
@@ -778,7 +989,7 @@
     handler.openIframe();
   });
 
-  // --- PROCESS DEPOSIT FUNCTION (SAME AS DASHBOARD) ---
+  // --- PROCESS DEPOSIT FUNCTION ---
   async function processDeposit(amount, ref) {
     const statusDiv = document.getElementById('payment-status');
     const statusText = document.getElementById('payment-status-text');
@@ -805,7 +1016,7 @@
       // Show success message
       statusDiv.className = 'payment-status success';
       statusDiv.style.display = 'block';
-      statusText.innerHTML = `Payment Successful! Your wallet has been credited with ₦${amount}.<br>Reference: ${ref}`;
+      statusText.innerHTML = `✅ Payment Successful! Your wallet has been credited with ₦${amount}.<br>Reference: ${ref}`;
 
       // Update balance display immediately
       currentWalletBalance += Number(amount);
@@ -834,74 +1045,74 @@
 
   // --- HISTORY TABLE ---
   function loadHistory() {
-      const q = query(collection(db, "users", currentUser.uid, "orders"), orderBy("createdAt", "desc"), limit(20));
-      const tbody = document.getElementById('history-table-body');
+    const q = query(collection(db, "users", currentUser.uid, "orders"), orderBy("createdAt", "desc"), limit(20));
+    const tbody = document.getElementById('history-table-body');
+    
+    onSnapshot(q, (snapshot) => {
+      tbody.innerHTML = '';
+      if(snapshot.empty) { 
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet. Purchase your first number!</td></tr>'; 
+        return; 
+      }
       
-      onSnapshot(q, (snapshot) => {
-          tbody.innerHTML = '';
-          if(snapshot.empty) { 
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet.</td></tr>'; 
-            return; 
-          }
-          
-          let index = 1;
-          snapshot.forEach(docSnap => {
-              const d = docSnap.data();
-              const tr = document.createElement('tr');
-              let statusClass = d.status === 'PENDING' ? 'status-pending' : 
-                               (d.status === 'FINISHED' ? 'status-finished' : 'status-canceled');
-              let codeDisplay = d.status === 'FINISHED' ? `<span class="code-box">${d.code}</span>` : 
-                               (d.status === 'PENDING' ? '...' : '-');
-              let actionBtn = d.status === 'PENDING' ? 
-                `<button class="btn secondary" style="padding:4px 8px;font-size:11px" onclick="checkSMS('${docSnap.id}', '${d.id}')">Check</button>` : '';
+      let index = 1;
+      snapshot.forEach(docSnap => {
+        const d = docSnap.data();
+        const tr = document.createElement('tr');
+        let statusClass = d.status === 'PENDING' ? 'status-pending' : 
+                         (d.status === 'FINISHED' ? 'status-finished' : 'status-canceled');
+        let codeDisplay = d.status === 'FINISHED' ? `<span class="code-box">${d.code}</span>` : 
+                         (d.status === 'PENDING' ? '...' : '-');
+        let actionBtn = d.status === 'PENDING' ? 
+          `<button class="btn secondary" style="padding:4px 8px;font-size:11px" onclick="checkSMS('${docSnap.id}', '${d.id}', '${d.provider || '5sim'}')">Check</button>` : '';
 
-              tr.innerHTML = `
-                <td>${index++}</td>
-                <td style="font-family:monospace">${d.phone}</td>
-                <td>${codeDisplay}</td>
-                <td style="text-transform:capitalize">${d.product}</td>
-                <td>₦${d.cost}</td>
-                <td><span class="badge ${statusClass}">${d.status}</span></td>
-                <td style="font-size:11px;color:var(--muted)">${new Date(d.createdAt).toLocaleDateString()}</td>
-                <td>${actionBtn}</td>`;
-              tbody.appendChild(tr);
-          });
+        tr.innerHTML = `
+          <td>${index++}</td>
+          <td style="font-family:monospace">${d.phone}</td>
+          <td>${codeDisplay}</td>
+          <td style="text-transform:capitalize">${d.product}</td>
+          <td>₦${d.cost}</td>
+          <td><span class="badge ${statusClass}">${d.status}</span></td>
+          <td style="font-size:11px;color:var(--muted)">${new Date(d.createdAt).toLocaleDateString()}</td>
+          <td>${actionBtn}</td>`;
+        tbody.appendChild(tr);
       });
+    });
   }
 
-  window.checkSMS = async (docId, orderId) => {
-      const btn = event.currentTarget; 
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; 
-      btn.disabled = true;
+  window.checkSMS = async (docId, orderId, source) => {
+    const btn = event.currentTarget; 
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; 
+    btn.disabled = true;
+    
+    try {
+      const res = await fetch(`${API_URL}/check`, { 
+        method: 'POST', 
+        headers: {'Content-Type':'application/json'}, 
+        body: JSON.stringify({orderId, source}) 
+      });
+      const data = await res.json();
       
-      try {
-          const res = await fetch(`${API_URL}/check`, { 
-            method: 'POST', 
-            headers: {'Content-Type':'application/json'}, 
-            body: JSON.stringify({orderId}) 
-          });
-          const data = await res.json();
-          
-          if(data.sms && data.sms.length > 0) {
-              await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { 
-                status: 'FINISHED', 
-                code: data.sms[0].code 
-              });
-              alert('SMS code received: ' + data.sms[0].code);
-          } else if (data.status === 'CANCELED' || data.status === 'BANNED') {
-              await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { status: 'CANCELED' });
-              alert("Order Canceled by Network.");
-          } else {
-              alert("No SMS received yet. Please try again in a few seconds.");
-          }
-      } catch(e) { 
-          console.error(e); 
-          alert("Error checking SMS. Please try again.");
-      } finally { 
-          btn.innerHTML = 'Check'; 
-          btn.disabled = false; 
+      if(data.sms && data.sms.length > 0) {
+        await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { 
+          status: 'FINISHED', 
+          code: data.sms[0].code 
+        });
+        alert(`✅ SMS code received!\n\nCode: ${data.sms[0].code}\n\nCopy this code and use it for verification.`);
+      } else if (data.status === 'CANCELED' || data.status === 'BANNED') {
+        await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { status: 'CANCELED' });
+        alert("❌ Order Canceled by Network. Contact support for assistance.");
+      } else {
+        alert("⏳ No SMS received yet. Please try again in a few seconds. Higher-priced numbers receive OTP faster.");
       }
+    } catch(e) { 
+      console.error(e); 
+      alert("Error checking SMS. Please try again or contact support.");
+    } finally { 
+      btn.innerHTML = 'Check'; 
+      btn.disabled = false; 
+    }
   };
 </script>
 </body>
-  </html>
+                                                                                                                                         </html>
