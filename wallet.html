@@ -180,7 +180,7 @@
     <button class="hamburger" id="menu-toggle"><i class="fas fa-bars"></i></button>
 </div>
 
-<!-- Fund Wallet Modal - UPDATED WITH NEW FEATURES -->
+<!-- Fund Wallet Modal - SIMPLIFIED LIKE DASHBOARD -->
 <div class="modal" id="add-money-modal">
   <div class="modal-card">
     <h3 style="margin-bottom:15px"><i class="fas fa-wallet"></i> Fund Wallet</h3>
@@ -200,8 +200,8 @@
         <p style="font-size:11px; margin-top: 15px; color: var(--warning);"><i class="fas fa-exclamation-triangle"></i> Purchases are final. Please test numbers promptly upon receipt.</p>
     </div>
     
-    <div id="payment-status" class="payment-status warning" style="display:none;">
-        <i class="fas fa-info-circle"></i> <span id="payment-status-text"></span>
+    <div id="payment-status" class="payment-status success" style="display:none;">
+        <i class="fas fa-check-circle"></i> <span id="payment-status-text">Payment Successful! Your wallet has been updated.</span>
     </div>
     
     <p style="font-size:13px;color:var(--muted);margin-bottom:15px;" id="modal-msg">Enter amount to fund your wallet (Minimum: ₦100).</p>
@@ -387,7 +387,6 @@
 <script type="module">
   const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
   const API_URL = "https://eoslm172tqy3opg.m.pipedream.net"; 
-  const YOUR_BACKEND_URL = "https://your-backend.com"; // CHANGE THIS TO YOUR ACTUAL BACKEND
   
   // Fixed exchange rate
   const EXCHANGE_RATE = 1600;
@@ -427,7 +426,6 @@
 
   let currentUser = null;
   let currentWalletBalance = 0;
-  let pendingTransactionRef = null;
 
   // --- DATA ---
   const countries = [
@@ -482,13 +480,11 @@
 
   // --- NEW: COMMUNITY BUTTON LOGIC - UPDATED ---
   document.getElementById('community-btn').addEventListener('click', function() {
-    // Updated community link to provided WhatsApp group
     const communityLink = 'https://chat.whatsapp.com/GCk6NVzCiZ39ym5xOfWK8g';
     window.open(communityLink, '_blank');
   });
 
   document.getElementById('main-community-btn').addEventListener('click', function() {
-    // Same community link for main button
     const communityLink = 'https://chat.whatsapp.com/GCk6NVzCiZ39ym5xOfWK8g';
     window.open(communityLink, '_blank');
   });
@@ -508,7 +504,7 @@
     }
   }
 
-  // --- NEW: CHECK PENDING PAYMENTS FUNCTION ---
+  // --- CHECK PENDING PAYMENTS FUNCTION ---
   document.getElementById('check-pending-payments').addEventListener('click', async function() {
     const btn = this;
     const originalText = btn.innerHTML;
@@ -517,7 +513,6 @@
     btn.disabled = true;
     
     try {
-      // Check for pending transactions
       const transactionsRef = collection(db, "users", currentUser.uid, "transactions");
       const q = query(transactionsRef, where("status", "==", "PENDING"));
       const querySnapshot = await getDocs(q);
@@ -525,12 +520,14 @@
       if (querySnapshot.empty) {
         alert("No pending payments found. All transactions are completed.");
       } else {
-        let message = `Found ${querySnapshot.size} pending payment(s).\n`;
+        let message = `Found ${querySnapshot.size} pending payment(s).\n\n`;
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          message += `- Reference: ${data.reference}, Amount: ₦${data.amount}\n`;
+          message += `- Reference: ${data.reference}\n`;
+          message += `  Amount: ₦${data.amount}\n`;
+          message += `  Date: ${new Date(data.date).toLocaleString()}\n\n`;
         });
-        message += "\nFor bank transfers, please wait 5-15 minutes. If still pending, contact support.";
+        message += "For bank transfers, please wait 5-15 minutes. If still pending, contact support.";
         alert(message);
       }
     } catch (error) {
@@ -542,28 +539,6 @@
     }
   });
 
-  // --- NEW: PAYSTACK WEBHOOK SIMULATION (Partial solution) ---
-  async function verifyPaystackTransaction(reference) {
-    // This would normally call your backend to verify with Paystack
-    // Since we don't have a backend, we'll simulate checking
-    try {
-      // In a real implementation, you would call:
-      // const response = await fetch(`${YOUR_BACKEND_URL}/verify-payment`, {
-      //   method: 'POST',
-      //   headers: {'Content-Type': 'application/json'},
-      //   body: JSON.stringify({ reference: reference })
-      // });
-      
-      // For now, just return a simulated response
-      return { 
-        success: false, 
-        message: "Please contact support to manually verify this payment." 
-      };
-    } catch (error) {
-      return { success: false, message: "Verification failed. Contact support." };
-    }
-  }
-
   // Modal Handlers
   document.getElementById('nav-fund').addEventListener('click', (e) => {
       e.preventDefault();
@@ -571,7 +546,7 @@
       document.getElementById('pay-amount').value = "";
       document.getElementById('payment-status').style.display = 'none';
       amModal.classList.add('open');
-      updateWhatsAppLink(); // Update link with current user email
+      updateWhatsAppLink();
       closeMenu();
   });
   
@@ -586,7 +561,7 @@
       currentUser = user;
       document.getElementById('user-email').textContent = user.email;
       document.getElementById('pay-email-hidden').value = user.email;
-      updateWhatsAppLink(); // Update WhatsApp link on login
+      updateWhatsAppLink();
       
       onSnapshot(doc(db, "users", user.uid), (docSnap) => {
          const bal = docSnap.exists() ? docSnap.data().balance : 0;
@@ -596,7 +571,6 @@
 
       loadHistory();
       initDropdowns();
-      startPaymentChecker(); // Start checking for pending payments
     } else {
       window.location.href = 'index.html';
     }
@@ -678,32 +652,19 @@
               return;
           }
 
-          // CORRECTED PRICING CALCULATION:
-          // 1. Convert 5sim coins to dollars (1 dollar = 79 coins)
-          // 2. Convert dollars to Naira (exchange rate 1600)
-          // 3. Add country surcharge
-          // 4. Apply minimum price for USA WhatsApp
           data.offers.forEach(offer => {
-             // Step 1: Convert 5sim coins to dollars
              const costInDollars = offer.cost / COINS_PER_DOLLAR;
-             
-             // Step 2: Convert dollars to Naira
              const basePriceNaira = Math.ceil(costInDollars * EXCHANGE_RATE);
-             
-             // Step 3: Add surcharge for country or default to 1000
              const surcharge = COUNTRY_SURCHARGES[country] || 1000;
              let finalPrice = basePriceNaira + surcharge;
              
-             // Step 4: Apply minimum price for USA WhatsApp
              if (country === 'usa' && service === 'whatsapp') {
                  if (finalPrice < MINIMUM_SELLING_PRICE_USA_WHATSAPP) {
                      finalPrice = MINIMUM_SELLING_PRICE_USA_WHATSAPP;
                  }
              }
              
-             // Step 5: Ensure minimum profit for all services
-             // Add a minimum 20% profit margin to ensure profitability
-             const MINIMUM_PROFIT_MARGIN = 0.20; // 20%
+             const MINIMUM_PROFIT_MARGIN = 0.20;
              const costPrice = basePriceNaira + surcharge;
              const profitablePrice = Math.ceil(costPrice * (1 + MINIMUM_PROFIT_MARGIN));
              
@@ -732,10 +693,9 @@
 
   // --- BUY & PAYSTACK LOGIC ---
   window.buyNumber = async (country, product, operator, cost) => {
-      // 1. SMART BALANCE CHECK
       if (currentWalletBalance < cost) {
           const deficit = cost - currentWalletBalance;
-          const fundAmount = deficit < 50 ? 50 : deficit; // Minimum 50 for Paystack
+          const fundAmount = deficit < 100 ? 100 : deficit;
           
           document.getElementById('modal-msg').innerHTML = `<span style="color:var(--warning)">Insufficient Balance!</span><br>You need ₦${Math.ceil(deficit)} more.<br>Fund your wallet now to continue.`;
           document.getElementById('pay-amount').value = Math.ceil(fundAmount);
@@ -783,8 +743,8 @@
       }
   };
 
-  // --- UPDATED: PAYSTACK FORM HANDLER WITH WEBHOOK SIMULATION ---
-  document.getElementById('deposit-form').addEventListener('submit', async (e) => {
+  // --- SIMPLIFIED PAYSTACK FORM HANDLER (USING DASHBOARD CODE) ---
+  document.getElementById('deposit-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const amount = document.getElementById('pay-amount').value;
     const email = document.getElementById('pay-email-hidden').value;
@@ -795,149 +755,80 @@
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     btn.disabled = true;
 
-    // Generate a unique reference
-    const txRef = 'SL-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-    pendingTransactionRef = txRef;
-    
-    // Show status message
-    const statusDiv = document.getElementById('payment-status');
-    const statusText = document.getElementById('payment-status-text');
-    statusDiv.className = 'payment-status warning';
-    statusDiv.style.display = 'block';
-    statusText.textContent = 'Initiating payment...';
-    
     const handler = PaystackPop.setup({
       key: PAYSTACK_KEY, 
       email: email, 
       amount: amount * 100, 
       currency: 'NGN',
-      ref: txRef,
+      ref: 'SL-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
       metadata: {
         userId: currentUser.uid,
         userEmail: currentUser.email,
         platform: 'Sublime Logs'
       },
-      callback: async (response) => {
-        console.log('Paystack callback. Reference:', response.reference);
-        
-        // Record the transaction attempt
-        await recordTransactionAttempt(amount, txRef, 'PENDING');
-        
-        // Update status message
-        statusDiv.className = 'payment-status success';
-        statusText.innerHTML = `
-          Payment initiated successfully!<br>
-          Reference: <strong>${txRef}</strong><br>
-          <small>For bank transfers (Opay, etc.), please wait 5-15 minutes for wallet update.</small>
-        `;
-        
-        // Don't close modal immediately for bank transfers
-        const isLikelyBankTransfer = amount >= 5000;
-        if (!isLikelyBankTransfer) {
-          setTimeout(() => {
-            amModal.classList.remove('open');
-            statusDiv.style.display = 'none';
-          }, 3000);
-        }
-        
-        // Start checking for this transaction
-        startCheckingTransaction(txRef);
+      callback: (response) => {
+        // Process the deposit
+        processDeposit(amount, response.reference);
       },
       onClose: () => {
-        // User closed the payment modal
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
-        statusDiv.style.display = 'none';
-        
-        if (!pendingTransactionRef) {
-          alert('Payment window closed. If you completed a payment, your wallet will update once we receive confirmation.');
-        }
       }
     });
     handler.openIframe();
   });
 
-  // --- NEW: FUNCTION TO START CHECKING TRANSACTION ---
-  async function startCheckingTransaction(reference) {
-    // Check every 30 seconds for 5 minutes
-    let checks = 0;
-    const maxChecks = 10; // 5 minutes
+  // --- PROCESS DEPOSIT FUNCTION (SAME AS DASHBOARD) ---
+  async function processDeposit(amount, ref) {
+    const statusDiv = document.getElementById('payment-status');
+    const statusText = document.getElementById('payment-status-text');
     
-    const checkInterval = setInterval(async () => {
-      checks++;
-      
-      if (checks >= maxChecks) {
-        clearInterval(checkInterval);
-        
-        // Show final warning
-        const statusDiv = document.getElementById('payment-status');
-        if (statusDiv.style.display !== 'none') {
-          statusDiv.className = 'payment-status warning';
-          document.getElementById('payment-status-text').innerHTML = `
-            <i class="fas fa-exclamation-triangle"></i> Payment still pending.<br>
-            <small>If you used bank transfer (Opay, etc.), it may take longer. Contact support if not updated in 15 minutes.</small>
-          `;
-        }
-        return;
-      }
-      
-      // In a real implementation, you would verify with your backend
-      // For now, we'll just show a waiting message
-      console.log(`Checking payment ${reference}... (${checks}/${maxChecks})`);
-      
-    }, 30000); // Check every 30 seconds
-  }
-
-  // --- NEW: PERIODIC PAYMENT CHECKER ---
-  function startPaymentChecker() {
-    // Check for pending payments every 2 minutes
-    setInterval(async () => {
-      if (!currentUser) return;
-      
-      try {
-        const transactionsRef = collection(db, "users", currentUser.uid, "transactions");
-        const q = query(transactionsRef, where("status", "==", "PENDING"));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          console.log(`Found ${querySnapshot.size} pending payment(s)`);
-          
-          // In a real implementation, you would verify each with Paystack via your backend
-          // For now, we just log them
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const transactionTime = new Date(data.date);
-            const now = new Date();
-            const minutesPassed = (now - transactionTime) / (1000 * 60);
-            
-            // If more than 15 minutes, suggest contacting support
-            if (minutesPassed > 15) {
-              console.warn(`Payment ${data.reference} pending for ${Math.round(minutesPassed)} minutes`);
-            }
-          });
-        }
-      } catch (error) {
-        console.error("Error in payment checker:", error);
-      }
-    }, 120000); // Check every 2 minutes
-  }
-
-  // --- FUNCTION TO RECORD TRANSACTION ATTEMPT ---
-  async function recordTransactionAttempt(amount, reference, status) {
     try {
       const userRef = doc(db, "users", currentUser.uid);
+      
+      // Record transaction
       await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
         type: 'deposit',
         amount: Number(amount),
         date: new Date().toISOString(),
-        reference: reference,
-        status: status,
-        userEmail: currentUser.email,
-        updatedAt: new Date().toISOString()
+        reference: ref,
+        status: 'COMPLETED',
+        userEmail: currentUser.email
       });
-      console.log('Transaction attempt recorded:', reference);
-    } catch(e) { 
-      console.error('Error recording transaction:', e);
+      
+      // Update balance
+      await runTransaction(db, async (t) => {
+        const sfDoc = await t.get(userRef);
+        t.update(userRef, { balance: (sfDoc.data().balance || 0) + Number(amount) });
+      });
+
+      // Show success message
+      statusDiv.className = 'payment-status success';
+      statusDiv.style.display = 'block';
+      statusText.innerHTML = `Payment Successful! Your wallet has been credited with ₦${amount}.<br>Reference: ${ref}`;
+
+      // Update balance display immediately
+      currentWalletBalance += Number(amount);
+      document.getElementById('balance').textContent = '₦' + currentWalletBalance.toLocaleString();
+
+      // Close modal after 3 seconds
+      setTimeout(() => {
+        amModal.classList.remove('open');
+        statusDiv.style.display = 'none';
+        // Reset button
+        const btn = document.getElementById('start-paystack');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
+      }, 3000);
+
+    } catch (error) {
+      console.error("Error processing deposit:", error);
+      alert("Error updating balance. Reference: " + ref);
+      
+      // Reset button on error
+      const btn = document.getElementById('start-paystack');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
     }
   }
 
@@ -948,34 +839,68 @@
       
       onSnapshot(q, (snapshot) => {
           tbody.innerHTML = '';
-          if(snapshot.empty) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet.</td></tr>'; return; }
+          if(snapshot.empty) { 
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet.</td></tr>'; 
+            return; 
+          }
           
           let index = 1;
           snapshot.forEach(docSnap => {
               const d = docSnap.data();
               const tr = document.createElement('tr');
-              let statusClass = d.status === 'PENDING' ? 'status-pending' : (d.status === 'FINISHED' ? 'status-finished' : 'status-canceled');
-              let codeDisplay = d.status === 'FINISHED' ? `<span class="code-box">${d.code}</span>` : (d.status === 'PENDING' ? '...' : '-');
-              let actionBtn = d.status === 'PENDING' ? `<button class="btn secondary" style="padding:4px 8px;font-size:11px" onclick="checkSMS('${docSnap.id}', '${d.id}')">Check</button>` : '';
+              let statusClass = d.status === 'PENDING' ? 'status-pending' : 
+                               (d.status === 'FINISHED' ? 'status-finished' : 'status-canceled');
+              let codeDisplay = d.status === 'FINISHED' ? `<span class="code-box">${d.code}</span>` : 
+                               (d.status === 'PENDING' ? '...' : '-');
+              let actionBtn = d.status === 'PENDING' ? 
+                `<button class="btn secondary" style="padding:4px 8px;font-size:11px" onclick="checkSMS('${docSnap.id}', '${d.id}')">Check</button>` : '';
 
-              tr.innerHTML = `<td>${index++}</td><td style="font-family:monospace">${d.phone}</td><td>${codeDisplay}</td><td style="text-transform:capitalize">${d.product}</td><td>₦${d.cost}</td><td><span class="badge ${statusClass}">${d.status}</span></td><td style="font-size:11px;color:var(--muted)">${new Date(d.createdAt).toLocaleDateString()}</td><td>${actionBtn}</td>`;
+              tr.innerHTML = `
+                <td>${index++}</td>
+                <td style="font-family:monospace">${d.phone}</td>
+                <td>${codeDisplay}</td>
+                <td style="text-transform:capitalize">${d.product}</td>
+                <td>₦${d.cost}</td>
+                <td><span class="badge ${statusClass}">${d.status}</span></td>
+                <td style="font-size:11px;color:var(--muted)">${new Date(d.createdAt).toLocaleDateString()}</td>
+                <td>${actionBtn}</td>`;
               tbody.appendChild(tr);
           });
       });
   }
 
   window.checkSMS = async (docId, orderId) => {
-      const btn = event.currentTarget; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
+      const btn = event.currentTarget; 
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; 
+      btn.disabled = true;
+      
       try {
-          const res = await fetch(`${API_URL}/check`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({orderId}) });
+          const res = await fetch(`${API_URL}/check`, { 
+            method: 'POST', 
+            headers: {'Content-Type':'application/json'}, 
+            body: JSON.stringify({orderId}) 
+          });
           const data = await res.json();
+          
           if(data.sms && data.sms.length > 0) {
-              await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { status: 'FINISHED', code: data.sms[0].code });
+              await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { 
+                status: 'FINISHED', 
+                code: data.sms[0].code 
+              });
+              alert('SMS code received: ' + data.sms[0].code);
           } else if (data.status === 'CANCELED' || data.status === 'BANNED') {
               await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { status: 'CANCELED' });
               alert("Order Canceled by Network.");
+          } else {
+              alert("No SMS received yet. Please try again in a few seconds.");
           }
-      } catch(e) { console.error(e); } finally { btn.innerHTML = 'Check'; btn.disabled = false; }
+      } catch(e) { 
+          console.error(e); 
+          alert("Error checking SMS. Please try again.");
+      } finally { 
+          btn.innerHTML = 'Check'; 
+          btn.disabled = false; 
+      }
   };
 </script>
 </body>
