@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
+  /* Your original CSS remains unchanged */
   :root{ --bg:#0b0f13; --card:#161b22; --input-bg:#0d1117; --muted:#8b949e; --text:#c9d1d9; --accent:#2ea043; --accent-hover:#3fb950; --border:rgba(240,246,252,0.1); --danger:#f85149; --warning:#d29922; --header-height: 60px; }
   
   *{box-sizing:border-box}
@@ -175,12 +176,13 @@
 </head>
 <body>
 
+<!-- Mobile Header -->
 <div class="mobile-header">
     <div style="font-weight:bold;font-size:18px;">Sublime Logs</div>
     <button class="hamburger" id="menu-toggle"><i class="fas fa-bars"></i></button>
 </div>
 
-<!-- Fund Wallet Modal - UPDATED WITH NEW FEATURES -->
+<!-- Fund Wallet Modal -->
 <div class="modal" id="add-money-modal">
   <div class="modal-card">
     <h3 style="margin-bottom:15px"><i class="fas fa-wallet"></i> Fund Wallet</h3>
@@ -240,6 +242,7 @@
 
 <div class="app-container">
 
+    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div style="font-weight:bold;font-size:20px;margin-bottom:30px;padding-left:10px;" class="desktop-only-logo">
             Sublime Logs
@@ -265,6 +268,7 @@
         </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="main">
       
       <div class="top-bar">
@@ -309,6 +313,7 @@
           </div>
       </div>
 
+      <!-- Number Purchase Interface -->
       <div class="card">
         
         <div id="step-1" class="step-container active">
@@ -356,6 +361,7 @@
 
       </div>
 
+      <!-- Transaction History -->
       <h3 style="margin-top:40px;margin-bottom:15px;">Transaction History</h3>
       <div class="card" style="padding:0;">
         <div class="table-container">
@@ -382,601 +388,604 @@
     </main>
 </div>
 
+<!-- Paystack Script -->
 <script src="https://js.paystack.co/v1/inline.js"></script>
 
 <script type="module">
-  const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
-  const API_URL = "https://eoslm172tqy3opg.m.pipedream.net"; 
-  const YOUR_BACKEND_URL = "https://your-backend.com"; // CHANGE THIS TO YOUR ACTUAL BACKEND
-  
-  // Fixed exchange rate
-  const EXCHANGE_RATE = 1600;
+// =============== CONFIGURATION ===============
+// ⚠️ IMPORTANT: Replace these values with your actual data
 
-  // 5sim pricing: 1 dollar = 79 coins
-  const COINS_PER_DOLLAR = 79;
+// Your single Pipedream workflow URL
+const PIPEDREAM_API_URL = "https://your-pipedream-endpoint.m.pipedream.net";
 
-  // Minimum selling price for USA WhatsApp (this is your new target price)
-  const MINIMUM_SELLING_PRICE_USA_WHATSAPP = 4500;
+// Your Paystack public key
+const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
 
-  // Country-specific surcharges in Naira
-  const COUNTRY_SURCHARGES = {
-      'usa': 1000,          // ₦1,000 for USA
-      'england': 700,       // ₦700 for UK
-      'germany': 2500,      // ₦2,500 for Germany
-      'canada': 2000,       // ₦2,000 for Canada
-      'netherlands': 3000,  // ₦3,000 for Netherlands
-      'poland': 1500,       // ₦1,500 for Poland
-  };
+// Pricing Constants
+const EXCHANGE_RATE = 1600;
+const COINS_PER_DOLLAR = 79;
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, runTransaction, updateDoc, addDoc, getDocs, where } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+// OTPGet Pricing (USA/Canada)
+const OTPGET_BASE_RATE_NGN = 2362.04;
+const OTPGET_SURCHARGE_NGN = 1700;
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
-    authDomain: "sublime-log.firebaseapp.com",
-    projectId: "sublime-log",
-    storageBucket: "sublime-log.firebasestorage.app",
-    messagingSenderId: "644554254089",
-    appId: "1:644554254089:web:dd3374c9468046a5a015d8"
-  };
+// Country-specific surcharges for 5sim
+const COUNTRY_SURCHARGES = {
+    'usa': 1000, 'england': 700, 'germany': 2500, 'canada': 2000,
+    'netherlands': 3000, 'poland': 1500, 'default': 1000
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
+  authDomain: "sublime-log.firebaseapp.com",
+  projectId: "sublime-log",
+  storageBucket: "sublime-log.firebasestorage.app",
+  messagingSenderId: "644554254089",
+  appId: "1:644554254089:web:dd3374c9468046a5a015d8"
+};
 
-  let currentUser = null;
-  let currentWalletBalance = 0;
-  let pendingTransactionRef = null;
+// =============== FIREBASE IMPORTS & INIT ===============
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signOut 
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { 
+  getFirestore, 
+  doc, 
+  onSnapshot, 
+  collection, 
+  query, 
+  orderBy, 
+  limit, 
+  runTransaction, 
+  updateDoc, 
+  addDoc, 
+  getDocs, 
+  where,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  // --- DATA ---
-  const countries = [
-      {code:"usa",name:"USA"},{code:"england",name:"United Kingdom"},{code:"russia",name:"Russia"},{code:"ukraine",name:"Ukraine"},
-      {code:"kazakhstan",name:"Kazakhstan"},{code:"nigeria",name:"Nigeria"},{code:"kenya",name:"Kenya"},{code:"ghana",name:"Ghana"},
-      {code:"southafrica",name:"South Africa"},{code:"brazil",name:"Brazil"},{code:"argentina",name:"Argentina"},{code:"colombia",name:"Colombia"},
-      {code:"peru",name:"Peru"},{code:"india",name:"India"},{code:"indonesia",name:"Indonesia"},{code:"philippines",name:"Philippines"},
-      {code:"vietnam",name:"Vietnam"},{code:"thailand",name:"Thailand"},{code:"malaysia",name:"Malaysia"},{code:"germany",name:"Germany"},
-      {code:"france",name:"France"},{code:"netherlands",name:"Netherlands"},{code:"spain",name:"Spain"},{code:"poland",name:"Poland"},
-      {code:"canada",name:"Canada"},{code:"mexico",name:"Mexico"},{code:"australia",name:"Australia"},{code:"egypt",name:"Egypt"},
-      {code:"morocco",name:"Morocco"},{code:"turkey",name:"Turkey"},{code:"uae",name:"UAE"},{code:"pakistan",name:"Pakistan"},
-      {code:"bangladesh",name:"Bangladesh"},{code:"china",name:"China"},{code:"japan",name:"Japan"},{code:"southkorea",name:"South Korea"},
-      {code:"italy",name:"Italy"},{code:"portugal",name:"Portugal"},{code:"belgium",name:"Belgium"}
-  ];
-  
-  // Services including Upwork and Fiverr
-  const services = [
-      {code:"whatsapp",name:"WhatsApp"},{code:"telegram",name:"Telegram"},{code:"google",name:"Google / Gmail"},
-      {code:"facebook",name:"Facebook"},{code:"instagram",name:"Instagram"},{code:"tiktok",name:"TikTok"},{code:"twitter",name:"X (Twitter)"},
-      {code:"linkedin",name:"LinkedIn"},{code:"netflix",name:"Netflix"},{code:"uber",name:"Uber"},{code:"amazon",name:"Amazon"},
-      {code:"discord",name:"Discord"},{code:"viber",name:"Viber"},{code:"snapchat",name:"Snapchat"},{code:"openai",name:"OpenAI / ChatGPT"},
-      {code:"microsoft",name:"Microsoft"},{code:"airbnb",name:"Airbnb"},{code:"bolt",name:"Bolt"},{code:"yahoo",name:"Yahoo"},
-      {code:"paypal",name:"PayPal"},{code:"tinder",name:"Tinder"},{code:"glovo",name:"Glovo"},
-      {code:"upwork",name:"Upwork"},{code:"fiverr",name:"Fiverr"}
-  ];
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  // --- MENU & MODAL LOGIC ---
-  const menuToggle = document.getElementById('menu-toggle');
-  const sidebar = document.getElementById('sidebar');
-  const amModal = document.getElementById('add-money-modal');
+// Global variables
+let currentUser = null;
+let currentWalletBalance = 0;
 
-  menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
-  window.closeMenu = () => sidebar.classList.remove('open');
-  
-  // Close menu when clicking outside
-  document.addEventListener('click', (e) => {
-      if(!sidebar.contains(e.target) && !menuToggle.contains(e.target) && sidebar.classList.contains('open')){
-          sidebar.classList.remove('open');
-      }
-  });
+// Data for dropdowns
+const countries = [
+    {code:"usa",name:"USA"},{code:"england",name:"United Kingdom"},{code:"russia",name:"Russia"},
+    {code:"ukraine",name:"Ukraine"},{code:"kazakhstan",name:"Kazakhstan"},{code:"nigeria",name:"Nigeria"},
+    {code:"kenya",name:"Kenya"},{code:"ghana",name:"Ghana"},{code:"southafrica",name:"South Africa"},
+    {code:"brazil",name:"Brazil"},{code:"argentina",name:"Argentina"},{code:"colombia",name:"Colombia"},
+    {code:"peru",name:"Peru"},{code:"india",name:"India"},{code:"indonesia",name:"Indonesia"},
+    {code:"philippines",name:"Philippines"},{code:"vietnam",name:"Vietnam"},{code:"thailand",name:"Thailand"},
+    {code:"malaysia",name:"Malaysia"},{code:"germany",name:"Germany"},{code:"france",name:"France"},
+    {code:"netherlands",name:"Netherlands"},{code:"spain",name:"Spain"},{code:"poland",name:"Poland"},
+    {code:"canada",name:"Canada"},{code:"mexico",name:"Mexico"},{code:"australia",name:"Australia"},
+    {code:"egypt",name:"Egypt"},{code:"morocco",name:"Morocco"},{code:"turkey",name:"Turkey"},
+    {code:"uae",name:"UAE"},{code:"pakistan",name:"Pakistan"},{code:"bangladesh",name:"Bangladesh"},
+    {code:"china",name:"China"},{code:"japan",name:"Japan"},{code:"southkorea",name:"South Korea"},
+    {code:"italy",name:"Italy"},{code:"portugal",name:"Portugal"},{code:"belgium",name:"Belgium"}
+];
 
-  // --- NEW: RULES TOGGLE LOGIC ---
-  document.getElementById('rules-toggle').addEventListener('click', function() {
-    const content = document.getElementById('rules-content');
-    const chevron = document.getElementById('rules-chevron');
-    const isHidden = content.style.display === 'none' || content.style.display === '';
-    
-    content.style.display = isHidden ? 'block' : 'none';
-    chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-    chevron.style.transition = 'transform 0.3s ease';
-  });
+const services = [
+    {code:"whatsapp",name:"WhatsApp"},{code:"telegram",name:"Telegram"},{code:"google",name:"Google / Gmail"},
+    {code:"facebook",name:"Facebook"},{code:"instagram",name:"Instagram"},{code:"tiktok",name:"TikTok"},
+    {code:"twitter",name:"X (Twitter)"},{code:"linkedin",name:"LinkedIn"},{code:"netflix",name:"Netflix"},
+    {code:"uber",name:"Uber"},{code:"amazon",name:"Amazon"},{code:"discord",name:"Discord"},
+    {code:"viber",name:"Viber"},{code:"snapchat",name:"Snapchat"},{code:"openai",name:"OpenAI / ChatGPT"},
+    {code:"microsoft",name:"Microsoft"},{code:"airbnb",name:"Airbnb"},{code:"bolt",name:"Bolt"},
+    {code:"yahoo",name:"Yahoo"},{code:"paypal",name:"PayPal"},{code:"tinder",name:"Tinder"},
+    {code:"glovo",name:"Glovo"},{code:"upwork",name:"Upwork"},{code:"fiverr",name:"Fiverr"}
+];
 
-  // --- NEW: COMMUNITY BUTTON LOGIC - UPDATED ---
-  document.getElementById('community-btn').addEventListener('click', function() {
-    // Updated community link to provided WhatsApp group
-    const communityLink = 'https://chat.whatsapp.com/GCk6NVzCiZ39ym5xOfWK8g';
-    window.open(communityLink, '_blank');
-  });
+// =============== UI & MENU FUNCTIONS ===============
+const menuToggle = document.getElementById('menu-toggle');
+const sidebar = document.getElementById('sidebar');
+const amModal = document.getElementById('add-money-modal');
 
-  document.getElementById('main-community-btn').addEventListener('click', function() {
-    // Same community link for main button
-    const communityLink = 'https://chat.whatsapp.com/GCk6NVzCiZ39ym5xOfWK8g';
-    window.open(communityLink, '_blank');
-  });
+menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+window.closeMenu = () => sidebar.classList.remove('open');
 
-  // --- UPDATED: WHATSAPP SUPPORT BUTTON - DYNAMIC EMAIL ---
-  function updateWhatsAppLink() {
-    if (currentUser && currentUser.email) {
-      const userEmail = encodeURIComponent(currentUser.email);
-      const message = encodeURIComponent(`User of Sublime Logs, have a complaint. My email is: ${currentUser.email}`);
-      const whatsappBtn = document.getElementById('whatsapp-support');
-      const mainWhatsappBtn = document.getElementById('main-whatsapp-support');
-      
-      const whatsappUrl = `https://wa.me/2349056658964?text=${message}`;
-      
-      if (whatsappBtn) whatsappBtn.href = whatsappUrl;
-      if (mainWhatsappBtn) mainWhatsappBtn.href = whatsappUrl;
+document.addEventListener('click', (e) => {
+    if(!sidebar.contains(e.target) && !menuToggle.contains(e.target) && sidebar.classList.contains('open')){
+        sidebar.classList.remove('open');
     }
+});
+
+// Rules toggle
+document.getElementById('rules-toggle').addEventListener('click', function() {
+  const content = document.getElementById('rules-content');
+  const chevron = document.getElementById('rules-chevron');
+  const isHidden = content.style.display === 'none' || content.style.display === '';
+  
+  content.style.display = isHidden ? 'block' : 'none';
+  chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+});
+
+// Community buttons
+document.getElementById('community-btn').addEventListener('click', function() {
+  const communityLink = 'https://chat.whatsapp.com/GCk6NVzCiZ39ym5xOfWK8g';
+  window.open(communityLink, '_blank');
+});
+
+document.getElementById('main-community-btn').addEventListener('click', function() {
+  const communityLink = 'https://chat.whatsapp.com/GCk6NVzCiZ39ym5xOfWK8g';
+  window.open(communityLink, '_blank');
+});
+
+// WhatsApp support link update
+function updateWhatsAppLink() {
+  if (currentUser && currentUser.email) {
+    const userEmail = encodeURIComponent(currentUser.email);
+    const message = encodeURIComponent(`User of Sublime Logs, have a complaint. My email is: ${currentUser.email}`);
+    const whatsappBtn = document.getElementById('whatsapp-support');
+    const mainWhatsappBtn = document.getElementById('main-whatsapp-support');
+    
+    const whatsappUrl = `https://wa.me/2349056658964?text=${message}`;
+    
+    if (whatsappBtn) whatsappBtn.href = whatsappUrl;
+    if (mainWhatsappBtn) mainWhatsappBtn.href = whatsappUrl;
   }
+}
 
-  // --- NEW: CHECK PENDING PAYMENTS FUNCTION ---
-  document.getElementById('check-pending-payments').addEventListener('click', async function() {
-    const btn = this;
-    const originalText = btn.innerHTML;
-    
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
-    btn.disabled = true;
-    
-    try {
-      // Check for pending transactions
-      const transactionsRef = collection(db, "users", currentUser.uid, "transactions");
-      const q = query(transactionsRef, where("status", "==", "PENDING"));
-      const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
-        alert("No pending payments found. All transactions are completed.");
-      } else {
-        let message = `Found ${querySnapshot.size} pending payment(s).\n`;
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          message += `- Reference: ${data.reference}, Amount: ₦${data.amount}\n`;
-        });
-        message += "\nFor bank transfers, please wait 5-15 minutes. If still pending, contact support.";
-        alert(message);
-      }
-    } catch (error) {
-      console.error("Error checking pending payments:", error);
-      alert("Error checking pending payments. Please try again.");
-    } finally {
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    }
-  });
-
-  // --- NEW: PAYSTACK WEBHOOK SIMULATION (Partial solution) ---
-  async function verifyPaystackTransaction(reference) {
-    // This would normally call your backend to verify with Paystack
-    // Since we don't have a backend, we'll simulate checking
-    try {
-      // In a real implementation, you would call:
-      // const response = await fetch(`${YOUR_BACKEND_URL}/verify-payment`, {
-      //   method: 'POST',
-      //   headers: {'Content-Type': 'application/json'},
-      //   body: JSON.stringify({ reference: reference })
-      // });
-      
-      // For now, just return a simulated response
-      return { 
-        success: false, 
-        message: "Please contact support to manually verify this payment." 
-      };
-    } catch (error) {
-      return { success: false, message: "Verification failed. Contact support." };
-    }
-  }
-
-  // Modal Handlers
-  document.getElementById('nav-fund').addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById('modal-msg').textContent = "Enter amount to fund your wallet (Minimum: ₦100).";
-      document.getElementById('pay-amount').value = "";
-      document.getElementById('payment-status').style.display = 'none';
-      amModal.classList.add('open');
-      updateWhatsAppLink(); // Update link with current user email
-      closeMenu();
-  });
+// Pending payments check
+document.getElementById('check-pending-payments').addEventListener('click', async function() {
+  const btn = this;
+  const originalText = btn.innerHTML;
   
-  document.getElementById('close-add-money').addEventListener('click', () => {
-    amModal.classList.remove('open');
-    document.getElementById('payment-status').style.display = 'none';
-  });
-
-  // --- AUTH ---
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      currentUser = user;
-      document.getElementById('user-email').textContent = user.email;
-      document.getElementById('pay-email-hidden').value = user.email;
-      updateWhatsAppLink(); // Update WhatsApp link on login
-      
-      onSnapshot(doc(db, "users", user.uid), (docSnap) => {
-         const bal = docSnap.exists() ? docSnap.data().balance : 0;
-         currentWalletBalance = bal || 0;
-         document.getElementById('balance').textContent = '₦' + (bal || 0).toLocaleString();
-      });
-
-      loadHistory();
-      initDropdowns();
-      startPaymentChecker(); // Start checking for pending payments
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+  btn.disabled = true;
+  
+  try {
+    const transactionsRef = collection(db, "users", currentUser.uid, "transactions");
+    const q = query(transactionsRef, where("status", "==", "PENDING"));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      alert("No pending payments found. All transactions are completed.");
     } else {
-      window.location.href = 'index.html';
+      let message = `Found ${querySnapshot.size} pending payment(s).\n`;
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        message += `- Reference: ${data.reference}, Amount: ₦${data.amount}\n`;
+      });
+      message += "\nFor bank transfers, please wait 5-15 minutes. If still pending, contact support.";
+      alert(message);
     }
-  });
-  
-  document.getElementById('logout').addEventListener('click', () => {
-      signOut(auth).then(() => window.location.href = 'index.html');
-  });
-
-  // --- DROPDOWN & SEARCH ---
-  function initDropdowns() {
-      countries.sort((a,b) => a.name.localeCompare(b.name));
-      services.sort((a,b) => a.name.localeCompare(b.name));
-      renderOptions('sel-country', countries);
-      renderOptions('sel-service', services);
-      setupSearch('search-country', 'sel-country', countries);
-      setupSearch('search-service', 'sel-service', services);
+  } catch (error) {
+    console.error("Error checking pending payments:", error);
+    alert("Error checking pending payments. Please try again.");
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
   }
-  
-  function renderOptions(selectId, data) {
-      const el = document.getElementById(selectId);
-      el.innerHTML = '';
-      data.forEach(item => {
-          const opt = document.createElement('option');
-          opt.value = item.code; opt.textContent = item.name;
-          el.appendChild(opt);
-      });
-      if(data.length > 0) el.selectedIndex = 0;
+});
+
+// Modal handlers
+document.getElementById('nav-fund').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('modal-msg').textContent = "Enter amount to fund your wallet (Minimum: ₦100).";
+    document.getElementById('pay-amount').value = "";
+    document.getElementById('payment-status').style.display = 'none';
+    amModal.classList.add('open');
+    updateWhatsAppLink();
+    closeMenu();
+});
+
+document.getElementById('close-add-money').addEventListener('click', () => {
+  amModal.classList.remove('open');
+  document.getElementById('payment-status').style.display = 'none';
+});
+
+// =============== AUTHENTICATION ===============
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUser = user;
+    document.getElementById('user-email').textContent = user.email;
+    document.getElementById('pay-email-hidden').value = user.email;
+    updateWhatsAppLink();
+    
+    // Load wallet balance
+    onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+       const bal = docSnap.exists() ? docSnap.data().balance : 0;
+       currentWalletBalance = bal || 0;
+       document.getElementById('balance').textContent = '₦' + (bal || 0).toLocaleString();
+    });
+
+    loadHistory();
+    initDropdowns();
+  } else {
+    window.location.href = 'index.html';
   }
-  
-  function setupSearch(inputId, selectId, data) {
-      document.getElementById(inputId).addEventListener('keyup', (e) => {
-          const term = e.target.value.toLowerCase();
-          const filtered = data.filter(item => item.name.toLowerCase().includes(term));
-          renderOptions(selectId, filtered);
-      });
-  }
+});
 
-  // --- STEP NAV ---
-  window.goToStep1 = () => {
-      document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
-      document.getElementById('step-1').classList.add('active');
-  };
-  window.goToStep2 = () => {
-      const sel = document.getElementById('sel-country');
-      if(!sel.value) return alert("Please select a country");
-      const cName = countries.find(x => x.code === sel.value).name;
-      document.getElementById('display-country').textContent = cName;
-      document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
-      document.getElementById('step-2').classList.add('active');
-  };
+document.getElementById('logout').addEventListener('click', () => {
+    signOut(auth).then(() => window.location.href = 'index.html');
+});
 
-  // --- CHECK AVAILABILITY ---
-  document.getElementById('btn-check-avail').addEventListener('click', async () => {
-      const country = document.getElementById('sel-country').value;
-      const service = document.getElementById('sel-service').value;
-      
-      document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
-      document.getElementById('step-3').classList.add('active');
-      
-      const sName = services.find(x => x.code === service).name;
-      const cName = countries.find(x => x.code === country).name;
-      document.getElementById('display-final').textContent = `${sName} in ${cName}`;
-      
-      const grid = document.getElementById('offers-grid');
-      const loader = document.getElementById('results-loader');
-      grid.innerHTML = ''; loader.style.display = 'block';
+// =============== DROPDOWNS & SEARCH ===============
+function initDropdowns() {
+    countries.sort((a,b) => a.name.localeCompare(b.name));
+    services.sort((a,b) => a.name.localeCompare(b.name));
+    renderOptions('sel-country', countries);
+    renderOptions('sel-service', services);
+    setupSearch('search-country', 'sel-country', countries);
+    setupSearch('search-service', 'sel-service', services);
+}
 
-      try {
-          const res = await fetch(`${API_URL}/prices`, {
-              method: 'POST', headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({ country, product: service })
-          });
-          const data = await res.json();
-          loader.style.display = 'none';
+function renderOptions(selectId, data) {
+    const el = document.getElementById(selectId);
+    el.innerHTML = '';
+    data.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.code;
+        opt.textContent = item.name;
+        el.appendChild(opt);
+    });
+    if(data.length > 0) el.selectedIndex = 0;
+}
 
-          if(!data.offers || data.offers.length === 0) {
-              grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--warning)">No numbers available right now.</div>';
-              return;
-          }
+function setupSearch(inputId, selectId, data) {
+    document.getElementById(inputId).addEventListener('keyup', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = data.filter(item => item.name.toLowerCase().includes(term));
+        renderOptions(selectId, filtered);
+    });
+}
 
-          // CORRECTED PRICING CALCULATION:
-          // 1. Convert 5sim coins to dollars (1 dollar = 79 coins)
-          // 2. Convert dollars to Naira (exchange rate 1600)
-          // 3. Add country surcharge
-          // 4. Apply minimum price for USA WhatsApp
-          data.offers.forEach(offer => {
-             // Step 1: Convert 5sim coins to dollars
-             const costInDollars = offer.cost / COINS_PER_DOLLAR;
-             
-             // Step 2: Convert dollars to Naira
-             const basePriceNaira = Math.ceil(costInDollars * EXCHANGE_RATE);
-             
-             // Step 3: Add surcharge for country or default to 1000
-             const surcharge = COUNTRY_SURCHARGES[country] || 1000;
-             let finalPrice = basePriceNaira + surcharge;
-             
-             // Step 4: Apply minimum price for USA WhatsApp
-             if (country === 'usa' && service === 'whatsapp') {
-                 if (finalPrice < MINIMUM_SELLING_PRICE_USA_WHATSAPP) {
-                     finalPrice = MINIMUM_SELLING_PRICE_USA_WHATSAPP;
-                 }
-             }
-             
-             // Step 5: Ensure minimum profit for all services
-             // Add a minimum 20% profit margin to ensure profitability
-             const MINIMUM_PROFIT_MARGIN = 0.20; // 20%
-             const costPrice = basePriceNaira + surcharge;
-             const profitablePrice = Math.ceil(costPrice * (1 + MINIMUM_PROFIT_MARGIN));
-             
-             if (finalPrice < profitablePrice) {
-                 finalPrice = profitablePrice;
-             }
-             
-             const div = document.createElement('div');
-             div.className = 'offer-item';
-             div.innerHTML = `
+// =============== STEP NAVIGATION ===============
+window.goToStep1 = () => {
+    document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+    document.getElementById('step-1').classList.add('active');
+};
+
+window.goToStep2 = () => {
+    const sel = document.getElementById('sel-country');
+    if(!sel.value) return alert("Please select a country");
+    const cName = countries.find(x => x.code === sel.value).name;
+    document.getElementById('display-country').textContent = cName;
+    document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+    document.getElementById('step-2').classList.add('active');
+};
+
+// =============== API INTEGRATION (SINGLE PIPEDREAM ENDPOINT) ===============
+
+// Check availability - calls Pipedream with 'getPrices' action
+document.getElementById('btn-check-avail').addEventListener('click', async () => {
+    const country = document.getElementById('sel-country').value;
+    const service = document.getElementById('sel-service').value;
+    
+    document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+    document.getElementById('step-3').classList.add('active');
+    
+    const sName = services.find(x => x.code === service).name;
+    const cName = countries.find(x => x.code === country).name;
+    document.getElementById('display-final').textContent = `${sName} in ${cName}`;
+    
+    const grid = document.getElementById('offers-grid');
+    const loader = document.getElementById('results-loader');
+    grid.innerHTML = '';
+    loader.style.display = 'block';
+
+    try {
+        // Call single Pipedream endpoint
+        const res = await fetch(PIPEDREAM_API_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                action: 'getPrices',
+                country: country,
+                product: service
+            })
+        });
+        
+        const data = await res.json();
+        loader.style.display = 'none';
+
+        if(!data.offers || data.offers.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--warning)">No numbers available right now.</div>';
+            return;
+        }
+
+        // Render offers
+        data.offers.forEach(offer => {
+            const div = document.createElement('div');
+            div.className = 'offer-item';
+            div.innerHTML = `
                 <div style="font-weight:700;font-size:12px;color:var(--muted);margin-bottom:5px;">${offer.operator}</div>
-                <div class="offer-price">₦${finalPrice.toLocaleString()}</div>
+                <div class="offer-price">₦${offer.cost.toLocaleString()}</div>
                 <div class="offer-stock">Qty: ${offer.count}</div>
                 <button class="btn" style="width:100%;margin-top:10px;font-size:12px;padding:8px" 
-                   onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${finalPrice})">
+                   onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${offer.cost})">
                    <i class="fas fa-shopping-cart"></i> Buy
                 </button>
-             `;
-             grid.appendChild(div);
-          });
-      } catch(e) {
-          loader.style.display = 'none';
-          grid.innerHTML = '<div style="color:var(--danger)">Network Error.</div>';
-      }
-  });
+            `;
+            grid.appendChild(div);
+        });
+    } catch(e) {
+        loader.style.display = 'none';
+        grid.innerHTML = '<div style="color:var(--danger)">Network Error.</div>';
+    }
+});
 
-  // --- BUY & PAYSTACK LOGIC ---
-  window.buyNumber = async (country, product, operator, cost) => {
-      // 1. SMART BALANCE CHECK
-      if (currentWalletBalance < cost) {
-          const deficit = cost - currentWalletBalance;
-          const fundAmount = deficit < 50 ? 50 : deficit; // Minimum 50 for Paystack
-          
-          document.getElementById('modal-msg').innerHTML = `<span style="color:var(--warning)">Insufficient Balance!</span><br>You need ₦${Math.ceil(deficit)} more.<br>Fund your wallet now to continue.`;
-          document.getElementById('pay-amount').value = Math.ceil(fundAmount);
-          amModal.classList.add('open');
-          updateWhatsAppLink();
-          return;
-      }
+// Buy number - calls Pipedream with 'buyNumber' action
+window.buyNumber = async (country, product, operator, cost) => {
+    // Balance check
+    if (currentWalletBalance < cost) {
+        const deficit = cost - currentWalletBalance;
+        const fundAmount = deficit < 50 ? 50 : deficit;
+        
+        document.getElementById('modal-msg').innerHTML = `<span style="color:var(--warning)">Insufficient Balance!</span><br>You need ₦${Math.ceil(deficit)} more.<br>Fund your wallet now to continue.`;
+        document.getElementById('pay-amount').value = Math.ceil(fundAmount);
+        amModal.classList.add('open');
+        updateWhatsAppLink();
+        return;
+    }
 
-      if(!confirm(`Confirm Purchase: ₦${cost}?\n\nRemember: Higher-priced numbers receive OTP faster.`)) return;
-      
-      const userRef = doc(db, "users", currentUser.uid);
-      try {
-        let apiData = null;
+    if(!confirm(`Confirm Purchase: ₦${cost}?\n\nRemember: Higher-priced numbers receive OTP faster.`)) return;
+    
+    const userRef = doc(db, "users", currentUser.uid);
+    
+    try {
+        // Check balance on server
         await runTransaction(db, async (t) => {
             const uDoc = await t.get(userRef);
             if((uDoc.data().balance || 0) < cost) throw "Insufficient Balance (Server)";
         });
 
-        const res = await fetch(`${API_URL}/buy`, {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ country, product, operator })
+        // Call Pipedream to purchase number
+        const res = await fetch(PIPEDREAM_API_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                action: 'buyNumber',
+                country: country,
+                product: product,
+                operator: operator
+            })
         });
+        
         const data = await res.json();
-        if(!res.ok || data.error) throw data.error || "Failed";
-        apiData = data;
+        if(!res.ok || data.error) throw data.error || "Purchase failed";
 
+        // Deduct from wallet and save order
         await runTransaction(db, async (t) => {
             const uDoc = await t.get(userRef);
             t.update(userRef, { balance: uDoc.data().balance - cost });
+            
             const newOrderRef = doc(collection(userRef, "orders"));
             t.set(newOrderRef, {
-                id: apiData.id, phone: apiData.phone, product: product, country: country,
-                cost: cost, status: 'PENDING', code: null, createdAt: new Date().toISOString()
+                id: data.id,
+                phone: data.phone,
+                product: product,
+                country: country,
+                operator: operator,
+                cost: cost,
+                status: 'PENDING',
+                code: null,
+                provider: data.provider || '5sim',
+                createdAt: new Date().toISOString()
             });
         });
 
-        alert("Number Purchased Successfully!\n\nIMPORTANT: Immediately set up 2FA on your account!");
-        window.goToStep1(); 
-      } catch(e) {
-          if(e === "Insufficient Balance (Server)") {
-              alert("Balance updated roughly. Please fund wallet.");
-          } else {
-              alert("Error: " + e);
-          }
-      }
-  };
-
-  // --- UPDATED: PAYSTACK FORM HANDLER WITH WEBHOOK SIMULATION ---
-  document.getElementById('deposit-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const amount = document.getElementById('pay-amount').value;
-    const email = document.getElementById('pay-email-hidden').value;
-    const btn = document.getElementById('start-paystack');
-
-    if(amount < 100) return alert("Minimum deposit is ₦100");
-    
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-    btn.disabled = true;
-
-    // Generate a unique reference
-    const txRef = 'SL-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-    pendingTransactionRef = txRef;
-    
-    // Show status message
-    const statusDiv = document.getElementById('payment-status');
-    const statusText = document.getElementById('payment-status-text');
-    statusDiv.className = 'payment-status warning';
-    statusDiv.style.display = 'block';
-    statusText.textContent = 'Initiating payment...';
-    
-    const handler = PaystackPop.setup({
-      key: PAYSTACK_KEY, 
-      email: email, 
-      amount: amount * 100, 
-      currency: 'NGN',
-      ref: txRef,
-      metadata: {
-        userId: currentUser.uid,
-        userEmail: currentUser.email,
-        platform: 'Sublime Logs'
-      },
-      callback: async (response) => {
-        console.log('Paystack callback. Reference:', response.reference);
+        alert(`Number Purchased Successfully via ${data.provider?.toUpperCase() || 'API'}!\n\nPhone: ${data.phone}\nOrder ID: ${data.id}\n\nIMPORTANT: Immediately set up 2FA on your account!`);
+        window.goToStep1();
         
-        // Record the transaction attempt
-        await recordTransactionAttempt(amount, txRef, 'PENDING');
-        
-        // Update status message
-        statusDiv.className = 'payment-status success';
-        statusText.innerHTML = `
-          Payment initiated successfully!<br>
-          Reference: <strong>${txRef}</strong><br>
-          <small>For bank transfers (Opay, etc.), please wait 5-15 minutes for wallet update.</small>
-        `;
-        
-        // Don't close modal immediately for bank transfers
-        const isLikelyBankTransfer = amount >= 5000;
-        if (!isLikelyBankTransfer) {
-          setTimeout(() => {
-            amModal.classList.remove('open');
-            statusDiv.style.display = 'none';
-          }, 3000);
+    } catch(e) {
+        if(e === "Insufficient Balance (Server)") {
+            alert("Balance updated roughly. Please fund wallet.");
+        } else {
+            alert(`Error: ${e}`);
         }
-        
-        // Start checking for this transaction
-        startCheckingTransaction(txRef);
-      },
-      onClose: () => {
-        // User closed the payment modal
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
-        statusDiv.style.display = 'none';
-        
-        if (!pendingTransactionRef) {
-          alert('Payment window closed. If you completed a payment, your wallet will update once we receive confirmation.');
-        }
-      }
-    });
-    handler.openIframe();
-  });
-
-  // --- NEW: FUNCTION TO START CHECKING TRANSACTION ---
-  async function startCheckingTransaction(reference) {
-    // Check every 30 seconds for 5 minutes
-    let checks = 0;
-    const maxChecks = 10; // 5 minutes
-    
-    const checkInterval = setInterval(async () => {
-      checks++;
-      
-      if (checks >= maxChecks) {
-        clearInterval(checkInterval);
-        
-        // Show final warning
-        const statusDiv = document.getElementById('payment-status');
-        if (statusDiv.style.display !== 'none') {
-          statusDiv.className = 'payment-status warning';
-          document.getElementById('payment-status-text').innerHTML = `
-            <i class="fas fa-exclamation-triangle"></i> Payment still pending.<br>
-            <small>If you used bank transfer (Opay, etc.), it may take longer. Contact support if not updated in 15 minutes.</small>
-          `;
-        }
-        return;
-      }
-      
-      // In a real implementation, you would verify with your backend
-      // For now, we'll just show a waiting message
-      console.log(`Checking payment ${reference}... (${checks}/${maxChecks})`);
-      
-    }, 30000); // Check every 30 seconds
-  }
-
-  // --- NEW: PERIODIC PAYMENT CHECKER ---
-  function startPaymentChecker() {
-    // Check for pending payments every 2 minutes
-    setInterval(async () => {
-      if (!currentUser) return;
-      
-      try {
-        const transactionsRef = collection(db, "users", currentUser.uid, "transactions");
-        const q = query(transactionsRef, where("status", "==", "PENDING"));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          console.log(`Found ${querySnapshot.size} pending payment(s)`);
-          
-          // In a real implementation, you would verify each with Paystack via your backend
-          // For now, we just log them
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const transactionTime = new Date(data.date);
-            const now = new Date();
-            const minutesPassed = (now - transactionTime) / (1000 * 60);
-            
-            // If more than 15 minutes, suggest contacting support
-            if (minutesPassed > 15) {
-              console.warn(`Payment ${data.reference} pending for ${Math.round(minutesPassed)} minutes`);
-            }
-          });
-        }
-      } catch (error) {
-        console.error("Error in payment checker:", error);
-      }
-    }, 120000); // Check every 2 minutes
-  }
-
-  // --- FUNCTION TO RECORD TRANSACTION ATTEMPT ---
-  async function recordTransactionAttempt(amount, reference, status) {
-    try {
-      const userRef = doc(db, "users", currentUser.uid);
-      await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
-        type: 'deposit',
-        amount: Number(amount),
-        date: new Date().toISOString(),
-        reference: reference,
-        status: status,
-        userEmail: currentUser.email,
-        updatedAt: new Date().toISOString()
-      });
-      console.log('Transaction attempt recorded:', reference);
-    } catch(e) { 
-      console.error('Error recording transaction:', e);
     }
-  }
+};
 
-  // --- HISTORY TABLE ---
-  function loadHistory() {
-      const q = query(collection(db, "users", currentUser.uid, "orders"), orderBy("createdAt", "desc"), limit(20));
-      const tbody = document.getElementById('history-table-body');
+// Check SMS - calls Pipedream with 'checkSMS' action
+window.checkSMS = async (docId, orderId) => {
+    const btn = event.currentTarget;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    
+    try {
+        // Get order to know provider
+        const orderDoc = await getDoc(doc(db, "users", currentUser.uid, "orders", docId));
+        const orderData = orderDoc.data();
+        const provider = orderData.provider || '5sim';
+        
+        // Call Pipedream to check SMS
+        const res = await fetch(PIPEDREAM_API_URL, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                action: 'checkSMS',
+                orderId: orderId,
+                provider: provider,
+                country: orderData.country
+            })
+        });
+        
+        const data = await res.json();
+        
+        if(data.sms && data.sms.length > 0) {
+            await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), {
+                status: 'FINISHED',
+                code: data.sms[0].code
+            });
+            alert(`OTP received: ${data.sms[0].code}`);
+        } else if (data.status === 'CANCELED' || data.status === 'BANNED') {
+            await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), {
+                status: 'CANCELED'
+            });
+            alert("Order Canceled by Network.");
+        } else if (data.status === 'PENDING') {
+            alert("Still waiting for SMS code...");
+        }
+    } catch(e) {
+        console.error(e);
+        alert("Error checking for SMS.");
+    } finally {
+        btn.innerHTML = 'Check';
+        btn.disabled = false;
+    }
+};
+
+// =============== PAYSTACK PAYMENT INTEGRATION ===============
+document.getElementById('deposit-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const amount = document.getElementById('pay-amount').value;
+  const email = document.getElementById('pay-email-hidden').value;
+  const btn = document.getElementById('start-paystack');
+
+  if(amount < 100) return alert("Minimum deposit is ₦100");
+  
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+  btn.disabled = true;
+
+  // Generate unique reference
+  const txRef = 'SL-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+  
+  // Show status message
+  const statusDiv = document.getElementById('payment-status');
+  const statusText = document.getElementById('payment-status-text');
+  statusDiv.className = 'payment-status warning';
+  statusDiv.style.display = 'block';
+  statusText.textContent = 'Initiating payment...';
+  
+  const handler = PaystackPop.setup({
+    key: PAYSTACK_KEY,
+    email: email,
+    amount: amount * 100,
+    currency: 'NGN',
+    ref: txRef,
+    metadata: {
+      userId: currentUser.uid,
+      userEmail: currentUser.email,
+      platform: 'Sublime Logs'
+    },
+    callback: async (response) => {
+      // Record transaction
+      await recordTransactionAttempt(amount, txRef, 'PENDING');
       
-      onSnapshot(q, (snapshot) => {
-          tbody.innerHTML = '';
-          if(snapshot.empty) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet.</td></tr>'; return; }
-          
-          let index = 1;
-          snapshot.forEach(docSnap => {
-              const d = docSnap.data();
-              const tr = document.createElement('tr');
-              let statusClass = d.status === 'PENDING' ? 'status-pending' : (d.status === 'FINISHED' ? 'status-finished' : 'status-canceled');
-              let codeDisplay = d.status === 'FINISHED' ? `<span class="code-box">${d.code}</span>` : (d.status === 'PENDING' ? '...' : '-');
-              let actionBtn = d.status === 'PENDING' ? `<button class="btn secondary" style="padding:4px 8px;font-size:11px" onclick="checkSMS('${docSnap.id}', '${d.id}')">Check</button>` : '';
+      // Update status
+      statusDiv.className = 'payment-status success';
+      statusText.innerHTML = `
+        Payment initiated successfully!<br>
+        Reference: <strong>${txRef}</strong><br>
+        <small>For bank transfers (Opay, etc.), please wait 5-15 minutes for wallet update.</small>
+      `;
+      
+      // Start checking for transaction confirmation
+      startCheckingTransaction(txRef, amount);
+    },
+    onClose: () => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
+      statusDiv.style.display = 'none';
+      alert('Payment window closed. If you completed a payment, your wallet will update once confirmed.');
+    }
+  });
+  handler.openIframe();
+});
 
-              tr.innerHTML = `<td>${index++}</td><td style="font-family:monospace">${d.phone}</td><td>${codeDisplay}</td><td style="text-transform:capitalize">${d.product}</td><td>₦${d.cost}</td><td><span class="badge ${statusClass}">${d.status}</span></td><td style="font-size:11px;color:var(--muted)">${new Date(d.createdAt).toLocaleDateString()}</td><td>${actionBtn}</td>`;
-              tbody.appendChild(tr);
-          });
-      });
+// Record transaction attempt
+async function recordTransactionAttempt(amount, reference, status) {
+  try {
+    await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
+      type: 'deposit',
+      amount: Number(amount),
+      date: new Date().toISOString(),
+      reference: reference,
+      status: status,
+      userEmail: currentUser.email,
+      updatedAt: new Date().toISOString()
+    });
+  } catch(e) {
+    console.error('Error recording transaction:', e);
   }
+}
 
-  window.checkSMS = async (docId, orderId) => {
-      const btn = event.currentTarget; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
-      try {
-          const res = await fetch(`${API_URL}/check`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({orderId}) });
-          const data = await res.json();
-          if(data.sms && data.sms.length > 0) {
-              await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { status: 'FINISHED', code: data.sms[0].code });
-          } else if (data.status === 'CANCELED' || data.status === 'BANNED') {
-              await updateDoc(doc(db, "users", currentUser.uid, "orders", docId), { status: 'CANCELED' });
-              alert("Order Canceled by Network.");
-          }
-      } catch(e) { console.error(e); } finally { btn.innerHTML = 'Check'; btn.disabled = false; }
-  };
+// Check transaction status
+async function startCheckingTransaction(reference, amount) {
+  let checks = 0;
+  const maxChecks = 10;
+  
+  const checkInterval = setInterval(async () => {
+    checks++;
+    
+    if (checks >= maxChecks) {
+      clearInterval(checkInterval);
+      const statusDiv = document.getElementById('payment-status');
+      if (statusDiv.style.display !== 'none') {
+        statusDiv.className = 'payment-status warning';
+        document.getElementById('payment-status-text').innerHTML = `
+          <i class="fas fa-exclamation-triangle"></i> Payment still pending.<br>
+          <small>If you used bank transfer, it may take longer. Contact support if not updated.</small>
+        `;
+      }
+      return;
+    }
+    
+    // In production, you would verify with your backend/Paystack webhook
+    console.log(`Checking payment ${reference}... (${checks}/${maxChecks})`);
+    
+  }, 30000);
+}
+
+// =============== TRANSACTION HISTORY ===============
+function loadHistory() {
+    if (!currentUser) return;
+    
+    const q = query(
+      collection(db, "users", currentUser.uid, "orders"),
+      orderBy("createdAt", "desc"),
+      limit(20)
+    );
+    
+    const tbody = document.getElementById('history-table-body');
+    
+    onSnapshot(q, (snapshot) => {
+        tbody.innerHTML = '';
+        
+        if(snapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">No transactions yet.</td></tr>';
+            return;
+        }
+        
+        let index = 1;
+        snapshot.forEach(docSnap => {
+            const d = docSnap.data();
+            const statusClass = d.status === 'PENDING' ? 'status-pending' :
+                              d.status === 'FINISHED' ? 'status-finished' : 'status-canceled';
+            
+            const codeDisplay = d.status === 'FINISHED' ?
+                `<span class="code-box">${d.code}</span>` :
+                (d.status === 'PENDING' ? '...' : '-');
+            
+            const actionBtn = d.status === 'PENDING' ?
+                `<button class="btn secondary" style="padding:4px 8px;font-size:11px" onclick="checkSMS('${docSnap.id}', '${d.id}')">Check</button>` : '';
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index++}</td>
+                <td style="font-family:monospace">${d.phone}</td>
+                <td>${codeDisplay}</td>
+                <td style="text-transform:capitalize">${d.product}</td>
+                <td>₦${d.cost}</td>
+                <td><span class="badge ${statusClass}">${d.status}</span></td>
+                <td style="font-size:11px;color:var(--muted)">${new Date(d.createdAt).toLocaleDateString()}</td>
+                <td>${actionBtn}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    });
+}
 </script>
 </body>
-  </html>
+          </html>
