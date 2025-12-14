@@ -392,6 +392,12 @@
   // Fixed exchange rate
   const EXCHANGE_RATE = 1600;
 
+  // 5sim pricing: 1 dollar = 79 coins
+  const COINS_PER_DOLLAR = 79;
+
+  // Minimum selling price for USA WhatsApp (this is your new target price)
+  const MINIMUM_SELLING_PRICE_USA_WHATSAPP = 4500;
+
   // Country-specific surcharges in Naira
   const COUNTRY_SURCHARGES = {
       'usa': 1000,          // ₦1,000 for USA
@@ -672,14 +678,38 @@
               return;
           }
 
-          // CORRECTED: API provides costs in CENTS, divide by 100 to get dollars
+          // CORRECTED PRICING CALCULATION:
+          // 1. Convert 5sim coins to dollars (1 dollar = 79 coins)
+          // 2. Convert dollars to Naira (exchange rate 1600)
+          // 3. Add country surcharge
+          // 4. Apply minimum price for USA WhatsApp
           data.offers.forEach(offer => {
-             // Convert cents to dollars: divide by 100, then multiply by exchange rate
-             const basePriceNaira = Math.ceil((offer.cost / 100) * EXCHANGE_RATE);
+             // Step 1: Convert 5sim coins to dollars
+             const costInDollars = offer.cost / COINS_PER_DOLLAR;
              
-             // Get surcharge for country or default to 1000
+             // Step 2: Convert dollars to Naira
+             const basePriceNaira = Math.ceil(costInDollars * EXCHANGE_RATE);
+             
+             // Step 3: Add surcharge for country or default to 1000
              const surcharge = COUNTRY_SURCHARGES[country] || 1000;
-             const finalPrice = basePriceNaira + surcharge;
+             let finalPrice = basePriceNaira + surcharge;
+             
+             // Step 4: Apply minimum price for USA WhatsApp
+             if (country === 'usa' && service === 'whatsapp') {
+                 if (finalPrice < MINIMUM_SELLING_PRICE_USA_WHATSAPP) {
+                     finalPrice = MINIMUM_SELLING_PRICE_USA_WHATSAPP;
+                 }
+             }
+             
+             // Step 5: Ensure minimum profit for all services
+             // Add a minimum 20% profit margin to ensure profitability
+             const MINIMUM_PROFIT_MARGIN = 0.20; // 20%
+             const costPrice = basePriceNaira + surcharge;
+             const profitablePrice = Math.ceil(costPrice * (1 + MINIMUM_PROFIT_MARGIN));
+             
+             if (finalPrice < profitablePrice) {
+                 finalPrice = profitablePrice;
+             }
              
              const div = document.createElement('div');
              div.className = 'offer-item';
@@ -949,4 +979,4 @@
   };
 </script>
 </body>
-                                                                              </html>
+  </html>
