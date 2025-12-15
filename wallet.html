@@ -70,28 +70,6 @@
   .offer-item:hover{border-color:var(--accent);background:#1c2128;}
   .offer-price{font-size:18px;font-weight:bold;color:#fff;margin:5px 0;}
   .offer-stock{font-size:11px;color:var(--muted);}
-  
-  /* Price Breakdown Tooltip */
-  .price-breakdown {
-      font-size: 10px;
-      color: var(--muted);
-      margin-top: 5px;
-      text-align: left;
-      border-top: 1px dashed var(--border);
-      padding-top: 5px;
-  }
-  .breakdown-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 2px;
-  }
-  .breakdown-label {
-      color: var(--muted);
-  }
-  .breakdown-value {
-      color: #fff;
-      font-weight: 600;
-  }
 
   .table-container{overflow-x:auto; -webkit-overflow-scrolling: touch;}
   table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px; min-width: 600px;} 
@@ -421,7 +399,7 @@
   const COINS_PER_DOLLAR = 79;          // 1 dollar = 79 coins on 5sim
   const EXCHANGE_RATE = 1600;           // 1 USD = 1600 NGN
   
-  // Country Gain Configuration (Updated as per your examples)
+  // Country Gain Configuration
   const STANDARD_GAIN = 1500;           // Standard gain for most countries
   const USA_CANADA_GAIN = 2000;         // USA and Canada gain
   const GERMANY_GAIN = 3000;            // Extra gain for Germany
@@ -682,44 +660,6 @@
     return Math.round(totalPrice);
   }
   
-  /**
-   * Generate price breakdown for display
-   * @param {number} coinCost - Cost in 5sim coins
-   * @param {string} country - Country code
-   * @returns {Object} - Detailed price breakdown
-   */
-  function calculatePriceBreakdown(coinCost, country) {
-    // Step 1: Convert coins to dollars
-    const dollars = coinCost / COINS_PER_DOLLAR;
-    
-    // Step 2: Convert dollars to Naira
-    const nairaBeforeGain = dollars * EXCHANGE_RATE;
-    
-    // Step 3: Determine gain
-    let gain;
-    const lowerCountry = country.toLowerCase();
-    
-    if (lowerCountry === 'usa' || lowerCountry === 'canada') {
-      gain = USA_CANADA_GAIN;
-    } else if (lowerCountry === 'germany') {
-      gain = GERMANY_GAIN;
-    } else {
-      gain = STANDARD_GAIN;
-    }
-    
-    // Step 4: Calculate total
-    const total = nairaBeforeGain + gain;
-    
-    return {
-      coins: coinCost,
-      dollars: dollars.toFixed(2),
-      nairaBeforeGain: Math.round(nairaBeforeGain),
-      exchangeRate: EXCHANGE_RATE,
-      gain: gain,
-      total: Math.round(total)
-    };
-  }
-  
   // =============================================
   // CHECK AVAILABILITY WITH UPDATED PRICING
   // =============================================
@@ -756,7 +696,6 @@
       // Process each offer with updated pricing
       data.offers.forEach(offer => {
         const finalPrice = calculate5simPrice(offer.cost, country);
-        const breakdown = calculatePriceBreakdown(offer.cost, country);
         
         const div = document.createElement('div');
         div.className = 'offer-item';
@@ -767,32 +706,8 @@
           <div class="offer-price">₦${finalPrice.toLocaleString()}</div>
           <div class="offer-stock">Stock: ${offer.count} numbers</div>
           
-          <!-- Price Breakdown Tooltip -->
-          <div class="price-breakdown">
-            <div class="breakdown-item">
-              <span class="breakdown-label">Coins:</span>
-              <span class="breakdown-value">${breakdown.coins}</span>
-            </div>
-            <div class="breakdown-item">
-              <span class="breakdown-label">Dollars:</span>
-              <span class="breakdown-value">$${breakdown.dollars}</span>
-            </div>
-            <div class="breakdown-item">
-              <span class="breakdown-label">Exchange:</span>
-              <span class="breakdown-value">₦${breakdown.nairaBeforeGain.toLocaleString()}</span>
-            </div>
-            <div class="breakdown-item">
-              <span class="breakdown-label">${cName} Gain:</span>
-              <span class="breakdown-value">₦${breakdown.gain}</span>
-            </div>
-            <div class="breakdown-item" style="border-top: 1px dashed var(--border); padding-top: 3px; margin-top: 3px;">
-              <span class="breakdown-label" style="font-weight: bold;">Total:</span>
-              <span class="breakdown-value" style="font-weight: bold; color: var(--accent);">₦${breakdown.total.toLocaleString()}</span>
-            </div>
-          </div>
-          
           <button class="btn" style="width:100%;margin-top:10px;font-size:12px;padding:8px" 
-             onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${finalPrice}, '5sim', ${offer.cost})">
+             onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${finalPrice}, '5sim')">
              <i class="fas fa-shopping-cart"></i> Buy Now
           </button>
         `;
@@ -806,8 +721,8 @@
     }
   });
 
-  // --- BUY NUMBER LOGIC (updated to include coins) ---
-  window.buyNumber = async (country, product, operator, cost, source, coins) => {
+  // --- BUY NUMBER LOGIC ---
+  window.buyNumber = async (country, product, operator, cost, source) => {
     // 1. SMART BALANCE CHECK
     if (currentWalletBalance < cost) {
       const deficit = cost - currentWalletBalance;
@@ -824,10 +739,8 @@
       return;
     }
 
-    // Show detailed price breakdown in confirmation
-    const breakdown = calculatePriceBreakdown(coins, country);
     const countryName = countries.find(c => c.code === country)?.name || country;
-    const confirmMessage = `Confirm Purchase:\n\n• Service: ${product}\n• Country: ${countryName}\n• Price: ₦${cost.toLocaleString()}\n\nPrice Breakdown:\n• ${coins} coins = $${breakdown.dollars}\n• Exchange: $${breakdown.dollars} × ${EXCHANGE_RATE} = ₦${breakdown.nairaBeforeGain}\n• ${countryName} Gain: ₦${breakdown.gain}\n• Total: ₦${breakdown.total}\n\nRemember: Higher-priced numbers receive OTP faster.`;
+    const confirmMessage = `Confirm Purchase:\n\n• Service: ${product}\n• Country: ${countryName}\n• Price: ₦${cost.toLocaleString()}\n\nRemember: Higher-priced numbers receive OTP faster.`;
     
     if(!confirm(confirmMessage)) return;
     
@@ -866,8 +779,6 @@
           operator: operator,
           provider: source,
           cost: cost,
-          coins: coins,
-          priceBreakdown: breakdown,
           status: 'PENDING', 
           code: null, 
           createdAt: new Date().toISOString()
@@ -881,12 +792,6 @@
         Service: ${product}
         Country: ${countryName}
         Price: ₦${cost}
-        
-        Price Breakdown:
-        • ${coins} coins = $${breakdown.dollars}
-        • Exchange: $${breakdown.dollars} × ${EXCHANGE_RATE} = ₦${breakdown.nairaBeforeGain}
-        • ${countryName} Gain: ₦${breakdown.gain}
-        • Total: ₦${breakdown.total}
         
         ⚠️ IMPORTANT: 
         1. Immediately set up 2FA on your account!
@@ -1065,4 +970,4 @@
   };
 </script>
 </body>
-          </html>
+                  </html>
