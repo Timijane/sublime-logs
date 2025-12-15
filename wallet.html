@@ -71,7 +71,7 @@
   .offer-price{font-size:18px;font-weight:bold;color:#fff;margin:5px 0;}
   .offer-stock{font-size:11px;color:var(--muted);}
   
-  /* Price Breakdown Tooltip */
+  /* Price Breakdown Tooltip - REMOVED */
   .price-breakdown {
       font-size: 10px;
       color: var(--muted);
@@ -411,42 +411,19 @@
   const API_URL = "https://eo8vf2h1c9hcxf6.m.pipedream.net"; 
   
   // =============================================
-  // PERFECT PRICING MATHEMATICS CONFIGURATION
+  // PRICING CONFIGURATION
   // =============================================
   
   // 5sim Conversion Rates
   const COINS_PER_DOLLAR = 79;          // 1 dollar = 79 coins on 5sim
   const EXCHANGE_RATE = 1600;           // 1 USD = 1600 NGN
   
+  // 5sim Gain Configuration
+  const STANDARD_GAIN = 1500;           // Standard gain for most countries
+  const GERMANY_GAIN = 3000;            // Extra gain for Germany
+  
   // OTPGet Pricing Configuration
-  const OTPGET_BASE_PRICE = 2400;       // Initial price OTPGet charges you (in NGN)
-  const OTPGET_GAIN = 1700;             // Your profit on OTPGet (in NGN)
-  const OTPGET_FINAL_PRICE = OTPGET_BASE_PRICE + OTPGET_GAIN; // 2400 + 1700 = 4100 NGN
-  
-  // Minimum Prices
-  const MINIMUM_SELLING_PRICE_USA_WHATSAPP = 4500;  // Minimum for USA WhatsApp
-  
-  // Country-specific Surcharges (Your operational costs per country in NGN)
-  const COUNTRY_SURCHARGES = {
-      'usa': 1000,          // ₦1,000 for USA (higher demand, better numbers)
-      'england': 700,       // ₦700 for UK
-      'germany': 2500,      // ₦2,500 for Germany (expensive infrastructure)
-      'canada': 2000,       // ₦2,000 for Canada
-      'netherlands': 3000,  // ₦3,000 for Netherlands
-      'poland': 1500,       // ₦1,500 for Poland
-      'russia': 800,        // ₦800 for Russia
-      'ukraine': 600,       // ₦600 for Ukraine
-      'brazil': 500,        // ₦500 for Brazil
-      'india': 400,         // ₦400 for India
-      // Default surcharge for other countries
-  };
-  
-  // Default surcharge for countries not in the list
-  const DEFAULT_SURCHARGE = 1000;  // ₦1,000
-  
-  // Profit Margins
-  const MINIMUM_PROFIT_MARGIN = 0.20;  // 20% minimum profit
-  const DESIRED_PROFIT_MARGIN = 0.30;  // 30% desired profit
+  const OTPGET_FINAL_PRICE = 4100;      // Total price for OTPGet
   
   // =============================================
   // END OF PRICING CONFIGURATION
@@ -669,92 +646,38 @@
   };
 
   // =============================================
-  // PERFECT PRICING CALCULATION FUNCTIONS
+  // PRICING CALCULATION FUNCTIONS - UPDATED
   // =============================================
   
   /**
-   * Calculate 5sim price with perfect mathematics
+   * Calculate 5sim price with new structure
    * @param {number} coinCost - Cost in 5sim coins
    * @param {string} country - Country code
-   * @param {string} service - Service name
-   * @returns {object} - Final price and breakdown
+   * @returns {number} - Final price in Naira
    */
-  function calculate5simPrice(coinCost, country, service) {
-    // Step 1: Convert coins to dollars
+  function calculate5simPrice(coinCost, country) {
+    // Step 1: Convert coins to dollars (79 coins = $1)
     const costInDollars = coinCost / COINS_PER_DOLLAR;
     
-    // Step 2: Convert dollars to Naira
+    // Step 2: Convert dollars to Naira ($1 = ₦1600)
     const basePriceNaira = costInDollars * EXCHANGE_RATE;
     
-    // Step 3: Add country surcharge (operational cost)
-    const surcharge = COUNTRY_SURCHARGES[country] || DEFAULT_SURCHARGE;
-    const priceWithSurcharge = basePriceNaira + surcharge;
+    // Step 3: Add gain (1500 for most countries, 3000 for Germany)
+    const gain = country === 'germany' ? GERMANY_GAIN : STANDARD_GAIN;
     
-    // Step 4: Calculate desired profit (30% margin)
-    const desiredProfitPrice = priceWithSurcharge * (1 + DESIRED_PROFIT_MARGIN);
-    
-    // Step 5: Ensure minimum profit (20% margin)
-    const minimumProfitPrice = priceWithSurcharge * (1 + MINIMUM_PROFIT_MARGIN);
-    
-    // Step 6: Start with desired profit price
-    let finalPrice = Math.ceil(desiredProfitPrice);
-    
-    // Step 7: Ensure we at least get minimum profit
-    if (finalPrice < minimumProfitPrice) {
-      finalPrice = Math.ceil(minimumProfitPrice);
-    }
-    
-    // Step 8: Apply special pricing for USA WhatsApp
-    if (country === 'usa' && service === 'whatsapp') {
-      if (finalPrice < MINIMUM_SELLING_PRICE_USA_WHATSAPP) {
-        finalPrice = MINIMUM_SELLING_PRICE_USA_WHATSAPP;
-      }
-    }
-    
-    // Calculate profit amount and percentage
-    const totalCost = priceWithSurcharge;
-    const profitAmount = finalPrice - totalCost;
-    const profitPercentage = (profitAmount / totalCost) * 100;
-    
-    return {
-      finalPrice: Math.ceil(finalPrice),
-      breakdown: {
-        coinCost: coinCost,
-        costInDollars: costInDollars.toFixed(2),
-        basePriceNaira: Math.ceil(basePriceNaira),
-        surcharge: surcharge,
-        totalCost: Math.ceil(totalCost),
-        profitAmount: Math.ceil(profitAmount),
-        profitPercentage: profitPercentage.toFixed(1),
-        margin: DESIRED_PROFIT_MARGIN * 100
-      }
-    };
+    return Math.ceil(basePriceNaira + gain);
   }
   
   /**
-   * Calculate OTPGet price with perfect mathematics
-   * @returns {object} - Final price and breakdown
+   * Calculate OTPGet price
+   * @returns {number} - Final price in Naira
    */
   function calculateOTPGetPrice() {
-    const totalCost = OTPGET_BASE_PRICE;
-    const profitAmount = OTPGET_GAIN;
-    const profitPercentage = (OTPGET_GAIN / OTPGET_BASE_PRICE) * 100;
-    const finalPrice = OTPGET_FINAL_PRICE;
-    
-    return {
-      finalPrice: finalPrice,
-      breakdown: {
-        basePrice: OTPGET_BASE_PRICE,
-        gain: OTPGET_GAIN,
-        totalCost: totalCost,
-        profitAmount: profitAmount,
-        profitPercentage: profitPercentage.toFixed(1)
-      }
-    };
+    return OTPGET_FINAL_PRICE;
   }
   
   // =============================================
-  // CHECK AVAILABILITY WITH PERFECT PRICING
+  // CHECK AVAILABILITY WITH UPDATED PRICING
   // =============================================
   document.getElementById('btn-check-avail').addEventListener('click', async () => {
     const country = document.getElementById('sel-country').value;
@@ -786,79 +709,41 @@
         return;
       }
 
-      // Process each offer with perfect pricing
+      // Process each offer with updated pricing
       data.offers.forEach(offer => {
-        let priceData;
+        let finalPrice;
+        let sourceAbbr;
         let source;
         
         // Check if this is from OTPGet or 5sim
         if (offer.source === 'otpget') {
           // OTPGet pricing
-          priceData = calculateOTPGetPrice();
+          finalPrice = calculateOTPGetPrice();
           source = 'OTPGet';
+          sourceAbbr = 'o';
         } else {
           // 5sim pricing
-          priceData = calculate5simPrice(offer.cost, country, service);
+          finalPrice = calculate5simPrice(offer.cost, country);
           source = '5sim';
+          sourceAbbr = '5';
         }
         
         const div = document.createElement('div');
         div.className = 'offer-item';
         div.innerHTML = `
           <div style="font-weight:700;font-size:12px;color:var(--muted);margin-bottom:5px;">
-            ${offer.operator} <span style="font-size:10px;color:var(--accent)">(${source})</span>
+            ${offer.operator} <span style="font-size:10px;color:var(--accent)">(${sourceAbbr})</span>
           </div>
-          <div class="offer-price">₦${priceData.finalPrice.toLocaleString()}</div>
+          <div class="offer-price">₦${finalPrice.toLocaleString()}</div>
           <div class="offer-stock">Stock: ${offer.count} numbers</div>
           
-          <div class="price-breakdown">
-            <div class="breakdown-item">
-              <span class="breakdown-label">Cost:</span>
-              <span class="breakdown-value">₦${priceData.breakdown.totalCost?.toLocaleString() || priceData.breakdown.basePrice?.toLocaleString()}</span>
-            </div>
-            <div class="breakdown-item">
-              <span class="breakdown-label">Profit:</span>
-              <span class="breakdown-value">₦${priceData.breakdown.profitAmount?.toLocaleString()}</span>
-            </div>
-            <div class="breakdown-item">
-              <span class="breakdown-label">Margin:</span>
-              <span class="breakdown-value" style="color:var(--accent)">${priceData.breakdown.profitPercentage || priceData.breakdown.margin}%</span>
-            </div>
-          </div>
-          
           <button class="btn" style="width:100%;margin-top:10px;font-size:12px;padding:8px" 
-             onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${priceData.finalPrice}, '${source}')">
+             onclick="buyNumber('${country}', '${service}', '${offer.operator}', ${finalPrice}, '${source}')">
              <i class="fas fa-shopping-cart"></i> Buy Now
           </button>
         `;
         grid.appendChild(div);
       });
-      
-      // Add pricing summary
-      const summaryDiv = document.createElement('div');
-      summaryDiv.style.gridColumn = '1/-1';
-      summaryDiv.style.marginTop = '20px';
-      summaryDiv.style.padding = '15px';
-      summaryDiv.style.backgroundColor = 'var(--input-bg)';
-      summaryDiv.style.borderRadius = '6px';
-      summaryDiv.style.border = '1px solid var(--border)';
-      summaryDiv.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div style="font-weight:600; color:#fff; margin-bottom:5px;">Pricing Summary</div>
-            <div style="font-size:11px; color:var(--muted);">
-              <div>• 5sim: Converted at ${COINS_PER_DOLLAR} coins/$1, then $1 = ₦${EXCHANGE_RATE}</div>
-              <div>• OTPGet: Base ₦${OTPGET_BASE_PRICE} + ₦${OTPGET_GAIN} gain = ₦${OTPGET_FINAL_PRICE}</div>
-              <div>• All prices include country-specific operational costs</div>
-            </div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:11px; color:var(--muted);">Minimum Profit Margin</div>
-            <div style="font-size:18px; font-weight:700; color:var(--accent);">${MINIMUM_PROFIT_MARGIN*100}%</div>
-          </div>
-        </div>
-      `;
-      grid.appendChild(summaryDiv);
       
     } catch(e) {
       loader.style.display = 'none';
@@ -913,7 +798,7 @@
       // Deduct from balance and create order
       await runTransaction(db, async (t) => {
         const uDoc = await t.get(userRef);
-        t.update(userRef, { balance: uDoc.data().balance - cost });
+        t.update(userRef, { balance: uDoc.data().balance - cost }); 
         
         const newOrderRef = doc(collection(userRef, "orders"));
         t.set(newOrderRef, {
@@ -1115,4 +1000,4 @@
   };
 </script>
 </body>
-                                                                                                                                         </html>
+              </html>
