@@ -1,288 +1,1057 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Dashboard — Sublime Logs</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy Numbers - Sublime Logs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0b0f13;
+            --card: #161b22;
+            --input-bg: #0d1117;
+            --muted: #8b949e;
+            --text: #c9d1d9;
+            --accent: #2ea043;
+            --accent-hover: #3fb950;
+            --border: rgba(240, 246, 252, 0.1);
+            --danger: #f85149;
+            --warning: #d29922;
+            --header-height: 60px;
+        }
 
-<style>
-  :root{ --bg:#0b0f13; --card:#161b22; --input-bg:#0d1117; --muted:#8b949e; --text:#c9d1d9; --accent:#2ea043; --accent-hover:#3fb950; --border:rgba(240,246,252,0.1); --danger:#f85149; --warning:#d29922; --header-height: 60px; }
-  
-  *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
-  
-  .app-container { display: flex; min-height: 100vh; }
-  
-  /* Mobile Header */
-  .mobile-header {
-      display: none; position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
-      background: var(--card); border-bottom: 1px solid var(--border); z-index: 1000;
-      align-items: center; justify-content: space-between; padding: 0 20px;
-  }
-  .hamburger { font-size: 24px; cursor: pointer; color: var(--text); background: none; border: none; }
-  
-  /* Sidebar */
-  .sidebar{
-      width:250px; background:var(--card); border-right:1px solid var(--border);
-      padding:20px; display:flex; flex-direction:column; gap:10px;
-      position:fixed; height:100%; top:0; left:0; z-index: 999;
-      transition: transform 0.3s ease;
-  }
-  
-  .main{ margin-left:250px; flex:1; padding:30px; max-width:100%; width: 100%; padding-top: 30px;}
+        * {
+            box-sizing: border-box;
+        }
 
-  /* Dashboard Specific Cards */
-  .card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:20px;margin-bottom:20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
-  
-  h2{margin:0 0 5px 0; color:#fff;}
-  .sub-text{color:var(--muted); font-size:14px; margin-bottom:25px;}
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+        }
 
-  .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
-  
-  .balance-large { font-size: 32px; font-weight: 700; color: var(--accent); margin: 10px 0; }
-  
-  .btn{background:var(--accent);color:#fff;border:none;padding:12px 20px;border-radius:6px;cursor:pointer;font-weight:600;font-size:14px;transition:0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;}
-  .btn:hover{background:var(--accent-hover);}
-  .btn.secondary{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);}
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
 
-  .nav-link { display: flex; align-items: center; gap: 10px; padding: 12px; color: var(--text); text-decoration: none; border-radius: 6px; transition: 0.2s; }
-  .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.05); color: #fff; }
-  .nav-link i { width: 20px; text-align: center; color: var(--muted); }
-  
-  /* Activity List */
-  .tx-list{max-height:400px;overflow:auto;}
-  .tx-item{display:flex;justify-content:space-between;padding:15px 0;border-bottom:1px solid var(--border);}
-  .tx-item:last-child{border-bottom:none;}
+        /* Mobile Header */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
 
-  /* Modal */
-  .modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);z-index:2000}
-  .modal.open{display:flex}
-  .modal-card{width:350px;max-width:90%;background:var(--card);padding:24px;border-radius:12px;border:1px solid var(--border);}
-  input{width:100%;padding:12px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;color:#fff;outline:none; margin-bottom: 15px;}
+        .hamburger {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text);
+            background: none;
+            border: none;
+        }
 
-  /* Responsive */
-  @media(max-width:800px){ 
-      .mobile-header { display: flex; }
-      .sidebar{ transform: translateX(-100%); width: 260px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); padding-top: 80px;}
-      .sidebar.open { transform: translateX(0); }
-      .main{ margin-left:0; padding: 15px; padding-top: 80px; }
-  }
-</style>
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: fixed;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            transition: transform 0.3s ease;
+        }
+
+        .main {
+            margin-left: 250px;
+            flex: 1;
+            padding: 30px;
+            max-width: 100%;
+            width: 100%;
+            padding-top: 30px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin: 0 0 5px 0;
+            color: #fff;
+        }
+
+        h3 {
+            margin-top: 0;
+            color: #fff;
+        }
+
+        .sub-text {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            outline: none;
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Nav Links */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            color: var(--text);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        /* Operators List */
+        .operators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .operator-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+
+        .operator-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .operator-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .price-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .stock {
+            color: var(--muted);
+        }
+
+        .cost {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-card {
+            width: 400px;
+            max-width: 90%;
+            background: var(--card);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* Order Info */
+        .order-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .order-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .order-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .order-label {
+            color: var(--muted);
+        }
+
+        .order-value {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .phone-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            text-align: center;
+            margin: 15px 0;
+            letter-spacing: 1px;
+        }
+
+        /* SMS List */
+        .sms-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .sms-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .sms-item:last-child {
+            border-bottom: none;
+        }
+
+        .sms-code {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+
+        .loading-spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 800px) {
+            .mobile-header {
+                display: flex;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+                padding-top: 80px;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main {
+                margin-left: 0;
+                padding: 15px;
+                padding-top: 80px;
+            }
+            
+            .operators-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div style="font-weight:bold;font-size:18px;">Sublime Logs</div>
+        <button class="hamburger" id="menu-toggle"><i class="fas fa-bars"></i></button>
+    </div>
 
-<div class="mobile-header">
-    <div style="font-weight:bold;font-size:18px;">Sublime Logs</div>
-    <button class="hamburger" id="menu-toggle"><i class="fas fa-bars"></i></button>
-</div>
-
-<div class="modal" id="add-money-modal">
-  <div class="modal-card">
-    <h3 style="margin-bottom:15px"><i class="fas fa-wallet"></i> Fund Wallet</h3>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:15px;">Enter amount to fund your wallet.</p>
-    <form id="deposit-form">
-      <input type="number" id="pay-amount" placeholder="Amount (e.g. 1000)" min="50" required />
-      <input type="email" id="pay-email-hidden" style="display:none;" />
-      <div style="display:flex;justify-content:flex-end;gap:10px">
-        <button type="button" class="btn secondary" id="close-add-money">Cancel</button>
-        <button type="submit" class="btn" id="start-paystack">Pay Now</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="app-container">
-
-    <aside class="sidebar" id="sidebar">
-        <div style="font-weight:bold;font-size:20px;margin-bottom:30px;padding-left:10px;" class="desktop-only-logo">
-            Sublime Logs
-        </div>
-        
-        <a href="#" class="nav-link active" onclick="closeMenu()">
-            <i class="fas fa-home"></i> Dashboard
-        </a>
-        <a href="wallet.html" class="nav-link">
-            <i class="fas fa-shopping-cart"></i> Buy Number
-        </a>
-        <a href="#" class="nav-link" id="nav-fund">
-            <i class="fas fa-wallet"></i> Fund Account
-        </a>
-        
-        <div style="margin-top:auto; border-top: 1px solid var(--border); padding-top: 15px;">
-            <div style="font-size:11px;color:var(--muted); margin-bottom: 10px; padding-left: 10px;">
-                LOGGED IN AS:<br><span id="user-email" style="color:var(--text);font-size:13px;">...</span>
+    <!-- Order Details Modal -->
+    <div class="modal" id="order-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Order Details</div>
+                <button class="close-btn" id="close-order-modal">&times;</button>
             </div>
-            <button id="logout" class="btn secondary btn-full">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
+            <div id="order-content">
+                <!-- Dynamic content will be inserted here -->
+            </div>
         </div>
-    </aside>
+    </div>
 
-    <main class="main">
-      
-      <div>
-        <h2 id="greeting">Welcome Back</h2>
-        <div class="sub-text">Here is an overview of your account.</div>
-      </div>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div style="font-weight:bold;font-size:20px;margin-bottom:30px;padding-left:10px;" class="desktop-only-logo">
+                Sublime Logs
+            </div>
+            
+            <a href="dashboard.html" class="nav-link" onclick="closeMenu()">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="dashboard2.html" class="nav-link">
+                <i class="fas fa-chart-bar"></i> Dashboard 2
+            </a>
+            <a href="#" class="nav-link active">
+                <i class="fas fa-shopping-cart"></i> Buy Number
+            </a>
+            <a href="#" class="nav-link" id="nav-fund">
+                <i class="fas fa-wallet"></i> Fund Account
+            </a>
+            
+            <div style="margin-top:auto; border-top: 1px solid var(--border); padding-top: 15px;">
+                <div style="font-size:11px;color:var(--muted); margin-bottom: 10px; padding-left: 10px;">
+                    LOGGED IN AS:<br><span id="user-email" style="color:var(--text);font-size:13px;">...</span>
+                </div>
+                <div style="font-size:11px;color:var(--muted); margin-bottom: 10px; padding-left: 10px;">
+                    BALANCE:<br><span id="user-balance" style="color:var(--accent);font-size:13px;font-weight:bold;">₦0.00</span>
+                </div>
+                <button id="logout" class="btn secondary btn-full">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
 
-      <div class="dashboard-grid">
-          <div class="card">
-              <div class="label">Available Balance</div>
-              <div class="balance-large" id="balance">...</div>
-              <div style="margin-top:15px; display:flex; gap:10px;">
-                  <button class="btn" id="btn-fund-card">Fund Wallet</button>
-                  <a href="wallet.html" class="btn secondary">History</a>
-              </div>
-          </div>
-
-          <div class="card" style="background: linear-gradient(135deg, rgba(46,160,67,0.1), rgba(46,160,67,0.05)); border-color: rgba(46,160,67,0.2);">
-              <div style="display:flex; justify-content:space-between; align-items:center; height:100%">
-                  <div>
-                      <h3>Buy Number</h3>
-                      <div class="label" style="margin-top:5px; color:#fff; opacity:0.7">Instant SMS Verification</div>
-                      <a href="wallet.html" class="btn" style="margin-top:15px; background:#fff; color:#0b0f13;">Purchase Now &rarr;</a>
-                  </div>
-                  <i class="fas fa-sim-card" style="font-size:60px; color:var(--accent); opacity:0.3;"></i>
-              </div>
-          </div>
-      </div>
-
-      <h3>Recent Activity</h3>
-      <div class="card" style="margin-top:15px; padding:0 20px;">
-          <div class="tx-list" id="tx-list">
-              <div style="padding:20px;text-align:center;color:var(--muted)">Loading...</div>
-          </div>
-      </div>
-
-    </main>
-</div>
-
-<script src="https://js.paystack.co/v1/inline.js"></script>
-
-<script type="module">
-  const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
-
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, onSnapshot, collection, addDoc, query, orderBy, limit, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
-    authDomain: "sublime-log.firebaseapp.com",
-    projectId: "sublime-log",
-    storageBucket: "sublime-log.firebasestorage.app",
-    messagingSenderId: "644554254089",
-    appId: "1:644554254089:web:dd3374c9468046a5a015d8"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  let currentUser = null;
-
-  // --- MENU LOGIC ---
-  const menuToggle = document.getElementById('menu-toggle');
-  const sidebar = document.getElementById('sidebar');
-  const amModal = document.getElementById('add-money-modal');
-
-  menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
-  window.closeMenu = () => sidebar.classList.remove('open');
-  document.addEventListener('click', (e) => {
-      if(!sidebar.contains(e.target) && !menuToggle.contains(e.target) && sidebar.classList.contains('open')) sidebar.classList.remove('open');
-  });
-
-  // --- MODAL LOGIC ---
-  const openModal = () => { amModal.classList.add('open'); closeMenu(); };
-  document.getElementById('nav-fund').addEventListener('click', openModal);
-  document.getElementById('btn-fund-card').addEventListener('click', openModal);
-  document.getElementById('close-add-money').addEventListener('click', () => amModal.classList.remove('open'));
-
-  // --- AUTH & DATA ---
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      currentUser = user;
-      document.getElementById('user-email').textContent = user.email;
-      document.getElementById('pay-email-hidden').value = user.email;
-      document.getElementById('greeting').textContent = `Welcome, ${user.displayName || 'User'}`;
-
-      onSnapshot(doc(db, "users", user.uid), (docSnap) => {
-         const bal = docSnap.exists() ? docSnap.data().balance : 0;
-         document.getElementById('balance').textContent = '₦' + (bal || 0).toLocaleString();
-      });
-
-      loadTransactions(user.uid);
-    } else {
-      window.location.href = 'index.html';
-    }
-  });
-
-  document.getElementById('logout').addEventListener('click', () => {
-      signOut(auth).then(() => window.location.href = 'index.html');
-  });
-
-  // --- PAYSTACK ---
-  document.getElementById('deposit-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const amount = document.getElementById('pay-amount').value;
-    const email = document.getElementById('pay-email-hidden').value;
-    const btn = document.getElementById('start-paystack');
-
-    if(amount < 50) return alert("Minimum ₦50");
-    btn.textContent = "Processing..."; btn.disabled = true;
-
-    const handler = PaystackPop.setup({
-      key: PAYSTACK_KEY, email: email, amount: amount * 100, currency: 'NGN',
-      ref: 'SL-'+Math.floor(Math.random()*1000000000),
-      callback: (res) => processDeposit(amount, res.reference),
-      onClose: () => { btn.disabled = false; btn.textContent = "Pay Now"; }
-    });
-    handler.openIframe();
-  });
-
-  async function processDeposit(amount, ref) {
-    amModal.classList.remove('open');
-    document.getElementById('start-paystack').disabled = false;
-    document.getElementById('start-paystack').textContent = "Pay Now";
-    try {
-        const userRef = doc(db, "users", currentUser.uid);
-        await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
-            type: 'deposit', amount: Number(amount), date: new Date().toISOString(), reference: ref
-        });
-        await runTransaction(db, async (t) => {
-            const sfDoc = await t.get(userRef);
-            t.update(userRef, { balance: (sfDoc.data().balance || 0) + Number(amount) });
-        });
-        alert("Wallet Funded Successfully!");
-    } catch(e) { console.error(e); alert("Error updating balance. Ref: " + ref); }
-  }
-
-  // --- TRANSACTIONS ---
-  async function loadTransactions(uid) {
-    const list = document.getElementById('tx-list');
-    const q = query(collection(db, "users", uid, "transactions"), orderBy("date", "desc"), limit(10));
-    const snap = await getDocs(q);
-    list.innerHTML = '';
-    if(snap.empty) { list.innerHTML = '<div style="padding:15px;color:var(--muted)">No transactions yet.</div>'; return; }
-    
-    snap.forEach(d => {
-        const data = d.data();
-        const isDep = data.type === 'deposit';
-        const formattedAmount = Number(data.amount).toLocaleString(undefined, {minimumFractionDigits: 2});
-        list.innerHTML += `
-        <div class="tx-item">
+        <!-- Main Content -->
+        <main class="main">
             <div>
-                <div style="font-weight:600; font-size:14px; color:#fff;">${isDep ? 'Wallet Deposit' : 'Purchase'}</div>
-                <div style="font-size:11px; color:var(--muted)">${new Date(data.date).toLocaleDateString()}</div>
+                <h2>Buy Virtual Number</h2>
+                <div class="sub-text">Select country and service to purchase a virtual number for SMS verification.</div>
             </div>
-            <div style="text-align:right">
-                <div style="font-weight:700; color:${isDep ? 'var(--accent)' : '#fff'}">${isDep?'+':'-'} ₦${formattedAmount}</div>
-                <div class="badge ${isDep ? 'status-finished' : 'status-pending'}">${data.type.toUpperCase()}</div>
+
+            <!-- Selection Form -->
+            <div class="card">
+                <h3>Select Service</h3>
+                <div class="form-group">
+                    <label for="country">Country</label>
+                    <select id="country">
+                        <option value="">Select Country</option>
+                        <option value="usa">United States</option>
+                        <option value="canada">Canada</option>
+                        <option value="uk">United Kingdom</option>
+                        <option value="germany">Germany</option>
+                        <option value="france">France</option>
+                        <option value="netherlands">Netherlands</option>
+                        <option value="indonesia">Indonesia</option>
+                        <option value="philippines">Philippines</option>
+                        <option value="brazil">Brazil</option>
+                        <option value="mexico">Mexico</option>
+                        <option value="spain">Spain</option>
+                        <option value="italy">Italy</option>
+                        <option value="portugal">Portugal</option>
+                        <option value="poland">Poland</option>
+                        <option value="russia">Russia</option>
+                        <option value="ukraine">Ukraine</option>
+                        <option value="kazakhstan">Kazakhstan</option>
+                        <option value="belarus">Belarus</option>
+                        <option value="thailand">Thailand</option>
+                        <option value="vietnam">Vietnam</option>
+                        <option value="malaysia">Malaysia</option>
+                        <option value="singapore">Singapore</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="product">Service</label>
+                    <select id="product">
+                        <option value="">Select Service</option>
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="google">Google</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="tiktok">TikTok</option>
+                        <option value="discord">Discord</option>
+                        <option value="uber">Uber</option>
+                        <option value="airbnb">Airbnb</option>
+                        <option value="amazon">Amazon</option>
+                        <option value="ebay">eBay</option>
+                        <option value="paypal">PayPal</option>
+                        <option value="microsoft">Microsoft</option>
+                        <option value="apple">Apple</option>
+                        <option value="netflix">Netflix</option>
+                        <option value="spotify">Spotify</option>
+                        <option value="steam">Steam</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <button id="search-btn" class="btn">
+                    <i class="fas fa-search"></i> Search Numbers
+                </button>
             </div>
-        </div>`;
-    });
-  }
-</script>
+
+            <!-- Results Section -->
+            <div id="results-section" style="display: none;">
+                <h3>Available Operators</h3>
+                <div class="sub-text">Select an operator to purchase a number</div>
+                
+                <div id="loading-operators" class="loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div>Loading operators...</div>
+                </div>
+                
+                <div id="operators-list" class="operators-grid">
+                    <!-- Operators will be dynamically inserted here -->
+                </div>
+                
+                <div id="no-operators" style="display: none; text-align: center; padding: 40px; color: var(--muted);">
+                    <i class="fas fa-frown" style="font-size: 48px; margin-bottom: 15px;"></i>
+                    <div>No operators available for this selection. Try another country or service.</div>
+                </div>
+            </div>
+
+            <!-- Active Orders Section -->
+            <div id="active-orders-section" style="display: none; margin-top: 30px;">
+                <h3>Active Orders</h3>
+                <div class="sub-text">Your currently active number orders</div>
+                
+                <div class="card">
+                    <div id="active-orders-list">
+                        <div style="padding: 20px; text-align: center; color: var(--muted);">
+                            No active orders. Purchase a number to see it here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Money Modal (from dashboard) -->
+    <div class="modal" id="add-money-modal">
+        <div class="modal-card">
+            <h3 style="margin-bottom:15px"><i class="fas fa-wallet"></i> Fund Wallet</h3>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:15px;">Enter amount to fund your wallet.</p>
+            <form id="deposit-form">
+                <input type="number" id="pay-amount" placeholder="Amount (e.g. 1000)" min="50" required />
+                <input type="email" id="pay-email-hidden" style="display:none;" />
+                <div style="display:flex;justify-content:flex-end;gap:10px">
+                    <button type="button" class="btn secondary" id="close-add-money">Cancel</button>
+                    <button type="submit" class="btn" id="start-paystack">Pay Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script type="module">
+        const PAYSTACK_KEY = 'pk_live_20505aa86cec6458bf2cc8cd926ecc06b87ff492';
+        const BACKEND_URL = 'https://your-backend-url.com'; // Replace with your actual backend URL
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, collection, addDoc, query, orderBy, limit, getDocs, runTransaction, where } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRnNoRJ4Zgtu-KEZAdOAKtou2LV9rdL5c",
+            authDomain: "sublime-log.firebaseapp.com",
+            projectId: "sublime-log",
+            storageBucket: "sublime-log.firebasestorage.app",
+            messagingSenderId: "644554254089",
+            appId: "1:644554254089:web:dd3374c9468046a5a015d8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let activeOrders = {};
+        let orderCheckIntervals = {};
+
+        // --- MENU LOGIC ---
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const amModal = document.getElementById('add-money-modal');
+
+        menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+        window.closeMenu = () => sidebar.classList.remove('open');
+        document.addEventListener('click', (e) => {
+            if(!sidebar.contains(e.target) && !menuToggle.contains(e.target) && sidebar.classList.contains('open')) sidebar.classList.remove('open');
+        });
+
+        // --- MODAL LOGIC ---
+        const openModal = () => { amModal.classList.add('open'); closeMenu(); };
+        document.getElementById('nav-fund').addEventListener('click', openModal);
+        document.getElementById('close-add-money').addEventListener('click', () => amModal.classList.remove('open'));
+
+        // --- AUTH & USER DATA ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('user-email').textContent = user.email;
+                document.getElementById('pay-email-hidden').value = user.email;
+
+                // Monitor user balance
+                onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+                    const bal = docSnap.exists() ? docSnap.data().balance : 0;
+                    document.getElementById('user-balance').textContent = '₦' + (bal || 0).toLocaleString();
+                });
+
+                // Load active orders
+                loadActiveOrders(user.uid);
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        document.getElementById('logout').addEventListener('click', () => {
+            signOut(auth).then(() => window.location.href = 'index.html');
+        });
+
+        // --- PAYSTACK ---
+        document.getElementById('deposit-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amount = document.getElementById('pay-amount').value;
+            const email = document.getElementById('pay-email-hidden').value;
+            const btn = document.getElementById('start-paystack');
+
+            if(amount < 50) return alert("Minimum ₦50");
+            btn.textContent = "Processing..."; btn.disabled = true;
+
+            const handler = PaystackPop.setup({
+                key: PAYSTACK_KEY, email: email, amount: amount * 100, currency: 'NGN',
+                ref: 'SL-'+Math.floor(Math.random()*1000000000),
+                callback: (res) => processDeposit(amount, res.reference),
+                onClose: () => { btn.disabled = false; btn.textContent = "Pay Now"; }
+            });
+            handler.openIframe();
+        });
+
+        async function processDeposit(amount, ref) {
+            amModal.classList.remove('open');
+            document.getElementById('start-paystack').disabled = false;
+            document.getElementById('start-paystack').textContent = "Pay Now";
+            try {
+                const userRef = doc(db, "users", currentUser.uid);
+                await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
+                    type: 'deposit', amount: Number(amount), date: new Date().toISOString(), reference: ref
+                });
+                await runTransaction(db, async (t) => {
+                    const sfDoc = await t.get(userRef);
+                    t.update(userRef, { balance: (sfDoc.data().balance || 0) + Number(amount) });
+                });
+                alert("Wallet Funded Successfully!");
+            } catch(e) { console.error(e); alert("Error updating balance. Ref: " + ref); }
+        }
+
+        // --- NUMBER PURCHASE LOGIC ---
+        document.getElementById('search-btn').addEventListener('click', async () => {
+            const country = document.getElementById('country').value;
+            const product = document.getElementById('product').value;
+            
+            if (!country || !product) {
+                alert("Please select both country and service");
+                return;
+            }
+            
+            document.getElementById('loading-operators').style.display = 'block';
+            document.getElementById('operators-list').innerHTML = '';
+            document.getElementById('no-operators').style.display = 'none';
+            document.getElementById('results-section').style.display = 'block';
+            
+            try {
+                // Fetch prices from backend
+                const response = await fetch(`${BACKEND_URL}/prices`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country, product })
+                });
+                
+                const data = await response.json();
+                document.getElementById('loading-operators').style.display = 'none';
+                
+                if (data.error) {
+                    document.getElementById('no-operators').style.display = 'block';
+                    return;
+                }
+                
+                if (!data.offers || data.offers.length === 0) {
+                    document.getElementById('no-operators').style.display = 'block';
+                    return;
+                }
+                
+                // Calculate prices with appropriate gain
+                const isUSACanadaWhatsApp = (
+                    (country.toLowerCase() === 'usa' || country.toLowerCase() === 'canada') && 
+                    product.toLowerCase() === 'whatsapp'
+                );
+                const GAIN_AMOUNT = isUSACanadaWhatsApp ? 2000 : 1500;
+                
+                // Display operators
+                const operatorsList = document.getElementById('operators-list');
+                operatorsList.innerHTML = '';
+                
+                data.offers.forEach(offer => {
+                    // Convert 5sim coins to Naira (1 coin = 1 Naira based on typical pricing)
+                    const baseCostNaira = offer.cost;
+                    const finalPriceNaira = baseCostNaira + GAIN_AMOUNT;
+                    
+                    const operatorCard = document.createElement('div');
+                    operatorCard.className = 'operator-card';
+                    operatorCard.innerHTML = `
+                        <div class="operator-name">${offer.operator || 'Unknown Operator'}</div>
+                        <div class="price-info">
+                            <span class="stock">Stock: ${offer.count || 0}</span>
+                            <span class="cost">₦${finalPriceNaira.toLocaleString()}</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">
+                            Base: ₦${baseCostNaira.toLocaleString()} + Fee: ₦${GAIN_AMOUNT.toLocaleString()}
+                        </div>
+                        <button class="btn buy-btn" data-country="${country}" data-product="${product}" data-operator="${offer.operator || 'any'}" data-price="${finalPriceNaira}" style="width: 100%;">
+                            <i class="fas fa-shopping-cart"></i> Buy Number
+                        </button>
+                    `;
+                    operatorsList.appendChild(operatorCard);
+                });
+                
+                // Add event listeners to buy buttons
+                document.querySelectorAll('.buy-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const country = this.dataset.country;
+                        const product = this.dataset.product;
+                        const operator = this.dataset.operator;
+                        const price = parseFloat(this.dataset.price);
+                        
+                        purchaseNumber(country, product, operator, price);
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Error fetching operators:', error);
+                document.getElementById('loading-operators').style.display = 'none';
+                document.getElementById('no-operators').style.display = 'block';
+            }
+        });
+
+        async function purchaseNumber(country, product, operator, price) {
+            if (!currentUser) {
+                alert("Please login to purchase");
+                return;
+            }
+            
+            // Check user balance
+            const userDoc = await getDocs(query(collection(db, "users"), where("__name__", "==", currentUser.uid)));
+            let userBalance = 0;
+            if (!userDoc.empty) {
+                userBalance = userDoc.docs[0].data().balance || 0;
+            }
+            
+            if (userBalance < price) {
+                alert(`Insufficient balance. You need ₦${price.toLocaleString()} but have ₦${userBalance.toLocaleString()}`);
+                openModal();
+                return;
+            }
+            
+            if (!confirm(`Purchase ${product} number for ${country} from ${operator} for ₦${price.toLocaleString()}?`)) {
+                return;
+            }
+            
+            try {
+                // Call backend to buy number
+                const response = await fetch(`${BACKEND_URL}/buy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country, product, operator })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                    return;
+                }
+                
+                // Deduct from user balance
+                const userRef = doc(db, "users", currentUser.uid);
+                await runTransaction(db, async (t) => {
+                    const sfDoc = await t.get(userRef);
+                    const newBalance = (sfDoc.data().balance || 0) - price;
+                    if (newBalance < 0) throw new Error("Insufficient balance");
+                    t.update(userRef, { balance: newBalance });
+                });
+                
+                // Save transaction
+                await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
+                    type: 'purchase',
+                    amount: price,
+                    date: new Date().toISOString(),
+                    country: country,
+                    product: product,
+                    operator: operator,
+                    orderId: data.id || data.orderId || data.reference,
+                    phone: data.phone || data.number,
+                    status: 'pending'
+                });
+                
+                // Start monitoring order
+                const orderId = data.id || data.orderId;
+                if (orderId) {
+                    activeOrders[orderId] = {
+                        id: orderId,
+                        phone: data.phone || data.number,
+                        country: country,
+                        product: product,
+                        operator: operator,
+                        price: price,
+                        status: 'pending',
+                        date: new Date().toISOString()
+                    };
+                    
+                    startOrderMonitoring(orderId, data.phone || data.number);
+                    showOrderModal(orderId);
+                    loadActiveOrders(currentUser.uid);
+                }
+                
+                alert("Number purchased successfully!");
+                
+            } catch (error) {
+                console.error('Purchase error:', error);
+                alert(`Purchase failed: ${error.message}`);
+            }
+        }
+
+        function startOrderMonitoring(orderId, phoneNumber) {
+            if (orderCheckIntervals[orderId]) {
+                clearInterval(orderCheckIntervals[orderId]);
+            }
+            
+            orderCheckIntervals[orderId] = setInterval(async () => {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/check`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.status === 'FINISHED' && data.sms && data.sms.length > 0) {
+                        // Order completed, update UI
+                        activeOrders[orderId].status = 'completed';
+                        activeOrders[orderId].sms = data.sms;
+                        
+                        // Update in Firebase
+                        const ordersQuery = query(
+                            collection(db, "users", currentUser.uid, "transactions"),
+                            where("orderId", "==", orderId)
+                        );
+                        const orderDocs = await getDocs(ordersQuery);
+                        if (!orderDocs.empty) {
+                            const orderRef = doc(db, "users", currentUser.uid, "transactions", orderDocs.docs[0].id);
+                            await runTransaction(db, async (t) => {
+                                t.update(orderRef, { 
+                                    status: 'completed',
+                                    sms: data.sms
+                                });
+                            });
+                        }
+                        
+                        clearInterval(orderCheckIntervals[orderId]);
+                        updateOrderDisplay(orderId);
+                    } else if (data.status === 'CANCELED' || data.status === 'TIMEOUT') {
+                        // Order failed
+                        activeOrders[orderId].status = 'failed';
+                        clearInterval(orderCheckIntervals[orderId]);
+                        updateOrderDisplay(orderId);
+                    }
+                } catch (error) {
+                    console.error('Error checking order:', error);
+                }
+            }, 5000); // Check every 5 seconds
+        }
+
+        function showOrderModal(orderId) {
+            const order = activeOrders[orderId];
+            const modal = document.getElementById('order-modal');
+            const content = document.getElementById('order-content');
+            
+            let smsHtml = '';
+            if (order.sms && order.sms.length > 0) {
+                smsHtml = `
+                    <div style="margin-top: 15px;">
+                        <div style="font-size: 14px; color: var(--text); margin-bottom: 10px;">Received SMS:</div>
+                        <div class="sms-list">
+                            ${order.sms.map(sms => `
+                                <div class="sms-item">
+                                    <div class="sms-code">${sms.code || sms.text || 'No code'}</div>
+                                    <div style="font-size: 12px; color: var(--muted);">${new Date(sms.created_at || Date.now()).toLocaleTimeString()}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = `
+                <div class="order-info">
+                    <div class="order-row">
+                        <span class="order-label">Order ID:</span>
+                        <span class="order-value">${order.id}</span>
+                    </div>
+                    <div class="order-row">
+                        <span class="order-label">Service:</span>
+                        <span class="order-value">${order.product}</span>
+                    </div>
+                    <div class="order-row">
+                        <span class="order-label">Country:</span>
+                        <span class="order-value">${order.country}</span>
+                    </div>
+                    <div class="order-row">
+                        <span class="order-label">Operator:</span>
+                        <span class="order-value">${order.operator}</span>
+                    </div>
+                    <div class="order-row">
+                        <span class="order-label">Price:</span>
+                        <span class="order-value">₦${order.price.toLocaleString()}</span>
+                    </div>
+                    <div class="order-row">
+                        <span class="order-label">Status:</span>
+                        <span class="order-value" style="color: ${order.status === 'completed' ? 'var(--accent)' : order.status === 'pending' ? 'var(--warning)' : 'var(--danger)'}">
+                            ${order.status.toUpperCase()}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="phone-number">${formatPhoneNumber(order.phone)}</div>
+                
+                ${smsHtml}
+                
+                <div style="margin-top: 20px; font-size: 12px; color: var(--muted);">
+                    <i class="fas fa-info-circle"></i> This modal will auto-refresh when SMS arrives. Keep it open.
+                </div>
+            `;
+            
+            modal.classList.add('open');
+        }
+
+        function formatPhoneNumber(phone) {
+            if (!phone) return 'N/A';
+            // Format phone number for display
+            return phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+        }
+
+        document.getElementById('close-order-modal').addEventListener('click', () => {
+            document.getElementById('order-modal').classList.remove('open');
+        });
+
+        async function loadActiveOrders(userId) {
+            const ordersList = document.getElementById('active-orders-list');
+            const activeOrdersSection = document.getElementById('active-orders-section');
+            
+            try {
+                const ordersQuery = query(
+                    collection(db, "users", userId, "transactions"),
+                    where("type", "==", "purchase"),
+                    orderBy("date", "desc"),
+                    limit(10)
+                );
+                
+                const snap = await getDocs(ordersQuery);
+                
+                if (snap.empty) {
+                    ordersList.innerHTML = `
+                        <div style="padding: 20px; text-align: center; color: var(--muted);">
+                            No active orders. Purchase a number to see it here.
+                        </div>
+                    `;
+                    activeOrdersSection.style.display = 'none';
+                    return;
+                }
+                
+                let hasActiveOrders = false;
+                let ordersHtml = '';
+                
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if (data.status !== 'completed' && data.status !== 'failed') {
+                        hasActiveOrders = true;
+                        ordersHtml += `
+                            <div style="padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 600; color: #fff;">${data.product} - ${data.country}</div>
+                                    <div style="font-size: 12px; color: var(--muted);">${data.phone || 'Loading...'}</div>
+                                    <div style="font-size: 11px; color: var(--muted);">${new Date(data.date).toLocaleDateString()}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-weight: 600; color: var(--accent);">₦${data.amount.toLocaleString()}</div>
+                                    <div style="font-size: 11px; padding: 3px 8px; background: ${data.status === 'pending' ? 'rgba(210, 153, 34, 0.2)' : 'rgba(46, 160, 67, 0.2)'}; color: ${data.status === 'pending' ? 'var(--warning)' : 'var(--accent)'}; border-radius: 4px; display: inline-block;">
+                                        ${data.status.toUpperCase()}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                if (hasActiveOrders) {
+                    ordersList.innerHTML = ordersHtml;
+                    activeOrdersSection.style.display = 'block';
+                } else {
+                    ordersList.innerHTML = `
+                        <div style="padding: 20px; text-align: center; color: var(--muted);">
+                            No active orders. Purchase a number to see it here.
+                        </div>
+                    `;
+                    activeOrdersSection.style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error loading orders:', error);
+            }
+        }
+
+        function updateOrderDisplay(orderId) {
+            // Update the active orders display
+            loadActiveOrders(currentUser.uid);
+            
+            // If order modal is open for this order, refresh it
+            const modal = document.getElementById('order-modal');
+            if (modal.classList.contains('open')) {
+                const currentOrderId = activeOrders[orderId]?.id;
+                if (currentOrderId === orderId) {
+                    showOrderModal(orderId);
+                }
+            }
+        }
+    </script>
 </body>
-</html>
+  </html>
