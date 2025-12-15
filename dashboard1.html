@@ -367,6 +367,21 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Price Breakdown */
+        .price-breakdown {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
         /* Responsive */
         @media (max-width: 800px) {
             .mobile-header {
@@ -673,6 +688,56 @@
             } catch(e) { console.error(e); alert("Error updating balance. Ref: " + ref); }
         }
 
+        // --- PRICE CALCULATION FUNCTIONS ---
+        function calculatePriceInNaira(coins, country) {
+            // 79 coins = $1
+            // Convert coins to dollars: coins / 79
+            const dollars = coins / 79;
+            
+            // Convert dollars to cents: dollars * 100
+            const cents = dollars * 100;
+            
+            // Add exchange rate (1600)
+            const afterExchangeRate = cents + 1600;
+            
+            // Get country gain
+            const gain = getCountryGain(country);
+            
+            // Final price in Naira
+            const finalPrice = afterExchangeRate + gain;
+            
+            // Return rounded to 2 decimal places
+            return Math.round(finalPrice * 100) / 100;
+        }
+
+        function getCountryGain(country) {
+            const lowerCountry = country.toLowerCase();
+            if (lowerCountry === 'usa' || lowerCountry === 'canada') {
+                return 2000; // USA and Canada gain
+            } else if (lowerCountry === 'germany') {
+                return 3000; // Germany gain
+            } else {
+                return 1500; // Other countries gain
+            }
+        }
+
+        function calculatePriceBreakdown(coins, country) {
+            const dollars = coins / 79;
+            const cents = dollars * 100;
+            const exchangeRate = 1600;
+            const gain = getCountryGain(country);
+            const total = cents + exchangeRate + gain;
+            
+            return {
+                coins: coins,
+                dollars: dollars.toFixed(2),
+                cents: Math.round(cents * 100) / 100,
+                exchangeRate: exchangeRate,
+                gain: gain,
+                total: Math.round(total * 100) / 100
+            };
+        }
+
         // --- NUMBER PURCHASE LOGIC ---
         document.getElementById('search-btn').addEventListener('click', async () => {
             const country = document.getElementById('country').value;
@@ -709,21 +774,14 @@
                     return;
                 }
                 
-                // Calculate prices with appropriate gain
-                const isUSACanadaWhatsApp = (
-                    (country.toLowerCase() === 'usa' || country.toLowerCase() === 'canada') && 
-                    product.toLowerCase() === 'whatsapp'
-                );
-                const GAIN_AMOUNT = isUSACanadaWhatsApp ? 2000 : 1500;
-                
-                // Display operators
+                // Display operators with calculated prices
                 const operatorsList = document.getElementById('operators-list');
                 operatorsList.innerHTML = '';
                 
                 data.offers.forEach(offer => {
-                    // Convert 5sim coins to Naira (1 coin = 1 Naira based on typical pricing)
-                    const baseCostNaira = offer.cost;
-                    const finalPriceNaira = baseCostNaira + GAIN_AMOUNT;
+                    const baseCostCoins = offer.cost;
+                    const priceBreakdown = calculatePriceBreakdown(baseCostCoins, country);
+                    const finalPrice = priceBreakdown.total;
                     
                     const operatorCard = document.createElement('div');
                     operatorCard.className = 'operator-card';
@@ -731,12 +789,37 @@
                         <div class="operator-name">${offer.operator || 'Unknown Operator'}</div>
                         <div class="price-info">
                             <span class="stock">Stock: ${offer.count || 0}</span>
-                            <span class="cost">₦${finalPriceNaira.toLocaleString()}</span>
+                            <span class="cost">₦${finalPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                         </div>
-                        <div style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">
-                            Base: ₦${baseCostNaira.toLocaleString()} + Fee: ₦${GAIN_AMOUNT.toLocaleString()}
+                        
+                        <div class="price-breakdown">
+                            <div class="breakdown-row">
+                                <span>Coins:</span>
+                                <span>${baseCostCoins}</span>
+                            </div>
+                            <div class="breakdown-row">
+                                <span>Dollars:</span>
+                                <span>$${priceBreakdown.dollars}</span>
+                            </div>
+                            <div class="breakdown-row">
+                                <span>Cents:</span>
+                                <span>${priceBreakdown.cents.toFixed(2)}¢</span>
+                            </div>
+                            <div class="breakdown-row">
+                                <span>Exchange Rate:</span>
+                                <span>₦${priceBreakdown.exchangeRate}</span>
+                            </div>
+                            <div class="breakdown-row">
+                                <span>${country.charAt(0).toUpperCase() + country.slice(1)} Gain:</span>
+                                <span>₦${priceBreakdown.gain}</span>
+                            </div>
+                            <div class="breakdown-row" style="border-top: 1px solid var(--border); padding-top: 4px; margin-top: 4px;">
+                                <span style="font-weight: bold;">Total:</span>
+                                <span style="font-weight: bold; color: var(--accent);">₦${finalPrice.toFixed(2)}</span>
+                            </div>
                         </div>
-                        <button class="btn buy-btn" data-country="${country}" data-product="${product}" data-operator="${offer.operator || 'any'}" data-price="${finalPriceNaira}" style="width: 100%;">
+                        
+                        <button class="btn buy-btn" data-country="${country}" data-product="${product}" data-operator="${offer.operator || 'any'}" data-price="${finalPrice}" data-coins="${baseCostCoins}" style="width: 100%; margin-top: 10px;">
                             <i class="fas fa-shopping-cart"></i> Buy Number
                         </button>
                     `;
@@ -750,8 +833,9 @@
                         const product = this.dataset.product;
                         const operator = this.dataset.operator;
                         const price = parseFloat(this.dataset.price);
+                        const coins = parseFloat(this.dataset.coins);
                         
-                        purchaseNumber(country, product, operator, price);
+                        purchaseNumber(country, product, operator, price, coins);
                     });
                 });
                 
@@ -762,7 +846,7 @@
             }
         });
 
-        async function purchaseNumber(country, product, operator, price) {
+        async function purchaseNumber(country, product, operator, price, coins) {
             if (!currentUser) {
                 alert("Please login to purchase");
                 return;
@@ -776,12 +860,12 @@
             }
             
             if (userBalance < price) {
-                alert(`Insufficient balance. You need ₦${price.toLocaleString()} but have ₦${userBalance.toLocaleString()}`);
+                alert(`Insufficient balance. You need ₦${price.toLocaleString(undefined, {minimumFractionDigits: 2})} but have ₦${userBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}`);
                 openModal();
                 return;
             }
             
-            if (!confirm(`Purchase ${product} number for ${country} from ${operator} for ₦${price.toLocaleString()}?`)) {
+            if (!confirm(`Purchase ${product} number for ${country} from ${operator} for ₦${price.toFixed(2)}?`)) {
                 return;
             }
             
@@ -813,13 +897,15 @@
                 await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
                     type: 'purchase',
                     amount: price,
+                    coins: coins,
                     date: new Date().toISOString(),
                     country: country,
                     product: product,
                     operator: operator,
                     orderId: data.id || data.orderId || data.reference,
                     phone: data.phone || data.number,
-                    status: 'pending'
+                    status: 'pending',
+                    breakdown: calculatePriceBreakdown(coins, country)
                 });
                 
                 // Start monitoring order
@@ -832,8 +918,10 @@
                         product: product,
                         operator: operator,
                         price: price,
+                        coins: coins,
                         status: 'pending',
-                        date: new Date().toISOString()
+                        date: new Date().toISOString(),
+                        breakdown: calculatePriceBreakdown(coins, country)
                     };
                     
                     startOrderMonitoring(orderId, data.phone || data.number);
@@ -921,6 +1009,9 @@
                 `;
             }
             
+            // Price breakdown display
+            const breakdown = order.breakdown || calculatePriceBreakdown(order.coins || 0, order.country);
+            
             content.innerHTML = `
                 <div class="order-info">
                     <div class="order-row">
@@ -940,8 +1031,20 @@
                         <span class="order-value">${order.operator}</span>
                     </div>
                     <div class="order-row">
-                        <span class="order-label">Price:</span>
-                        <span class="order-value">₦${order.price.toLocaleString()}</span>
+                        <span class="order-label">Base Cost:</span>
+                        <span class="order-value">${breakdown.coins} coins ($${breakdown.dollars})</span>
+                    </div>
+                    <div class="order-row">
+                        <span class="order-label">Exchange Rate:</span>
+                        <span class="order-value">₦${breakdown.exchangeRate}</span>
+                    </div>
+                    <div class="order-row">
+                        <span class="order-label">Country Gain:</span>
+                        <span class="order-value">₦${breakdown.gain}</span>
+                    </div>
+                    <div class="order-row" style="border-top: 1px solid var(--border); padding-top: 5px;">
+                        <span class="order-label" style="font-weight: bold;">Total Price:</span>
+                        <span class="order-value" style="font-weight: bold; color: var(--accent);">₦${order.price.toFixed(2)}</span>
                     </div>
                     <div class="order-row">
                         <span class="order-label">Status:</span>
@@ -1012,7 +1115,7 @@
                                     <div style="font-size: 11px; color: var(--muted);">${new Date(data.date).toLocaleDateString()}</div>
                                 </div>
                                 <div style="text-align: right;">
-                                    <div style="font-weight: 600; color: var(--accent);">₦${data.amount.toLocaleString()}</div>
+                                    <div style="font-weight: 600; color: var(--accent);">₦${data.amount.toFixed(2)}</div>
                                     <div style="font-size: 11px; padding: 3px 8px; background: ${data.status === 'pending' ? 'rgba(210, 153, 34, 0.2)' : 'rgba(46, 160, 67, 0.2)'}; color: ${data.status === 'pending' ? 'var(--warning)' : 'var(--accent)'}; border-radius: 4px; display: inline-block;">
                                         ${data.status.toUpperCase()}
                                     </div>
@@ -1054,4 +1157,4 @@
         }
     </script>
 </body>
-  </html>
+    </html>
