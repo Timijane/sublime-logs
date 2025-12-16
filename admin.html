@@ -573,7 +573,7 @@ async function loadOverview() {
         
         <div class="card" style="margin-top: 20px;">
             <h3>Transaction Status Distribution</h3>
-            <div class="chart-container">
+            <div class="chart-container" id="status-chart-container">
                 <canvas id="statusChart"></canvas>
             </div>
         </div>
@@ -633,7 +633,8 @@ async function loadOverview() {
                 </div>
             `}).join('') : '<div style="padding: 20px; text-align: center; color: var(--muted);">No transactions found</div>';
         
-        // Create status chart
+        // Create status chart - FIXED SECTION
+        const chartContainer = document.getElementById('status-chart-container');
         if (statusBreakdown.length > 0) {
             const ctx = document.getElementById('statusChart').getContext('2d');
             const labels = statusBreakdown.map(item => item.status);
@@ -674,8 +675,10 @@ async function loadOverview() {
                 }
             });
         } else {
-            document.getElementById('statusChart').parentElement.innerHTML = 
-                '<div style="text-align:center;padding:50px;color:var(--muted);">No transaction data available</div>';
+            // Safely replace content only if the container exists
+            if (chartContainer) {
+                chartContainer.innerHTML = '<div style="text-align:center;padding:50px;color:var(--muted);">No transaction data available</div>';
+            }
         }
     } catch (error) {
         console.error("Error loading overview:", error);
@@ -772,7 +775,7 @@ async function loadTransactionStats() {
         
         <div class="card" style="margin-top: 20px;">
             <h3>Transaction Volume (Last 7 Days)</h3>
-            <div class="chart-container">
+            <div class="chart-container" id="volume-chart-container">
                 <canvas id="volumeChart"></canvas>
             </div>
         </div>
@@ -802,53 +805,56 @@ async function loadTransactionStats() {
             `}).join('') : '<tr><td colspan="5" style="text-align:center;padding:30px;">No transactions found</td></tr>';
         
         // Create volume chart (simulated data for now)
-        const ctx = document.getElementById('volumeChart').getContext('2d');
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        const volumeData = days.map(() => Math.floor(Math.random() * 20) + 5);
-        
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: days,
-                datasets: [{
-                    label: 'Transactions per Day',
-                    data: volumeData,
-                    backgroundColor: '#2ea043',
-                    borderColor: '#2ea043',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: 'var(--text)'
-                        }
-                    }
+        const chartContainer = document.getElementById('volume-chart-container');
+        if (chartContainer) {
+            const ctx = document.getElementById('volumeChart').getContext('2d');
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const volumeData = days.map(() => Math.floor(Math.random() * 20) + 5);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Transactions per Day',
+                        data: volumeData,
+                        backgroundColor: '#2ea043',
+                        borderColor: '#2ea043',
+                        borderWidth: 1
+                    }]
                 },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255,255,255,0.05)'
-                        },
-                        ticks: {
-                            color: 'var(--text)'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'var(--text)'
+                            }
                         }
                     },
-                    y: {
-                        grid: {
-                            color: 'rgba(255,255,255,0.05)'
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)'
+                            },
+                            ticks: {
+                                color: 'var(--text)'
+                            }
                         },
-                        ticks: {
-                            color: 'var(--text)',
-                            stepSize: 5
+                        y: {
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)'
+                            },
+                            ticks: {
+                                color: 'var(--text)',
+                                stepSize: 5
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
     } catch (error) {
         console.error("Error loading transaction stats:", error);
         content.innerHTML = `<h2>Error</h2><div class="sub-text" style="color:var(--danger)">Failed to load transaction data: ${error.message}</div>`;
@@ -889,7 +895,7 @@ async function loadRevenueStats() {
         
         <div class="card" style="margin-top: 20px;">
             <h3>Revenue Trends</h3>
-            <div class="chart-container">
+            <div class="chart-container" id="revenue-chart-container">
                 <canvas id="revenueChart"></canvas>
             </div>
         </div>
@@ -923,57 +929,60 @@ async function loadRevenueStats() {
         document.getElementById('revenue-month').textContent = '₦' + thisMonthRevenue.toLocaleString();
         
         // Create revenue chart
-        const ctx = document.getElementById('revenueChart').getContext('2d');
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
-        const revenueData = months.map(() => Math.floor(Math.random() * 100000) + 50000);
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: months,
-                datasets: [{
-                    label: 'Monthly Revenue (₦)',
-                    data: revenueData,
-                    borderColor: '#2ea043',
-                    backgroundColor: 'rgba(46, 160, 67, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: 'var(--text)'
-                        }
-                    }
+        const chartContainer = document.getElementById('revenue-chart-container');
+        if (chartContainer) {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+            const revenueData = months.map(() => Math.floor(Math.random() * 100000) + 50000);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Monthly Revenue (₦)',
+                        data: revenueData,
+                        borderColor: '#2ea043',
+                        backgroundColor: 'rgba(46, 160, 67, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
                 },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255,255,255,0.05)'
-                        },
-                        ticks: {
-                            color: 'var(--text)'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'var(--text)'
+                            }
                         }
                     },
-                    y: {
-                        grid: {
-                            color: 'rgba(255,255,255,0.05)'
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)'
+                            },
+                            ticks: {
+                                color: 'var(--text)'
+                            }
                         },
-                        ticks: {
-                            color: 'var(--text)',
-                            callback: function(value) {
-                                return '₦' + (value/1000).toFixed(0) + 'K';
+                        y: {
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)'
+                            },
+                            ticks: {
+                                color: 'var(--text)',
+                                callback: function(value) {
+                                    return '₦' + (value/1000).toFixed(0) + 'K';
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
     } catch (error) {
         console.error("Error loading revenue stats:", error);
         content.innerHTML = `<h2>Error</h2><div class="sub-text" style="color:var(--danger)">Failed to load revenue data: ${error.message}</div>`;
